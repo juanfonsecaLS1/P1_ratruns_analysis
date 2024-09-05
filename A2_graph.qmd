@@ -1,0 +1,108 @@
+---
+title: "Network Graph"
+---
+
+
+Libraries
+
+```{r,message=FALSE}
+#| label: libraries
+require(tidyverse)
+require(sf)
+```
+
+
+Loading the `sf` object
+```{r}
+#| label: read-sf
+sf_bogota_2019 <- st_read(file.path("sf_network","bogota_osm_network.gpkg"),layer = "network_2019")
+```
+
+
+## Building the graph
+
+### `dodgr`
+
+```{r}
+#| eval: false
+
+require(dodgr)
+
+graph_bogota <- weight_streetnet(sf_bogota_2019,
+                                 left_side = F,
+                                 wt_profile_file = "bogota_wp.json",
+                                 wt_profile = "motorcar")
+
+# graph_bogota |>
+#   dodgr_contract_graph() |>
+#   estimate_centrality_threshold(tolerance = 1e-3)
+# converged on distance threshold of 14000
+
+graph_bogota_centrality <- graph_bogota |> 
+  dodgr_deduplicate_graph() |>
+  dodgr_contract_graph() |>
+  dodgr_centrality(dist_threshold = 1.4e4)
+
+sf_network <- graph_bogota |> 
+    dodgr_to_sf ()
+```
+
+Exporting the results
+
+```{r}
+sf_net_cent <- sf_network |> left_join(
+  tibble(edge_id = graph_bogota_centrality$edge_id,
+         centrality = graph_bogota_centrality$centrality),
+  by = "edge_id")
+
+st_write(sf_net_cent,"sf_network/bogota_osm_network_cent.gpkg",delete_dsn = F,delete_layer = T,layer = "bog_cent_2019")
+```
+
+### Visualising
+
+```{r}
+road_hierarchy <- c( 
+  "trunk",
+  "trunk_link",
+  "primary",
+  "primary_link",
+  "secondary",
+  "secondary_link",
+  "tertiary",
+  "tertiary_link",
+  "residential",
+  "unclassified"
+  )
+
+urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |> 
+  st_transform(4326)
+
+mymap <- sf_net_cent[urban_perimeter,] |> 
+  mutate(highway = factor(highway,levels = road_hierarchy,ordered = T)) |> 
+  ggplot(aes(linewidth = centrality+1))+
+  geom_sf(aes(col = log(centrality)))+
+  scale_color_viridis_c(direction = -1)+
+  # scale_linewidth_manual(values = 1/rep(c(1,1.2,1.5,1.7,2),each = 2))+
+  scale_linewidth_continuous(range = c(0.05,0.3),transform = scales::transform_boxcox(p = 2))+
+  theme_void()+
+  guides(linewidth = "none",)+
+  labs(col = "Centrality (log)",
+       caption = "BC at posted speed limit")+
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.25,0.8),
+        text = element_text(family = "Roboto Condensed"),
+        legend.key.width = unit(3, "mm"))
+
+ggsave(plot = mymap,
+       filename = "bog_centrality.png",
+       dpi = 330,
+       units = "cm",
+       height = 13,
+       width = 11)
+mymap
+
+```
+
+
+
+

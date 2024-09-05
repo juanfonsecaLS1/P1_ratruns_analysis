@@ -1,0 +1,104 @@
+---
+title: "Extracting OSM network"
+---
+
+```{r,message=FALSE}
+#| label: libraries
+require(tidyverse)
+require(sf)
+```
+
+Getting urban perimeter of Bogota from the official [open data site](asd) for Bogotá
+
+```{r}
+#| label: get-perimeter
+
+dir.create("raw_data",showWarnings = F)
+
+if(!file.exists(file.path("raw_data", "perimetrourbano.gpkg"))) {
+  u <- "https://datosabiertos.bogota.gov.co/dataset/12a704ee-e5bb-4c5d-bad6-a5069d12f90a/resource/bfc61e3c-fa58-4fe7-9581-7ead66c494cb/download/perimetrourbano.gpkg"
+  download.file(u, file.path("raw_data", basename(u)), mode = "wb")
+}
+
+urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg")
+```
+
+Getting the previous versions of OpenStreetMap data for end of 2019 and 2020.
+
+```{r}
+#| label: get-osm
+
+bbox_bogota <- urban_perimeter |>
+  st_buffer(dist = 20e3) |> 
+  st_bbox() |>
+  st_as_sfc() |>
+  st_transform(crs = 4326)
+
+bog_match <- oe_match(bbox_bogota,provider = "geofabrik")
+
+u <- dirname(bog_match$url)
+f <- basename(bog_match$url)
+
+id_files <- gsub("latest\\.osm\\.pbf",replacement = "",f)
+
+files_table <- (rvest::read_html(u) |> html_table())[[1]]
+
+available_versions <- files_table$Name[grep(paste0(id_files,"\\d{6}\\.osm\\.pbf$"),files_table$Name)]
+
+net_options <- osmextract:::load_options_driving(NA_character_)
+
+net_old_200101 <- do.call(oe_read,
+                          c(file_path = paste0(u,"/",available_versions[7]),
+                            net_options[2:4]
+                     )
+                   )
+
+net_old_210101 <- do.call(oe_read,
+                          c(file_path = paste0(u,"/",available_versions[8]),
+                            net_options[2:4]
+                     )
+                   )
+```
+
+Clipping and extracting only relevant road links
+
+```{r}
+#| label: clip-clean-networks
+
+road_types <- c("tertiary"       ,
+  "residential"    ,
+  "primary_link"   ,
+  "primary"      ,
+  "secondary"      ,
+  "trunk"          ,
+  "trunk_link"     ,
+  # "service"      ,
+  "secondary_link" ,
+  "unclassified"   ,
+  "tertiary_link"  
+  # "living_street"
+  # "track"          ,
+  # "busway"         ,
+  # "raceway"
+)
+
+osm_bogota_200101 <- net_old_200101[bbox_bogota,] |>
+  filter(highway %in% road_types) |> st_transform(st_crs(urban_perimeter))
+
+osm_bogota_210101 <- net_old_210101[bbox_bogota,] |>
+  filter(highway %in% road_types) |> st_transform(st_crs(urban_perimeter))
+
+rm(net_old_200101,net_old_210101)
+```
+
+Extracting the network for the urban area and extracting the relevant road links
+
+## Save network in `sf` format
+
+```{r}
+#| label: write-sf
+dir.create("sf_network",showWarnings = F)
+st_write(osm_bogota_200101,file.path("sf_network","bogota_osm_network.gpkg"),delete_dsn = F,layer = "network_2019",delete_layer = T)
+st_write(osm_bogota_210101,file.path("sf_network","bogota_osm_network.gpkg"),delete_dsn = F,layer = "network_2020",delete_layer = T)
+```
+

@@ -1,0 +1,28 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+
+website:
+  title: "P1_ratruns_analysis"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - text: "Network procesing"
+        menu:
+          - A1_network.qmd
+          - A2_graph.qmd
+      - text: "Network procesing"
+        menu:
+          - B1_infractions.qmd
+      - about.qmd
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+

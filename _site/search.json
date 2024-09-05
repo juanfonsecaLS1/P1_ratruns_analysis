@@ -1,0 +1,93 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Rat-runs",
+    "section": "",
+    "text": "Rat-runs in Bogota\n\nNetwork data\n\nOSM\nIDECA malla vial integral\n\n\n\nInfractions data\n\n\nAssumptions:\n\nRecurring wrong-way infraction reports in residential streets is a result of rat-running\n\n\n\nHypothesis:"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "A1_network.html",
+    "href": "A1_network.html",
+    "title": "Extracting OSM network",
+    "section": "",
+    "text": "require(tidyverse)\nrequire(sf)\nGetting urban perimeter of Bogota from the official open data site for Bogotá\ndir.create(\"raw_data\",showWarnings = F)\n\nif(!file.exists(file.path(\"raw_data\", \"perimetrourbano.gpkg\"))) {\n  u &lt;- \"https://datosabiertos.bogota.gov.co/dataset/12a704ee-e5bb-4c5d-bad6-a5069d12f90a/resource/bfc61e3c-fa58-4fe7-9581-7ead66c494cb/download/perimetrourbano.gpkg\"\n  download.file(u, file.path(\"raw_data\", basename(u)), mode = \"wb\")\n}\n\nurban_perimeter &lt;- st_read(\"raw_data/perimetrourbano.gpkg\")\n\nReading layer `PerimetroUrbano' from data source \n  `C:\\Users\\ts18jpf\\OneDrive - University of Leeds\\03_PhD\\P1_Ratruns\\P1_ratruns_analysis\\raw_data\\perimetrourbano.gpkg' \n  using driver `GPKG'\n\n\nWarning in CPL_read_ogr(dsn, layer, query, as.character(options), quiet, : GDAL\nMessage 1: Non-conformant content for record 1 in column\nFECHA_ACTO_ADMINISTRATIVO, 2021-12-29T00:00:00.0Z, successfully parsed\n\n\nSimple feature collection with 3 features and 10 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -74.22358 ymin: 4.468614 xmax: -74.01206 ymax: 4.830661\nGeodetic CRS:  MAGNA-SIRGAS\nGetting OpenStreetMap data\nbbox_bogota &lt;- urban_perimeter |&gt; st_bbox() |&gt; st_as_sfc() |&gt; st_transform(crs = 4326)\n\nosm_raw &lt;- osmextract::oe_get_network(bbox_bogota,mode = \"driving\",extra_tags = c(\"lanes\",\"maxspeed\",\"oneway\",\"access\"))\n\nThe input place was matched with Colombia. \n\n\nThe chosen file was already detected in the download directory. Skip downloading.\n\n\nStarting with the vectortranslate operations on the input file!\n\n\n0...10...20...30...40...50...60...70...80...90...100 - done.\n\n\nFinished the vectortranslate operations on the input file!\n\n\nReading layer `lines' from data source \n  `C:\\Users\\ts18jpf\\Documents\\OSMEXT_downloads\\geofabrik_colombia-latest.gpkg' \n  using driver `GPKG'\nSimple feature collection with 845992 features and 14 fields\nGeometry type: LINESTRING\nDimension:     XY\nBounding box:  xmin: -81.73539 ymin: -4.258694 xmax: -66.83441 ymax: 13.57456\nGeodetic CRS:  WGS 84\n\nosm_bogota_raw &lt;- osm_raw[bbox_bogota,] \n\nosm_bogota &lt;- osm_bogota_raw |&gt; st_transform(st_crs(urban_perimeter))\n\nrm(osm_raw,osm_bogota_raw)\nExtracting the network for the urban area and extracting the relevant road links\nroad_types &lt;- c(\"tertiary\"       ,\n  \"residential\"    ,\n  \"primary_link\"   ,\n  \"primary\"      ,\n  \"secondary\"      ,\n  \"trunk\"          ,\n  \"trunk_link\"     ,\n  # \"service\"      ,\n  \"secondary_link\" ,\n  \"unclassified\"   ,\n  \"tertiary_link\"  \n  # \"living_street\"\n  # \"track\"          ,\n  # \"busway\"         ,\n  # \"raceway\"\n)\n\nbogota_hull &lt;-  urban_perimeter |&gt;\n  st_convex_hull()\n\nosm_bogota_clipped &lt;- osm_bogota[bogota_hull,] |&gt;\n  filter(highway %in% road_types)"
+  },
+  {
+    "objectID": "A1_network.html#save-network-in-sf-format",
+    "href": "A1_network.html#save-network-in-sf-format",
+    "title": "Extracting OSM network",
+    "section": "Save network in sf format",
+    "text": "Save network in sf format\n\ndir.create(\"sf_network\",showWarnings = F)\nst_write(osm_bogota_clipped,file.path(\"sf_network\",\"bogota_osm_network.gpkg\"),delete_dsn = T)\n\nDeleting source `sf_network/bogota_osm_network.gpkg' using driver `GPKG'\nWriting layer `bogota_osm_network' to data source \n  `sf_network/bogota_osm_network.gpkg' using driver `GPKG'\nWriting 52195 features with 14 fields and geometry type Line String."
+  },
+  {
+    "objectID": "A2_graph.html",
+    "href": "A2_graph.html",
+    "title": "Network Graph",
+    "section": "",
+    "text": "Libraries\nrequire(tidyverse)\nrequire(sf)\nLoading the sf object\nsf_bogota &lt;- st_read(file.path(\"sf_network\",\"bogota_osm_network.gpkg\"))\n\nReading layer `bogota_osm_network' from data source \n  `C:\\Users\\ts18jpf\\OneDrive - University of Leeds\\03_PhD\\P1_Ratruns\\P1_ratruns_analysis\\sf_network\\bogota_osm_network.gpkg' \n  using driver `GPKG'\nSimple feature collection with 52195 features and 14 fields\nGeometry type: LINESTRING\nDimension:     XY\nBounding box:  xmin: -74.23929 ymin: 4.465672 xmax: -74.01241 ymax: 4.829151\nGeodetic CRS:  MAGNA-SIRGAS"
+  },
+  {
+    "objectID": "B1_infractions.html",
+    "href": "B1_infractions.html",
+    "title": "Infraction data",
+    "section": "",
+    "text": "options(repos = c(CRAN = \"https://cloud.r-project.org\"))\nif (!require(\"remotes\")) install.packages(\"remotes\")\npkgs = c(\n    \"sf\",\n    \"tidyverse\",\n    \"tmap\",\n    \"webshot2\"\n)\nremotes::install_cran(pkgs)\nsapply(pkgs, require, character.only = TRUE)\n\n       sf tidyverse      tmap  webshot2 \n     TRUE      TRUE      TRUE      TRUE \n\ntmap_mode(\"plot\")"
+  },
+  {
+    "objectID": "B1_infractions.html#loading-infractions",
+    "href": "B1_infractions.html#loading-infractions",
+    "title": "Infraction data",
+    "section": "Loading Infractions",
+    "text": "Loading Infractions\n\nreports2019 &lt;- read_csv(\"../00_data/bogota/Comparendos_2019_Bogota_D_C.csv\",\n                        col_types = cols(\n                          X = col_double(),\n                          Y = col_double(),\n                          OBJECTID = col_double(),\n                          NUM_COMPARENDO = col_character(),\n                          FECHA_HORA = col_character(),\n                          ANO = col_double(),\n                          HORA_OCURRENCIA = col_character(),\n                          MES = col_character(),\n                          MEDIO_DETECCION = col_character(),\n                          CLASE_VEHICULO = col_character(),\n                          TIPO_SERVICIO = col_character(), \n                          INFRACCION = col_character(),\n                          DES_INFRACCION = col_character(),\n                          LOCALIDAD = col_character(),\n                          MUNICIPIO = col_character(),\n                          LATITUD = col_double(),\n                          LONGITUD = col_double(),\n                          GlobalID = col_character()\n                        ))\n\n\nreports2020 &lt;- read_csv(\"../00_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.csv\",\n                        col_types = cols(\n                          X = col_double(),\n                          Y = col_double(),\n                          FID = col_double(),\n                          OBJECTID = col_double(),\n                          FECHA_HORA = col_character(),\n                          ANO = col_double(),\n                          HORA_OCURR = col_character(),\n                          MES = col_character(),\n                          MEDIO_DETE = col_character(),\n                          CLASE_VEHI = col_character(),\n                          TIPO_SERVI = col_character(),\n                          INFRACCION = col_character(),\n                          DES_INFRAC = col_character(),\n                          MUNICIPIO = col_character(),\n                          PAIS = col_character(),\n                          LATITUD = col_double(),\n                          LONGITUD = col_double()))"
+  },
+  {
+    "objectID": "B1_infractions.html#exploring-types-of-infractions",
+    "href": "B1_infractions.html#exploring-types-of-infractions",
+    "title": "Infraction data",
+    "section": "Exploring types of infractions",
+    "text": "Exploring types of infractions\n\nreports2019 |&gt; \n  count(INFRACCION) |&gt; \n  filter(n&gt;quantile(n,0.90)) |&gt; \n  ggplot(aes(y = fct_reorder(INFRACCION,n),\n             x = n))+\n  geom_col()+\n  scale_x_continuous()\n\n\n\n\n\n\n\n\n\ncount_infractions &lt;- reports2019 |&gt; \n  count(INFRACCION,DES_INFRACCION) |&gt; \n  filter(n&gt;quantile(n,0.70)) |&gt; \n  arrange(-n)"
+  },
+  {
+    "objectID": "B1_infractions.html#wrong-way-infraction",
+    "href": "B1_infractions.html#wrong-way-infraction",
+    "title": "Infraction data",
+    "section": "Wrong way infraction",
+    "text": "Wrong way infraction\nCreating an sf object with the reports for driving in the wrong-way\n\nwrong_way_2019_sf &lt;- reports2019 |&gt;\n  filter(INFRACCION == \"D03\") |&gt; \n  select(-DES_INFRACCION) |&gt;\n  mutate(time = hms(HORA_OCURRENCIA)) |&gt; \n  st_as_sf(coords = c(\"LONGITUD\",\"LATITUD\"),crs = 4326)\n\nwrong_way_2020_sf &lt;- reports2020 |&gt;\n  filter(INFRACCION == \"D03\") |&gt; \n  select(-DES_INFRAC) |&gt; \n  mutate(time = hms(HORA_OCURR)) |&gt;\n  st_as_sf(coords = c(\"LONGITUD\",\"LATITUD\"),crs = 4326)\n\nWarning: There was 1 warning in `mutate()`.\nℹ In argument: `time = hms(HORA_OCURR)`.\nCaused by warning in `.parse_hms()`:\n! Some strings failed to parse"
+  },
+  {
+    "objectID": "B1_infractions.html#mapping-the-infractions",
+    "href": "B1_infractions.html#mapping-the-infractions",
+    "title": "Infraction data",
+    "section": "Mapping the infractions",
+    "text": "Mapping the infractions\n\n# tmap_mode(\"view\")\ntm_shape(wrong_way_2019_sf)+\n  tm_dots(\"blue\")+\ntm_shape(wrong_way_2020_sf)+\n  tm_dots(\"red\")"
+  },
+  {
+    "objectID": "B1_infractions.html#temporal-distribution",
+    "href": "B1_infractions.html#temporal-distribution",
+    "title": "Infraction data",
+    "section": "Temporal distribution",
+    "text": "Temporal distribution\n\n  ggplot(wrong_way_2019_sf,\n         aes(time))+\n  geom_density(col = \"dodgerblue3\",alpha = 0.5,linewidth = 2)+\n  geom_density(data = wrong_way_2020_sf, col = \"firebrick3\",alpha = 0.5,linewidth = 2)+\n    scale_x_time()+\n  # scale_y_continuous(labels = scales::label_percent(accuracy = 2))+\n  labs(x = \"Time\",\n       title = \"Daily profile of wrong-way driving reports\",\n       subtitle = \"blue = 2019 , red = 2020\",\n       caption = \"Showing all days\")+\n  theme_minimal()\n\nWarning: Removed 1 row containing non-finite outside the scale range\n(`stat_density()`)."
+  },
+  {
+    "objectID": "B1_infractions.html#summary-by-vehicle-type",
+    "href": "B1_infractions.html#summary-by-vehicle-type",
+    "title": "Infraction data",
+    "section": "Summary by vehicle type",
+    "text": "Summary by vehicle type\n\nwrong_way_2019_sf |&gt;\n  st_drop_geometry() |&gt; \n  mutate(veh_class = CLASE_VEHICULO |&gt;\n           str_to_lower()) |&gt; \n  count(veh_class) |&gt; \n  arrange(-n)\n\n# A tibble: 15 × 2\n   veh_class                n\n   &lt;chr&gt;                &lt;int&gt;\n 1 motocicleta           1743\n 2 automóvil              822\n 3 camioneta              277\n 4 campero                 76\n 5 bus                     29\n 6 camión                  27\n 7 micro                   17\n 8 microbus                12\n 9 buseta                   9\n10 motociclo                4\n11 tractocamión             3\n12 volqueta                 3\n13 -                        1\n14 bicicleta o triciclo     1\n15 tractocamion             1"
+  },
+  {
+    "objectID": "A2_graph.html#building-the-graph",
+    "href": "A2_graph.html#building-the-graph",
+    "title": "Network Graph",
+    "section": "Building the graph",
+    "text": "Building the graph\n\ndodgr\n\nrequire(dodgr)\n\ndodgr_bogota &lt;- weight_streetnet(sf_bogota,left_side = F)\n\n# estimate_centrality_time(dodgr_bogota,dist_threshold = 1e4)\n# estimate_centrality_threshold(dodgr_bogota_contr, tolerance = 0.001)\n# d = 110; error = 0.0410\n# d = 120; error = 0.0374\n# d = 130; error = 0.0358\n# d = 140; error = 0.0321\n# ...\n# d = 11000; error = 0.0098\n# d = 12000; error = 0.0033\n# d = 13000; error = 0.0019\n# d = 14000; error = 0.0011\n# d = 15000; error = 0.0006\n# converged on distance threshold of 15000\n# [1] 15000\n\ndodgr_contr_centrality &lt;-  dodgr_contract_graph(dodgr_bogota) |&gt; dodgr_centrality(dist_threshold = 1.5e4)\n\nsf_network &lt;- dodgr_bogota |&gt; \n    dodgr_to_sf ()"
+  }
+]

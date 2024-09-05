@@ -1,0 +1,165 @@
+---
+title: "Infraction data"
+---
+
+```{r}
+#| message: false
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "tmap",
+    "webshot2"
+)
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+
+tmap_mode("plot")
+```
+
+
+## Loading Infractions 
+
+```{r}
+#| label: reading-data
+reports2019 <- read_csv("../00_data/bogota/Comparendos_2019_Bogota_D_C.csv",
+                        col_types = cols(
+                          X = col_double(),
+                          Y = col_double(),
+                          OBJECTID = col_double(),
+                          NUM_COMPARENDO = col_character(),
+                          FECHA_HORA = col_character(),
+                          ANO = col_double(),
+                          HORA_OCURRENCIA = col_character(),
+                          MES = col_character(),
+                          MEDIO_DETECCION = col_character(),
+                          CLASE_VEHICULO = col_character(),
+                          TIPO_SERVICIO = col_character(), 
+                          INFRACCION = col_character(),
+                          DES_INFRACCION = col_character(),
+                          LOCALIDAD = col_character(),
+                          MUNICIPIO = col_character(),
+                          LATITUD = col_double(),
+                          LONGITUD = col_double(),
+                          GlobalID = col_character()
+                        ))
+```
+
+
+```{r}
+reports2020 <- read_csv("../00_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.csv",
+                        col_types = cols(
+                          X = col_double(),
+                          Y = col_double(),
+                          FID = col_double(),
+                          OBJECTID = col_double(),
+                          FECHA_HORA = col_character(),
+                          ANO = col_double(),
+                          HORA_OCURR = col_character(),
+                          MES = col_character(),
+                          MEDIO_DETE = col_character(),
+                          CLASE_VEHI = col_character(),
+                          TIPO_SERVI = col_character(),
+                          INFRACCION = col_character(),
+                          DES_INFRAC = col_character(),
+                          MUNICIPIO = col_character(),
+                          PAIS = col_character(),
+                          LATITUD = col_double(),
+                          LONGITUD = col_double()))
+
+```
+
+
+## Exploring types of infractions
+
+```{r}
+#| label: top-infractions-plot
+
+reports2019 |> 
+  count(INFRACCION) |> 
+  filter(n>quantile(n,0.90)) |> 
+  ggplot(aes(y = fct_reorder(INFRACCION,n),
+             x = n))+
+  geom_col()+
+  scale_x_continuous()
+```
+
+
+```{r}
+#| label: top-infractions-tibble
+ 
+count_infractions <- reports2019 |> 
+  count(INFRACCION,DES_INFRACCION) |> 
+  filter(n>quantile(n,0.70)) |> 
+  arrange(-n)
+```
+
+## Wrong way infraction
+
+Creating an `sf` object with the reports for driving in the wrong-way
+
+```{r}
+#| label: top-infractions-plot2
+
+wrong_way_2019_sf <- reports2019 |>
+  filter(INFRACCION == "D03") |> 
+  select(-DES_INFRACCION) |>
+  mutate(time = hms(HORA_OCURRENCIA)) |> 
+  st_as_sf(coords = c("LONGITUD","LATITUD"),crs = 4326)
+
+wrong_way_2020_sf <- reports2020 |>
+  filter(INFRACCION == "D03") |> 
+  select(-DES_INFRAC) |> 
+  mutate(time = hms(HORA_OCURR)) |>
+  st_as_sf(coords = c("LONGITUD","LATITUD"),crs = 4326)
+```
+
+## Mapping the infractions
+
+```{r}
+# tmap_mode("view")
+tm_shape(wrong_way_2019_sf)+
+  tm_dots("blue")+
+tm_shape(wrong_way_2020_sf)+
+  tm_dots("red")
+```
+
+
+
+## Temporal distribution
+
+```{r}
+  ggplot(wrong_way_2019_sf,
+         aes(time))+
+  geom_density(col = "dodgerblue3",alpha = 0.5,linewidth = 2)+
+  geom_density(data = wrong_way_2020_sf, col = "firebrick3",alpha = 0.5,linewidth = 2)+
+    scale_x_time()+
+  # scale_y_continuous(labels = scales::label_percent(accuracy = 2))+
+  labs(x = "Time",
+       title = "Daily profile of wrong-way driving reports",
+       subtitle = "blue = 2019 , red = 2020",
+       caption = "Showing all days")+
+  theme_minimal()
+```
+
+
+## Summary by vehicle type
+
+```{r}
+wrong_way_2019_sf |>
+  st_drop_geometry() |> 
+  mutate(veh_class = CLASE_VEHICULO |>
+           str_to_lower()) |> 
+  count(veh_class) |> 
+  arrange(-n)
+```
+
+```{r}
+st_write(wrong_way_2019_sf,dsn = "wwd_2019.gpkg",delete_dsn = T)
+```
+
+
+
+
+

@@ -1,0 +1,276 @@
+{
+  "weighting_profiles": [
+    {
+      "name": "motorcar",
+      "way": "motorway",
+      "value": 1,
+      "max_speed": 90
+    },
+    {
+      "name": "motorcar",
+      "way": "trunk",
+      "value": 1,
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "way": "primary",
+      "value": 1,
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "way": "secondary",
+      "value": 1,
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "way": "tertiary",
+      "value": 1,
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "way": "unclassified",
+      "value": 1,
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "way": "residential",
+      "value": 1,
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "way": "service",
+      "value": 1,
+      "max_speed": 15
+    },
+    {
+      "name": "motorcar",
+      "way": "track",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "cycleway",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "path",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "steps",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "ferry",
+      "value": 0.2
+    },
+    {
+      "name": "motorcar",
+      "way": "living_street",
+      "value": 0.4,
+      "max_speed": 10
+    },
+    {
+      "name": "motorcar",
+      "way": "bridleway",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "footway",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "pedestrian",
+      "value": 0
+    },
+    {
+      "name": "motorcar",
+      "way": "motorway_link",
+      "value": 1,
+      "max_speed": 45
+    },
+    {
+      "name": "motorcar",
+      "way": "trunk_link",
+      "value": 1,
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "way": "primary_link",
+      "value": 1,
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "way": "secondary_link",
+      "value": 1,
+      "max_speed": 25
+    },
+    {
+      "name": "motorcar",
+      "way": "tertiary_link",
+      "value": 1,
+      "max_speed": 20
+    }
+  ],
+  "surface_speeds": [
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "cement",
+      "max_speed": 80
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "compacted",
+      "max_speed": 80
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "fine_gravel",
+      "max_speed": 80
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "paving_stones",
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "metal",
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "bricks",
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "grass",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "wood",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "sett",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "grass_paver",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "gravel",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "unpaved",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "ground",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "dirt",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "pebblestone",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "tartan",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "cobblestone",
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "clay",
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "earth",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "stone",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "rocky",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "sand",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "mud",
+      "max_speed": 10
+    }
+  ],
+  "penalties": [
+    {
+      "name": "motorcar",
+      "traffic_lights": 8,
+      "turn": 7.5,
+      "restrictions": true
+    }
+  ]
+}
