@@ -14,9 +14,12 @@ website:
         menu:
           - A1_network.qmd
           - A2_graph.qmd
-      - text: "Network procesing"
+      - text: "Speed Data"
         menu:
-          - B1_infractions.qmd
+          - B1_Speed_data.qmd
+      - text: "Tickets of Traffic Offences"
+        menu:
+          - C1_infractions.qmd
       - about.qmd
 format:
   html:

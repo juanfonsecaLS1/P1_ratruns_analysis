@@ -1,14 +1,31 @@
 ---
-title: "Extracting OSM network"
+editor: 
+  markdown: 
+    wrap: 72
 ---
+# Extracting OSM networks {#sec-extrosm}
 
 ```{r,message=FALSE}
 #| label: libraries
-require(tidyverse)
-require(sf)
+#| message: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "osmextract",
+    "rvest"
+)
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
 ```
 
-Getting urban perimeter of Bogota from the official [open data site](asd) for Bogotá
+For this study, we will use
+[OpenStreetMap](https://www.openstreetmap.org/) to obtain the road
+network data. First, we will download a spatial data file with the urban
+perimeter of Bogotá from [Datos Abiertos de Bogotá (Bogotá's Open Data
+platform)](https://datosabiertos.bogota.gov.co/dataset/12a704ee-e5bb-4c5d-bad6-a5069d12f90a).
 
 ```{r}
 #| label: get-perimeter
@@ -23,18 +40,42 @@ if(!file.exists(file.path("raw_data", "perimetrourbano.gpkg"))) {
 urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg")
 ```
 
-Getting the previous versions of OpenStreetMap data for end of 2019 and 2020.
+We will use the `osmextract` package to get OSM data in R. Please note
+that we will be using previous versions of the OSM data, as the network
+might have changed in recent years. For example, some sections of the
+roads are currently closed (2024) due to the works for the first metro
+line in Bogotá. We will use OSM networks for end of 2019 (January 1st,
+2020) and 2020 (January 1st, 2021).
+
+First, we produce a boundary box for an area covering the urban
+perimeter and the neighbouring municipalities. This is done by producing
+a buffer of 20 km around Bogotá.
 
 ```{r}
-#| label: get-osm
+#| label: bbox-bog
 
 bbox_bogota <- urban_perimeter |>
   st_buffer(dist = 20e3) |> 
   st_bbox() |>
   st_as_sfc() |>
   st_transform(crs = 4326)
+```
+
+We obtain the `url` of the `pbf` file in
+[Geofabrik](https://www.geofabrik.de/) which contains the area we are
+interested in.
+
+```{r}
+#| label: osm-match
 
 bog_match <- oe_match(bbox_bogota,provider = "geofabrik")
+```
+
+The following code obtains the names of the files with the older
+versions of the OSM data and downloads the 2019 and 2020 `pbf` files.
+
+```{r}
+#| label: download-data
 
 u <- dirname(bog_match$url)
 f <- basename(bog_match$url)
@@ -43,7 +84,8 @@ id_files <- gsub("latest\\.osm\\.pbf",replacement = "",f)
 
 files_table <- (rvest::read_html(u) |> html_table())[[1]]
 
-available_versions <- files_table$Name[grep(paste0(id_files,"\\d{6}\\.osm\\.pbf$"),files_table$Name)]
+available_versions <- files_table$Name[grep(paste0(id_files,"\\d{6}\\.osm\\.pbf$"),
+                                            files_table$Name)]
 
 net_options <- osmextract:::load_options_driving(NA_character_)
 
@@ -60,7 +102,9 @@ net_old_210101 <- do.call(oe_read,
                    )
 ```
 
-Clipping and extracting only relevant road links
+Once we have downloaded the data. We can clean and clip the network by
+using the boundary box we produced and by filtering only relevant road
+links (see the `road_types` vector).
 
 ```{r}
 #| label: clip-clean-networks
@@ -91,9 +135,9 @@ osm_bogota_210101 <- net_old_210101[bbox_bogota,] |>
 rm(net_old_200101,net_old_210101)
 ```
 
-Extracting the network for the urban area and extracting the relevant road links
-
 ## Save network in `sf` format
+
+Finally, we save the `sf` objects as GeoPackages.
 
 ```{r}
 #| label: write-sf
@@ -101,4 +145,3 @@ dir.create("sf_network",showWarnings = F)
 st_write(osm_bogota_200101,file.path("sf_network","bogota_osm_network.gpkg"),delete_dsn = F,layer = "network_2019",delete_layer = T)
 st_write(osm_bogota_210101,file.path("sf_network","bogota_osm_network.gpkg"),delete_dsn = F,layer = "network_2020",delete_layer = T)
 ```
-

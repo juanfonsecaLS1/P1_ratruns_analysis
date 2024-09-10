@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.56">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -137,7 +137,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="./A2_graph.html">
- <span class="dropdown-text">Network Graph</span></a>
+ <span class="dropdown-text">Baseline Network Graph</span></a>
   </li>  
     </ul>
   </li>
@@ -387,6 +387,14 @@ Caused by warning in `.parse_hms()`:
 13 -                        1
 14 bicicleta o triciclo     1
 15 tractocamion             1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(wrong_way_2019_sf,<span class="at">dsn =</span> <span class="st">"wwd_2019.gpkg"</span>,<span class="at">delete_dsn =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Deleting source `wwd_2019.gpkg' using driver `GPKG'
+Writing layer `wwd_2019' to data source `wwd_2019.gpkg' using driver `GPKG'
+Writing 3025 features with 16 fields and geometry type Point.</code></pre>
 </div>
 </div>
 

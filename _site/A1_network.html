@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.56">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Extracting OSM network – P1_ratruns_analysis</title>
+<title>a1_network – P1_ratruns_analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -133,21 +133,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <ul class="dropdown-menu" aria-labelledby="nav-menu-network-procesing">    
         <li>
     <a class="dropdown-item" href="./A1_network.html">
- <span class="dropdown-text">Extracting OSM network</span></a>
+ <span class="dropdown-text">Extracting OSM networks</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./A2_graph.html">
- <span class="dropdown-text">Network Graph</span></a>
+ <span class="dropdown-text">Baseline Network Graph</span></a>
   </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-network-procesing-1" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Network procesing</span>
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-speed-data" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Speed Data</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-network-procesing-1">    
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-speed-data">    
+        <li class="dropdown-header">B1_Speed_data.qmd</li>
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tickets-of-traffic-offences" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tickets of Traffic Offences</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tickets-of-traffic-offences">    
         <li>
-    <a class="dropdown-item" href="./B1_infractions.html">
+    <a class="dropdown-item" href="./C1_infractions.html">
  <span class="dropdown-text">Infraction data</span></a>
   </li>  
     </ul>
@@ -172,46 +180,47 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#save-network-in-sf-format" id="toc-save-network-in-sf-format" class="nav-link active" data-scroll-target="#save-network-in-sf-format">Save network in <code>sf</code> format</a></li>
+  <li><a href="#sec-extrosm" id="toc-sec-extrosm" class="nav-link active" data-scroll-target="#sec-extrosm">Extracting OSM networks</a>
+  <ul class="collapse">
+  <li><a href="#save-network-in-sf-format" id="toc-save-network-in-sf-format" class="nav-link" data-scroll-target="#save-network-in-sf-format">Save network in <code>sf</code> format</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Extracting OSM network</h1>
-</div>
 
 
 
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
+<section id="sec-extrosm" class="level1">
+<h1>Extracting OSM networks</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repos =</span> <span class="fu">c</span>(<span class="at">CRAN =</span> <span class="st">"https://cloud.r-project.org"</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"remotes"</span>)) <span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pkgs <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"sf"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tidyverse"</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"osmextract"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rvest"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_cran</span>(pkgs)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(pkgs, require, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        sf  tidyverse osmextract      rvest 
+      TRUE       TRUE       TRUE       TRUE </code></pre>
 </div>
-<p>Getting urban perimeter of Bogota from the official <a href="asd">open data site</a> for Bogotá</p>
+</div>
+<p>For this study, we will use <a href="https://www.openstreetmap.org/">OpenStreetMap</a> to obtain the road network data. First, we will download a spatial data file with the urban perimeter of Bogotá from <a href="https://datosabiertos.bogota.gov.co/dataset/12a704ee-e5bb-4c5d-bad6-a5069d12f90a">Datos Abiertos de Bogotá (Bogotá’s Open Data platform)</a>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"raw_data"</span>,<span class="at">showWarnings =</span> F)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="st">"perimetrourbano.gpkg"</span>))) {</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="st">"https://datosabiertos.bogota.gov.co/dataset/12a704ee-e5bb-4c5d-bad6-a5069d12f90a/resource/bfc61e3c-fa58-4fe7-9581-7ead66c494cb/download/perimetrourbano.gpkg"</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(u, <span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="fu">basename</span>(u)), <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>urban_perimeter <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"raw_data/perimetrourbano.gpkg"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"raw_data"</span>,<span class="at">showWarnings =</span> F)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="st">"perimetrourbano.gpkg"</span>))) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="st">"https://datosabiertos.bogota.gov.co/dataset/12a704ee-e5bb-4c5d-bad6-a5069d12f90a/resource/bfc61e3c-fa58-4fe7-9581-7ead66c494cb/download/perimetrourbano.gpkg"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(u, <span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="fu">basename</span>(u)), <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>urban_perimeter <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"raw_data/perimetrourbano.gpkg"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `PerimetroUrbano' from data source 
   `C:\Users\ts18jpf\OneDrive - University of Leeds\03_PhD\P1_Ratruns\P1_ratruns_analysis\raw_data\perimetrourbano.gpkg' 
@@ -230,14 +239,41 @@ Bounding box:  xmin: -74.22358 ymin: 4.468614 xmax: -74.01206 ymax: 4.830661
 Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 </div>
 </div>
-<p>Getting OpenStreetMap data</p>
+<p>We will use the <code>osmextract</code> package to get OSM data in R. Please note that we will be using previous versions of the OSM data, as the network might have changed in recent years. For example, some sections of the roads are currently closed (2024) due to the works for the first metro line in Bogotá. We will use OSM networks for end of 2019 (January 1st, 2020) and 2020 (January 1st, 2021).</p>
+<p>First, we produce a boundary box for an area covering the urban perimeter and the neighbouring municipalities. This is done by producing a buffer of 20 km around Bogotá.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bbox_bogota <span class="ot">&lt;-</span> urban_perimeter <span class="sc">|&gt;</span> <span class="fu">st_bbox</span>() <span class="sc">|&gt;</span> <span class="fu">st_as_sfc</span>() <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">4326</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>osm_raw <span class="ot">&lt;-</span> osmextract<span class="sc">::</span><span class="fu">oe_get_network</span>(bbox_bogota,<span class="at">mode =</span> <span class="st">"driving"</span>,<span class="at">extra_tags =</span> <span class="fu">c</span>(<span class="st">"lanes"</span>,<span class="st">"maxspeed"</span>,<span class="st">"oneway"</span>,<span class="st">"access"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bbox_bogota <span class="ot">&lt;-</span> urban_perimeter <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_buffer</span>(<span class="at">dist =</span> <span class="fl">20e3</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_bbox</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sfc</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">4326</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We obtain the <code>url</code> of the <code>pbf</code> file in <a href="https://www.geofabrik.de/">Geofabrik</a> which contains the area we are interested in.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>bog_match <span class="ot">&lt;-</span> <span class="fu">oe_match</span>(bbox_bogota,<span class="at">provider =</span> <span class="st">"geofabrik"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>The input place was matched with Colombia. </code></pre>
 </div>
+</div>
+<p>The following code obtains the names of the files with the older versions of the OSM data and downloads the 2019 and 2020 <code>pbf</code> files.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">dirname</span>(bog_match<span class="sc">$</span>url)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="fu">basename</span>(bog_match<span class="sc">$</span>url)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>id_files <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"latest</span><span class="sc">\\</span><span class="st">.osm</span><span class="sc">\\</span><span class="st">.pbf"</span>,<span class="at">replacement =</span> <span class="st">""</span>,f)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>files_table <span class="ot">&lt;-</span> (rvest<span class="sc">::</span><span class="fu">read_html</span>(u) <span class="sc">|&gt;</span> <span class="fu">html_table</span>())[[<span class="dv">1</span>]]</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>available_versions <span class="ot">&lt;-</span> files_table<span class="sc">$</span>Name[<span class="fu">grep</span>(<span class="fu">paste0</span>(id_files,<span class="st">"</span><span class="sc">\\</span><span class="st">d{6}</span><span class="sc">\\</span><span class="st">.osm</span><span class="sc">\\</span><span class="st">.pbf$"</span>),</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                                            files_table<span class="sc">$</span>Name)]</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>net_options <span class="ot">&lt;-</span> osmextract<span class="sc">:::</span><span class="fu">load_options_driving</span>(<span class="cn">NA_character_</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>net_old_200101 <span class="ot">&lt;-</span> <span class="fu">do.call</span>(oe_read,</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">c</span>(<span class="at">file_path =</span> <span class="fu">paste0</span>(u,<span class="st">"/"</span>,available_versions[<span class="dv">7</span>]),</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>                            net_options[<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>                     )</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>                   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>The chosen file was already detected in the download directory. Skip downloading.</code></pre>
 </div>
@@ -252,59 +288,90 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `lines' from data source 
-  `C:\Users\ts18jpf\Documents\OSMEXT_downloads\geofabrik_colombia-latest.gpkg' 
+  `C:\Users\ts18jpf\Documents\OSMEXT_downloads\geofabrik_colombia-200101.gpkg' 
   using driver `GPKG'
-Simple feature collection with 845992 features and 14 fields
+Simple feature collection with 461429 features and 11 fields
 Geometry type: LINESTRING
 Dimension:     XY
-Bounding box:  xmin: -81.73539 ymin: -4.258694 xmax: -66.83441 ymax: 13.57456
+Bounding box:  xmin: -81.73539 ymin: -4.259884 xmax: -66.83441 ymax: 13.38586
 Geodetic CRS:  WGS 84</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>osm_bogota_raw <span class="ot">&lt;-</span> osm_raw[bbox_bogota,] </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>osm_bogota <span class="ot">&lt;-</span> osm_bogota_raw <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(urban_perimeter))</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(osm_raw,osm_bogota_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>net_old_210101 <span class="ot">&lt;-</span> <span class="fu">do.call</span>(oe_read,</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">c</span>(<span class="at">file_path =</span> <span class="fu">paste0</span>(u,<span class="st">"/"</span>,available_versions[<span class="dv">8</span>]),</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                            net_options[<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                     )</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The chosen file was already detected in the download directory. Skip downloading.
+Starting with the vectortranslate operations on the input file!</code></pre>
 </div>
-<p>Extracting the network for the urban area and extracting the relevant road links</p>
+<div class="cell-output cell-output-stdout">
+<pre><code>0...10...20...30...40...50...60...70...80...90...100 - done.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Finished the vectortranslate operations on the input file!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `lines' from data source 
+  `C:\Users\ts18jpf\Documents\OSMEXT_downloads\geofabrik_colombia-210101.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 650682 features and 11 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: -81.73539 ymin: -4.259656 xmax: -66.83441 ymax: 13.38586
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+</div>
+<p>Once we have downloaded the data. We can clean and clip the network by using the boundary box we produced and by filtering only relevant road links (see the <code>road_types</code> vector).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>road_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"tertiary"</span>       ,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"residential"</span>    ,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"primary_link"</span>   ,</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"primary"</span>      ,</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"secondary"</span>      ,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"trunk"</span>          ,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"trunk_link"</span>     ,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "service"      ,</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"secondary_link"</span> ,</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"unclassified"</span>   ,</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tertiary_link"</span>  </span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "living_street"</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "track"          ,</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "busway"         ,</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "raceway"</span></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>bogota_hull <span class="ot">&lt;-</span>  urban_perimeter <span class="sc">|&gt;</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_convex_hull</span>()</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>osm_bogota_clipped <span class="ot">&lt;-</span> osm_bogota[bogota_hull,] <span class="sc">|&gt;</span></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(highway <span class="sc">%in%</span> road_types)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>road_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"tertiary"</span>       ,</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"residential"</span>    ,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"primary_link"</span>   ,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"primary"</span>      ,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"secondary"</span>      ,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"trunk"</span>          ,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"trunk_link"</span>     ,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "service"      ,</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"secondary_link"</span> ,</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"unclassified"</span>   ,</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tertiary_link"</span>  </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "living_street"</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "track"          ,</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "busway"         ,</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># "raceway"</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>osm_bogota_200101 <span class="ot">&lt;-</span> net_old_200101[bbox_bogota,] <span class="sc">|&gt;</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(highway <span class="sc">%in%</span> road_types) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(urban_perimeter))</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>osm_bogota_210101 <span class="ot">&lt;-</span> net_old_210101[bbox_bogota,] <span class="sc">|&gt;</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(highway <span class="sc">%in%</span> road_types) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(urban_perimeter))</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(net_old_200101,net_old_210101)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="save-network-in-sf-format" class="level2">
 <h2 class="anchored" data-anchor-id="save-network-in-sf-format">Save network in <code>sf</code> format</h2>
+<p>Finally, we save the <code>sf</code> objects as GeoPackages.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"sf_network"</span>,<span class="at">showWarnings =</span> F)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_clipped,<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),<span class="at">delete_dsn =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"sf_network"</span>,<span class="at">showWarnings =</span> F)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_200101,<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),<span class="at">delete_dsn =</span> F,<span class="at">layer =</span> <span class="st">"network_2019"</span>,<span class="at">delete_layer =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Deleting source `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
-Writing layer `bogota_osm_network' to data source 
+<pre><code>Deleting layer `network_2019' using driver `GPKG'
+Writing layer `network_2019' to data source 
   `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
-Writing 52195 features with 14 fields and geometry type Line String.</code></pre>
+Writing 54531 features with 11 fields and geometry type Line String.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_210101,<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),<span class="at">delete_dsn =</span> F,<span class="at">layer =</span> <span class="st">"network_2020"</span>,<span class="at">delete_layer =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Deleting layer `network_2020' using driver `GPKG'
+Writing layer `network_2020' to data source 
+  `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
+Writing 62166 features with 11 fields and geometry type Line String.</code></pre>
 </div>
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

@@ -126,7 +126,6 @@ tm_shape(wrong_way_2020_sf)+
 ```
 
 
-
 ## Temporal distribution
 
 ```{r}
