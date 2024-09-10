@@ -51,3 +51,14 @@ rsconnect/
 /.quarto/
 
 *.gpkg
+
+
+raw_data/
+raw_data/*
+
+
+# Site 
+_site/
+_site/*
+
+
