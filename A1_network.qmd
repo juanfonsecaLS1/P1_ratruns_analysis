@@ -89,6 +89,8 @@ available_versions <- files_table$Name[grep(paste0(id_files,"\\d{6}\\.osm\\.pbf$
 
 net_options <- osmextract:::load_options_driving(NA_character_)
 
+net_options$extra_tags <- c("oneway","lanes","surface","maxspeed",net_options$extra_tags)
+
 net_old_200101 <- do.call(oe_read,
                           c(file_path = paste0(u,"/",available_versions[7]),
                             net_options[2:4]
@@ -141,7 +143,17 @@ Finally, we save the `sf` objects as GeoPackages.
 
 ```{r}
 #| label: write-sf
+
 dir.create("sf_network",showWarnings = F)
-st_write(osm_bogota_200101,file.path("sf_network","bogota_osm_network.gpkg"),delete_dsn = F,layer = "network_2019",delete_layer = T)
-st_write(osm_bogota_210101,file.path("sf_network","bogota_osm_network.gpkg"),delete_dsn = F,layer = "network_2020",delete_layer = T)
+st_write(osm_bogota_200101,
+         file.path("sf_network","bogota_osm_network.gpkg"),
+         delete_dsn = F,
+         layer = "network_2019",
+         delete_layer = T)
+st_write(osm_bogota_210101,
+         file.path("sf_network","bogota_osm_network.gpkg"),
+         delete_dsn = F,
+         layer = "network_2020",
+         delete_layer = T)
 ```
+

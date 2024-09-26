@@ -11,11 +11,7 @@ title: "Rat-runs"
 -  IDECA malla vial integral
 
 
-
-
 ### Infractions data
-
-
 
 
 ### Assumptions:

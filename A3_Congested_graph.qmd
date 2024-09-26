@@ -1,0 +1,29 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+# Congested Network {#sec-congnet}
+
+```{r,message=FALSE}
+#| label: libraries
+#| message: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse"
+    # "dodgr"
+)
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+
+require(dodgr)
+```
+
+
+
+
+
+

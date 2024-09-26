@@ -16,10 +16,14 @@ website:
           - A2_graph.qmd
       - text: "Speed Data"
         menu:
-          - B1_Speed_data.qmd
+          - B1_speed_data.qmd
+          - B2_congestion_data.qmd
       - text: "Tickets of Traffic Offences"
         menu:
           - C1_infractions.qmd
+      - text: "Tests"
+        menu:
+          - D1_graph_centrality_tests.qmd
       - about.qmd
 format:
   html:

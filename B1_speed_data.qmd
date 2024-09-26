@@ -1,3 +1,9 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
 # Speed Data Processing
 
 ```{r,message=FALSE}
@@ -151,6 +157,8 @@ clean_data[,DAY_TYPE := fcase(
 The following code extracts the 94th percentile of the speeds in each road link.
 
 ```{r}
+#| label: calc-maxspeeds
+
 max_speeds <- clean_data[,
                              .(p94_speed = quantile(VEL_PROMEDIO,
                                                        0.94,
@@ -161,12 +169,16 @@ max_speeds <- clean_data[,
 Now, we calculate the median hourly speed for each road link by day type and road link.
 
 ```{r}
-summary_speeds <- clean_data[,
-                             .(median_speed = median(VEL_PROMEDIO,
-                                                     na.rm = T)),
-                             by =  c("TID","HORA","DAY_TYPE","YEAR")]
-```
+#| label: calc-summary-data
 
+summary_speeds <- clean_data[, as.list(summary(VEL_PROMEDIO)),
+  by = .(TID, HORA, DAY_TYPE, YEAR)]
+
+setnames(summary_speeds,
+         old = c("Min.","1st Qu.","Median","Mean","3rd Qu.","Max."),
+         new = c("d_min_speed","d_q1_speed","d_median_speed","d_mean_speed","d_q3_speed","d_max_speed"))
+
+```
 
 Now we normalise the values by dividing by the 95th-percentile speed
 
@@ -174,9 +186,30 @@ Now we normalise the values by dividing by the 95th-percentile speed
 norm_summary_spd <- merge(summary_speeds,
                           max_speeds,
                           by = c("TID","YEAR"))[,
-                                                norm_speed := median_speed/p94_speed
+                                                d_norm_speed := d_median_speed/p94_speed
                                                 ]
 ```
+
+
+
+```{r}
+#| label: save-summary
+#| eval: false
+
+fwrite(norm_summary_spd,file = "sf_network/summary_speeds.csv")
+
+```
+
+```{r}
+#| label: read-summary
+#| eval: false
+#| include: false
+
+norm_summary_spd <- fread(file = "sf_network/summary_speeds.csv")
+
+```
+
+
 
 ## Some visualisations of speed distribution:
 
@@ -185,7 +218,7 @@ norm_summary_spd <- merge(summary_speeds,
 #### Normalised speed
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = norm_speed))+
+  ggplot(aes(x = HORA,y = d_norm_speed))+
   geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
   geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
@@ -207,7 +240,7 @@ norm_summary_spd |>
 #### Absolute speed
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = median_speed))+
+  ggplot(aes(x = HORA,y = d_median_speed))+
   geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
   geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
@@ -232,7 +265,7 @@ norm_summary_spd |>
 
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = norm_speed))+
+  ggplot(aes(x = HORA,y = d_norm_speed))+
   # geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
   # geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
@@ -259,7 +292,7 @@ norm_summary_spd |>
 
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = median_speed))+
+  ggplot(aes(x = HORA,y = d_median_speed))+
   # geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
   # geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
@@ -288,7 +321,7 @@ Median overall speed profile
 
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = norm_speed))+
+  ggplot(aes(x = HORA,y = d_norm_speed))+
   # geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
   # geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
@@ -309,7 +342,6 @@ norm_summary_spd |>
         panel.grid.minor = element_blank(),
         legend.position = "top")
 ```
-
 
 
 ## Spatial data
@@ -372,7 +404,19 @@ sf_oct2020 <- st_read(
 
 sf_speed <- bind_rows(sf_feb2019,sf_oct2020)
 rm(sf_feb2019,sf_oct2020)
+gc()
+
 ```
+
+Saving the network
+
+```{r}
+#| label: save-speed-network
+
+st_write(sf_speed,dsn = "sf_network/sf_speed_network.gpkg",delete_dsn = T)
+
+```
+
 
 
 ```{r}
@@ -391,18 +435,11 @@ sf_speed[urban_perimeter,] |>
   ggplot()+
   geom_sf(aes(col = p94_speed),linewidth = 0.3,alpha = 0.7)+
   scale_color_gradientn(colours = paletteer_c("grDevices::Plasma", 30))+
-  theme_void()
+  theme_void()+
+  facet_grid(.~YEAR)
 
 ```
 
 
 
-
-- Calculate summary statistics per link, take a sample of links to visualise
-
-
-- Detect peak hours (based on lower speeds)
-
-
-- Download google data for free flow and congested times
 

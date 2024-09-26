@@ -11,11 +11,13 @@ options(repos = c(CRAN = "https://cloud.r-project.org"))
 if (!require("remotes")) install.packages("remotes")
 pkgs = c(
     "sf",
-    "tidyverse",
-    "dodgr"
+    "tidyverse"
+    # "dodgr" # Using the developer version of dodgr
 )
 remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
+
+require(dodgr)
 ```
 
 
@@ -42,7 +44,8 @@ distance threshold is applied based on an maximum error of `0.001`.
 graph_bogota <- weight_streetnet(sf_bogota_2019,
                                  left_side = F,
                                  wt_profile_file = "bogota_wp.json",
-                                 wt_profile = "motorcar")
+                                 wt_profile = "motorcar",
+                                 keep_cols = c("oneway","lanes","surface","maxspeed"))
 
 # graph_bogota |>
 #   dodgr_contract_graph() |>
@@ -52,7 +55,8 @@ graph_bogota <- weight_streetnet(sf_bogota_2019,
 graph_bogota_centrality <- graph_bogota |> 
   dodgr_deduplicate_graph() |>
   dodgr_contract_graph() |>
-  dodgr_centrality(dist_threshold = 1.4e4)
+  dodgr_centrality(dist_threshold = 1.4e4,
+                   column = "time_weighted")
 
 sf_network <- graph_bogota |> 
     dodgr_to_sf ()
@@ -113,7 +117,6 @@ road_hierarchy <- c(
   "unclassified"
   )
 
-
 mymap <- sf_net_cent[urban_perimeter,] |> 
   mutate(highway = factor(highway,levels = road_hierarchy,ordered = T)) |> 
   ggplot(aes(linewidth = centrality+1))+
@@ -140,6 +143,9 @@ mymap <- sf_net_cent[urban_perimeter,] |>
 mymap
 
 ```
+
+
+
 
 
 

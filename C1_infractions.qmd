@@ -1,6 +1,10 @@
 ---
-title: "Infraction data"
+editor: 
+  markdown: 
+    wrap: 72
 ---
+
+# Ticket Data
 
 ```{r}
 #| message: false
@@ -18,8 +22,7 @@ sapply(pkgs, require, character.only = TRUE)
 tmap_mode("plot")
 ```
 
-
-## Loading Infractions 
+## Loading Infractions
 
 ```{r}
 #| label: reading-data
@@ -46,7 +49,6 @@ reports2019 <- read_csv("../00_data/bogota/Comparendos_2019_Bogota_D_C.csv",
                         ))
 ```
 
-
 ```{r}
 reports2020 <- read_csv("../00_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.csv",
                         col_types = cols(
@@ -70,7 +72,6 @@ reports2020 <- read_csv("../00_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.
 
 ```
 
-
 ## Exploring types of infractions
 
 ```{r}
@@ -84,7 +85,6 @@ reports2019 |>
   geom_col()+
   scale_x_continuous()
 ```
-
 
 ```{r}
 #| label: top-infractions-tibble
@@ -125,7 +125,6 @@ tm_shape(wrong_way_2020_sf)+
   tm_dots("red")
 ```
 
-
 ## Temporal distribution
 
 ```{r}
@@ -142,7 +141,6 @@ tm_shape(wrong_way_2020_sf)+
   theme_minimal()
 ```
 
-
 ## Summary by vehicle type
 
 ```{r}
@@ -157,8 +155,3 @@ wrong_way_2019_sf |>
 ```{r}
 st_write(wrong_way_2019_sf,dsn = "wwd_2019.gpkg",delete_dsn = T)
 ```
-
-
-
-
-

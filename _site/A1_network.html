@@ -146,7 +146,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Speed Data</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-speed-data">    
-        <li class="dropdown-header">B1_Speed_data.qmd</li>
+        <li>
+    <a class="dropdown-item" href="./B1_speed_data.html">
+ <span class="dropdown-text">Speed Data Processing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./B2_congestion_data.html">
+ <span class="dropdown-text">Congestion Data</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -156,7 +163,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <ul class="dropdown-menu" aria-labelledby="nav-menu-tickets-of-traffic-offences">    
         <li>
     <a class="dropdown-item" href="./C1_infractions.html">
- <span class="dropdown-text">Infraction data</span></a>
+ <span class="dropdown-text">Ticket Data</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tests" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Tests</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-tests">    
+        <li>
+    <a class="dropdown-item" href="./D1_graph_centrality_tests.html">
+ <span class="dropdown-text">Graph Centrlity Tests</span></a>
   </li>  
     </ul>
   </li>
@@ -269,11 +287,13 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>net_options <span class="ot">&lt;-</span> osmextract<span class="sc">:::</span><span class="fu">load_options_driving</span>(<span class="cn">NA_character_</span>)</span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>net_old_200101 <span class="ot">&lt;-</span> <span class="fu">do.call</span>(oe_read,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">c</span>(<span class="at">file_path =</span> <span class="fu">paste0</span>(u,<span class="st">"/"</span>,available_versions[<span class="dv">7</span>]),</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>                            net_options[<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>                     )</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>                   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>net_options<span class="sc">$</span>extra_tags <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"oneway"</span>,<span class="st">"lanes"</span>,<span class="st">"surface"</span>,<span class="st">"maxspeed"</span>,net_options<span class="sc">$</span>extra_tags)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>net_old_200101 <span class="ot">&lt;-</span> <span class="fu">do.call</span>(oe_read,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">c</span>(<span class="at">file_path =</span> <span class="fu">paste0</span>(u,<span class="st">"/"</span>,available_versions[<span class="dv">7</span>]),</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>                            net_options[<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>                     )</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>                   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>The chosen file was already detected in the download directory. Skip downloading.</code></pre>
 </div>
@@ -290,7 +310,7 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <pre><code>Reading layer `lines' from data source 
   `C:\Users\ts18jpf\Documents\OSMEXT_downloads\geofabrik_colombia-200101.gpkg' 
   using driver `GPKG'
-Simple feature collection with 461429 features and 11 fields
+Simple feature collection with 461429 features and 15 fields
 Geometry type: LINESTRING
 Dimension:     XY
 Bounding box:  xmin: -81.73539 ymin: -4.259884 xmax: -66.83441 ymax: 13.38586
@@ -315,7 +335,7 @@ Starting with the vectortranslate operations on the input file!</code></pre>
 <pre><code>Reading layer `lines' from data source 
   `C:\Users\ts18jpf\Documents\OSMEXT_downloads\geofabrik_colombia-210101.gpkg' 
   using driver `GPKG'
-Simple feature collection with 650682 features and 11 fields
+Simple feature collection with 650682 features and 15 fields
 Geometry type: LINESTRING
 Dimension:     XY
 Bounding box:  xmin: -81.73539 ymin: -4.259656 xmax: -66.83441 ymax: 13.38586
@@ -354,19 +374,27 @@ Geodetic CRS:  WGS 84</code></pre>
 <p>Finally, we save the <code>sf</code> objects as GeoPackages.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"sf_network"</span>,<span class="at">showWarnings =</span> F)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_200101,<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),<span class="at">delete_dsn =</span> F,<span class="at">layer =</span> <span class="st">"network_2019"</span>,<span class="at">delete_layer =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_200101,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>         <span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">delete_dsn =</span> F,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">layer =</span> <span class="st">"network_2019"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">delete_layer =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Deleting layer `network_2019' using driver `GPKG'
 Writing layer `network_2019' to data source 
   `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
-Writing 54531 features with 11 fields and geometry type Line String.</code></pre>
+Writing 54531 features with 15 fields and geometry type Line String.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_210101,<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),<span class="at">delete_dsn =</span> F,<span class="at">layer =</span> <span class="st">"network_2020"</span>,<span class="at">delete_layer =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_210101,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">delete_dsn =</span> F,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">layer =</span> <span class="st">"network_2020"</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">delete_layer =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Deleting layer `network_2020' using driver `GPKG'
 Writing layer `network_2020' to data source 
   `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
-Writing 62166 features with 11 fields and geometry type Line String.</code></pre>
+Writing 62166 features with 15 fields and geometry type Line String.</code></pre>
 </div>
 </div>
 

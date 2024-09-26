@@ -1,0 +1,512 @@
+{
+  "weighting_profiles": [
+    {
+      "name": "motorcar",
+      "way": "road_1",
+      "value": 1,
+      "max_speed": 1
+    },
+    {
+      "name": "motorcar",
+      "way": "road_2",
+      "value": 1,
+      "max_speed": 2
+    },
+    {
+      "name": "motorcar",
+      "way": "road_3",
+      "value": 1,
+      "max_speed": 3
+    },
+    {
+      "name": "motorcar",
+      "way": "road_4",
+      "value": 1,
+      "max_speed": 4
+    },
+    {
+      "name": "motorcar",
+      "way": "road_5",
+      "value": 1,
+      "max_speed": 5
+    },
+    {
+      "name": "motorcar",
+      "way": "road_6",
+      "value": 1,
+      "max_speed": 6
+    },
+    {
+      "name": "motorcar",
+      "way": "road_7",
+      "value": 1,
+      "max_speed": 7
+    },
+    {
+      "name": "motorcar",
+      "way": "road_8",
+      "value": 1,
+      "max_speed": 8
+    },
+    {
+      "name": "motorcar",
+      "way": "road_9",
+      "value": 1,
+      "max_speed": 9
+    },
+    {
+      "name": "motorcar",
+      "way": "road_10",
+      "value": 1,
+      "max_speed": 10
+    },
+    {
+      "name": "motorcar",
+      "way": "road_11",
+      "value": 1,
+      "max_speed": 11
+    },
+    {
+      "name": "motorcar",
+      "way": "road_12",
+      "value": 1,
+      "max_speed": 12
+    },
+    {
+      "name": "motorcar",
+      "way": "road_13",
+      "value": 1,
+      "max_speed": 13
+    },
+    {
+      "name": "motorcar",
+      "way": "road_14",
+      "value": 1,
+      "max_speed": 14
+    },
+    {
+      "name": "motorcar",
+      "way": "road_15",
+      "value": 1,
+      "max_speed": 15
+    },
+    {
+      "name": "motorcar",
+      "way": "road_16",
+      "value": 1,
+      "max_speed": 16
+    },
+    {
+      "name": "motorcar",
+      "way": "road_17",
+      "value": 1,
+      "max_speed": 17
+    },
+    {
+      "name": "motorcar",
+      "way": "road_18",
+      "value": 1,
+      "max_speed": 18
+    },
+    {
+      "name": "motorcar",
+      "way": "road_19",
+      "value": 1,
+      "max_speed": 19
+    },
+    {
+      "name": "motorcar",
+      "way": "road_20",
+      "value": 1,
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "way": "road_21",
+      "value": 1,
+      "max_speed": 21
+    },
+    {
+      "name": "motorcar",
+      "way": "road_22",
+      "value": 1,
+      "max_speed": 22
+    },
+    {
+      "name": "motorcar",
+      "way": "road_23",
+      "value": 1,
+      "max_speed": 23
+    },
+    {
+      "name": "motorcar",
+      "way": "road_24",
+      "value": 1,
+      "max_speed": 24
+    },
+    {
+      "name": "motorcar",
+      "way": "road_25",
+      "value": 1,
+      "max_speed": 25
+    },
+    {
+      "name": "motorcar",
+      "way": "road_26",
+      "value": 1,
+      "max_speed": 26
+    },
+    {
+      "name": "motorcar",
+      "way": "road_27",
+      "value": 1,
+      "max_speed": 27
+    },
+    {
+      "name": "motorcar",
+      "way": "road_28",
+      "value": 1,
+      "max_speed": 28
+    },
+    {
+      "name": "motorcar",
+      "way": "road_29",
+      "value": 1,
+      "max_speed": 29
+    },
+    {
+      "name": "motorcar",
+      "way": "road_30",
+      "value": 1,
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "way": "road_31",
+      "value": 1,
+      "max_speed": 31
+    },
+    {
+      "name": "motorcar",
+      "way": "road_32",
+      "value": 1,
+      "max_speed": 32
+    },
+    {
+      "name": "motorcar",
+      "way": "road_33",
+      "value": 1,
+      "max_speed": 33
+    },
+    {
+      "name": "motorcar",
+      "way": "road_34",
+      "value": 1,
+      "max_speed": 34
+    },
+    {
+      "name": "motorcar",
+      "way": "road_35",
+      "value": 1,
+      "max_speed": 35
+    },
+    {
+      "name": "motorcar",
+      "way": "road_36",
+      "value": 1,
+      "max_speed": 36
+    },
+    {
+      "name": "motorcar",
+      "way": "road_37",
+      "value": 1,
+      "max_speed": 37
+    },
+    {
+      "name": "motorcar",
+      "way": "road_38",
+      "value": 1,
+      "max_speed": 38
+    },
+    {
+      "name": "motorcar",
+      "way": "road_39",
+      "value": 1,
+      "max_speed": 39
+    },
+    {
+      "name": "motorcar",
+      "way": "road_40",
+      "value": 1,
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "way": "road_41",
+      "value": 1,
+      "max_speed": 41
+    },
+    {
+      "name": "motorcar",
+      "way": "road_42",
+      "value": 1,
+      "max_speed": 42
+    },
+    {
+      "name": "motorcar",
+      "way": "road_43",
+      "value": 1,
+      "max_speed": 43
+    },
+    {
+      "name": "motorcar",
+      "way": "road_44",
+      "value": 1,
+      "max_speed": 44
+    },
+    {
+      "name": "motorcar",
+      "way": "road_45",
+      "value": 1,
+      "max_speed": 45
+    },
+    {
+      "name": "motorcar",
+      "way": "road_46",
+      "value": 1,
+      "max_speed": 46
+    },
+    {
+      "name": "motorcar",
+      "way": "road_47",
+      "value": 1,
+      "max_speed": 47
+    },
+    {
+      "name": "motorcar",
+      "way": "road_48",
+      "value": 1,
+      "max_speed": 48
+    },
+    {
+      "name": "motorcar",
+      "way": "road_49",
+      "value": 1,
+      "max_speed": 49
+    },
+    {
+      "name": "motorcar",
+      "way": "road_50",
+      "value": 1,
+      "max_speed": 50
+    },
+    {
+      "name": "motorcar",
+      "way": "road_51",
+      "value": 1,
+      "max_speed": 51
+    },
+    {
+      "name": "motorcar",
+      "way": "road_52",
+      "value": 1,
+      "max_speed": 52
+    },
+    {
+      "name": "motorcar",
+      "way": "road_53",
+      "value": 1,
+      "max_speed": 53
+    },
+    {
+      "name": "motorcar",
+      "way": "road_54",
+      "value": 1,
+      "max_speed": 54
+    },
+    {
+      "name": "motorcar",
+      "way": "road_55",
+      "value": 1,
+      "max_speed": 55
+    },
+    {
+      "name": "motorcar",
+      "way": "road_56",
+      "value": 1,
+      "max_speed": 56
+    },
+    {
+      "name": "motorcar",
+      "way": "road_57",
+      "value": 1,
+      "max_speed": 57
+    },
+    {
+      "name": "motorcar",
+      "way": "road_58",
+      "value": 1,
+      "max_speed": 58
+    },
+    {
+      "name": "motorcar",
+      "way": "road_59",
+      "value": 1,
+      "max_speed": 59
+    },
+    {
+      "name": "motorcar",
+      "way": "road_60",
+      "value": 1,
+      "max_speed": 60
+    }
+  ],
+  "surface_speeds": [
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "cement",
+      "max_speed": 80
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "compacted",
+      "max_speed": 80
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "fine_gravel",
+      "max_speed": 80
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "paving_stones",
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "metal",
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "bricks",
+      "max_speed": 60
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "grass",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "wood",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "sett",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "grass_paver",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "gravel",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "unpaved",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "ground",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "dirt",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "pebblestone",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "tartan",
+      "max_speed": 40
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "cobblestone",
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "clay",
+      "max_speed": 30
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "earth",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "stone",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "rocky",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "sand",
+      "max_speed": 20
+    },
+    {
+      "name": "motorcar",
+      "key": "surface",
+      "value": "mud",
+      "max_speed": 10
+    }
+  ],
+  "pealties": [
+    {
+      "name": "motorcar",
+      "traffic_lights": 8,
+      "turn": 7.5,
+      "restrictions": true
+    }
+  ]
+}

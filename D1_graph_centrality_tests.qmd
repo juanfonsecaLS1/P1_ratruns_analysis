@@ -1,0 +1,411 @@
+# Graph Centrlity Tests
+
+```{r,message=FALSE}
+#| label: libraries
+#| message: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "zonebuilder"
+    # "dodgr" # Using the developer version of dodgr
+)
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+
+require(dodgr)
+```
+
+## Loading network
+
+```{r}
+#| label: read-sf
+ 
+sf_bogota_2019_full <- st_read(file.path("sf_network","bogota_osm_network.gpkg"),
+                          layer = "network_2019")
+```
+
+We will use a small subset of the network for this test to speed up the process.
+
+```{r}
+#| label: zone4clipping
+
+bog_zone <- zonebuilder::zb_zone("Bogota",n_circles = 2) |> st_transform(st_crs(sf_bogota_2019_full))
+# zb_view(bog_zone)
+```
+
+```{r}
+#| label: clipping-net
+
+sf_bogota_2019 <- sf_bogota_2019_full[bog_zone,]
+```
+
+```{r}
+#| label: graph-building
+
+graph_bogota <- weight_streetnet(sf_bogota_2019,
+                                 left_side = F,
+                                 wt_profile_file = "bogota_wp.json",
+                                 wt_profile = "motorcar",
+                                 keep_cols = c("oneway","lanes","surface","maxspeed"),
+                                 turn_penalty = F)
+
+bog_contracted <- graph_bogota |> 
+  dodgr_contract_graph()
+```
+
+## Assignment of the Weighting Profile 
+
+In order to include the actual speed along each corridor, I will specify 60 different classes
+to be applied to each road link. By default, speeds are assigned by road link by 
+road type, e.g. any trunk road in Bogotá has a 60 km/h speed. 
+
+
+```{r}
+#| label: custom-wp
+
+# custom_wp <- dodgr::weighting_profiles$weighting_profiles |> filter(name=="motorcar")
+custom_penalties <- dodgr::weighting_profiles$penalties |> filter(name=="motorcar")
+custom_surfaces <- dodgr::weighting_profiles$surface_speeds |> filter(name=="motorcar")
+
+custom_wp <- data.frame(name = "motorcar",
+                        way = paste0("road_",1:60),
+                        value = 1,
+                        max_speed = as.numeric(1:60))
+
+custom_wp_list <- list(weighting_profiles = custom_wp,
+                       surface_speeds = custom_surfaces,
+                       pealties = custom_penalties)
+
+wpj <- jsonlite::toJSON (custom_wp_list, pretty = TRUE)
+write_lines(wpj,file = "custom_wp_speeds.json")
+
+```
+
+Assigning a speed category based on the speed limit (baseline scenario)
+
+```{r}
+#| label: way-by-speed
+
+sf_bogota_2019_cwp <- sf_bogota_2019 |>
+  mutate(way_speed = case_when(highway %in%
+                                 c("trunk_link","primary_link","primary","trunk")~"road_60",
+                                               TRUE ~ "road_30")) |> 
+  select(-highway)
+```
+
+The following code builds the graph using the new column instead of  `highway`.
+
+```{r}
+#| eval: false
+#| label: graph-building
+
+graph_bogota_custom <- weight_streetnet(sf_bogota_2019_cwp,
+                                 left_side = F,
+                                 wt_profile_file = "custom_wp_speeds.json",
+                                 type_col = "way_speed",
+                                 wt_profile = "motorcar",
+                                 keep_cols = c("way_speed","oneway","lanes","surface","maxspeed"),
+                                 turn_penalty = F)
+
+```
+
+
+### Comparing results of wp method
+
+We calculate the 
+
+```{r}
+graph_baseline_centrality <- graph_bogota |> 
+  dodgr_deduplicate_graph() |>
+  dodgr_contract_graph() |>
+  dodgr_centrality()
+
+graph_cwp_centrality <- graph_bogota_custom |> 
+  dodgr_deduplicate_graph() |>
+  dodgr_contract_graph() |>
+  dodgr_centrality()
+```
+
+To validate that the results are identical, we can run the following code
+
+```{r}
+identical(graph_baseline_centrality$centrality,graph_cwp_centrality$centrality)
+```
+
+## Centrality Calculations
+
+There are four core alternatives for calculating the centrality using `dodgr`. 
+
+```{r}
+#| label: cor-check
+
+bog_contracted[,
+    c("d_weighted", "d", "time_weighted", "time")] |>
+  pairs()
+```
+
+An initial check on the four alternatives reveal some inconsistencies in
+the `time_weighted` column. 
+
+There are `r nrow(bog_contracted[(bog_contracted$d_weighted - bog_contracted$d)<0,])` links in the contracted graph with differences in the weighted distance and the distance. The location of these edges will be inspected after calculating the centrality in @sec-bc-comp.
+
+When multiple paths are available between two nodes in the contracted version of the graph,
+`dodgr` takes only the shortest weighted distance, which creates the difference. However,
+the resulting weighted time is not corrected and in some cases a `0` is returned.
+
+Given this, we will recalculate the weighted time based on the weighted distance.
+
+```{r}
+bog_contracted$time_weighted[bog_contracted$time_weighted==0] <- (3.6*bog_contracted$d_weighted[bog_contracted$time_weighted==0])/case_when(
+      bog_contracted$highway[bog_contracted$time_weighted==0] %in% c("trunk_link","primary_link","primary","trunk")~60,
+      T~30)
+    
+```
+
+
+### `dodgr`
+
+```{r}
+#| label: bc-calc
+
+cent_all <- lapply(c("d_weighted", "d", "time_weighted", "time"), \(x) {
+  
+    df <- bog_contracted |>
+      dodgr_centrality(column = x)
+  
+  tibble(edge_id = df$edge_id, cent = df$centrality) |>
+    rename_with(.cols = "cent", .fn = \(.y) {
+      paste(.y, x, sep = "_")
+    })
+  }) |>
+  plyr::join_all(by = "edge_id",type = "full")
+```
+
+### `igraph`
+
+```{r}
+#| label: graph-to-igraph
+
+igraph_bog <- bog_contracted |> 
+  dodgr_to_igraph()
+```
+
+
+```{r}
+#| label: bc-igraph-calc
+
+cent_all_ig <- cent_all |> 
+  left_join(
+    tibble(edge_id = bog_contracted$edge_id,
+       cent_ig_d = igraph::edge_betweenness(graph = igraph_bog,
+                                            weights = bog_contracted$d),
+       cent_ig_d_weighted = igraph::edge_betweenness(graph = igraph_bog,
+                                                     weights = bog_contracted$d_weighted),
+       cent_ig_time = igraph::edge_betweenness(graph = igraph_bog,weights = bog_contracted$time),
+       cent_ig_time_weighted = igraph::edge_betweenness(graph = igraph_bog,
+                                                        weights = bog_contracted$time_weighted)
+       ),
+    by = "edge_id")
+```
+
+
+```{r}
+#| label: bc-summary
+
+summary(cent_all_ig[,2:9])
+```
+
+Check if `igraph` results are identical to the ones obtained with `dodgr`
+
+```{r}
+with(cent_all_ig,identical(cent_ig_d_weighted,cent_d_weighted))
+with(cent_all_ig,identical(cent_ig_time_weighted,cent_time_weighted))
+```
+
+```{r}
+#| label: bc-cor-check
+
+pairs(cent_all_ig[,2:9])
+```
+
+Joining the results to the `sf` object
+
+```{r}
+sf_net <- graph_bogota |>
+  dodgr_to_sf() |> 
+  left_join(cent_all,by = "edge_id")
+```
+
+### A visual comparison (not very useful) {#sec-bc-comp}
+ 
+```{r}
+#| label: cor-check
+
+sf_net |>  
+  select(cent_d_weighted:cent_time) |> 
+  pivot_longer(names_to = "type",names_prefix = "cent_",
+               cols = -geometry,
+               values_to = "cent") |> 
+  ggplot()+
+  geom_sf(aes(col = log(cent),linewidth = cent+1))+
+  facet_wrap(type~.)+
+  scale_color_viridis_c(
+    # direction = -1
+    )+
+  scale_linewidth_continuous(range = c(0.05,0.5),
+                             transform = scales::transform_boxcox(p = 2))+
+  theme_void()+
+  guides(linewidth = "none",)
+  
+```
+
+Visualising differences
+
+```{r}
+sf_net |> 
+  transmute(across(cent_d_weighted:cent_time,
+                   \(x) (x - cent_d)/cent_d)) |> 
+  pivot_longer(names_to = "type",names_prefix = "cent_",
+               cols = -geometry,
+               values_to = "cent") |> 
+  ggplot(aes(cent))+
+  geom_histogram()+
+  facet_wrap(type~.)+
+  scale_x_continuous(limits = c(-1,1))
+  
+  
+```
+
+Inspecting significant changes
+
+```{r}
+sf_net |> 
+  transmute(across(cent_d_weighted:cent_time,
+                   \(x) (x - cent_d)/cent_d)) |> 
+  pivot_longer(names_to = "type",names_prefix = "cent_",
+               cols = -geometry,
+               values_to = "cent") |> 
+  mutate(cent = case_when(abs(cent)<0.1~0,
+                          cent > 0.6 ~ 1,
+                          -cent > 0.6 ~ -1,
+                          is.na(cent)~NA)) |> 
+  ggplot()+
+  geom_sf(aes(col = cent))+
+  facet_wrap(type~.)+
+  scale_color_distiller(palette = "Spectral", direction = 1)+
+  # scale_linewidth_continuous(range = c(0.05,0.5),
+  #                            transform = scales::transform_boxcox(p = 2))+
+  theme_void()
+```
+
+Identifying the links with differences > 0 in d and weighted d
+
+```{r}
+sf_net |> 
+  mutate(diff_check = (d-d_weighted)==0) |> 
+  ggplot(aes(col = diff_check))+
+  geom_sf()+
+  theme_void()
+```
+
+Same for time
+
+```{r}
+sf_net |> 
+  mutate(diff_check = (time-time_weighted)==0) |> 
+  ggplot(aes(col = diff_check))+
+  geom_sf()+
+  theme_void()
+```
+
+*A course assumption is that people decide the route they will use based on the ETA,
+also differences in speed limits can only captured if time is used.
+So weighted time will be used.*
+
+
+### `sfnetworks`
+
+```{r}
+library(sfnetworks)
+```
+
+
+```{r}
+rev_twoways <- sf_net |>
+  filter(!oneway) |>
+  st_reverse()
+```
+
+```{r}
+bog_sfnet <- sf_net |> 
+  as_sfnetwork(directed = TRUE)
+```
+
+
+```{r}
+bog_sfnet <- bog_sfnet |>
+  activate("edges") |> 
+  mutate(cent_sfn_time = tidygraph::centrality_edge_betweenness(weights = time_weighted, directed = T))
+  
+```
+
+```{r}
+bog_sfnet |> 
+  st_as_sf("edges") |> 
+ggplot()+
+  geom_sf(aes(col = cent_time))+
+  theme_void()
+```
+
+```{r}
+bog_sfnet |> 
+  activate("edges") |>
+  data.frame() |> 
+  select(cent_time,cent_sfn_time) |> 
+  pairs()
+```
+
+```{r}
+bog_sfnet |> 
+  activate("edges") |>
+  data.frame() |> 
+  with(identical(cent_time,cent_sfn_time))
+```
+
+
+```{r}
+p1 = st_geometry(bog_sfnet, "nodes")[2401]
+st_crs(p1) = st_crs(bog_sfnet)
+p2 = st_geometry(bog_sfnet, "nodes")[1407]
+p3 = st_geometry(bog_sfnet, "nodes")[1509]
+p4 = st_geometry(bog_sfnet, "nodes")[1840]
+st_crs(p3) = st_crs(bog_sfnet)
+
+paths = st_network_paths(bog_sfnet, from = p1, to = c(p2,p3,p4), weights = "time_weighted")
+```
+
+
+```{r}
+plot_path = function(node_path) {
+  bog_sfnet %>%
+    activate("nodes") %>%
+    slice(node_path) %>%
+    plot(cex = 1.5, lwd = 1.5, add = TRUE)
+}
+
+colors = sf.colors(3, categorical = TRUE)
+
+
+plot(bog_sfnet, col = "grey")
+paths %>%
+  pull(node_paths) %>%
+  walk(plot_path)
+plot(c(p1, p2, p3), col = colors, pch = 8, cex = 2, lwd = 2, add = TRUE)
+```
+
+
+
+
