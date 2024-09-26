@@ -99,8 +99,7 @@ sf_bogota_2019_cwp <- sf_bogota_2019 |>
 The following code builds the graph using the new column instead of  `highway`.
 
 ```{r}
-#| eval: false
-#| label: graph-building
+#| label: graph-building-2
 
 graph_bogota_custom <- weight_streetnet(sf_bogota_2019_cwp,
                                  left_side = F,
@@ -140,7 +139,7 @@ identical(graph_baseline_centrality$centrality,graph_cwp_centrality$centrality)
 There are four core alternatives for calculating the centrality using `dodgr`. 
 
 ```{r}
-#| label: cor-check
+#| label: cor-check-1
 
 bog_contracted[,
     c("d_weighted", "d", "time_weighted", "time")] |>
@@ -332,14 +331,12 @@ So weighted time will be used.*
 library(sfnetworks)
 ```
 
-
 ```{r}
-rev_twoways <- sf_net |>
-  filter(!oneway) |>
-  st_reverse()
-```
 
-```{r}
+sf_net$time_weighted[sf_net$time_weighted==0] <- (3.6*sf_net$d_weighted[sf_net$time_weighted==0])/case_when(
+      sf_net$highway[sf_net$time_weighted==0] %in% c("trunk_link","primary_link","primary","trunk")~60,
+      T~30)
+
 bog_sfnet <- sf_net |> 
   as_sfnetwork(directed = TRUE)
 ```
@@ -348,15 +345,16 @@ bog_sfnet <- sf_net |>
 ```{r}
 bog_sfnet <- bog_sfnet |>
   activate("edges") |> 
-  mutate(cent_sfn_time = tidygraph::centrality_edge_betweenness(weights = time_weighted, directed = T))
-  
+  mutate(cent_sfn_time_weighted = tidygraph::centrality_edge_betweenness(
+    weights = time_weighted,
+    directed = T))
 ```
 
 ```{r}
 bog_sfnet |> 
   st_as_sf("edges") |> 
 ggplot()+
-  geom_sf(aes(col = cent_time))+
+  geom_sf(aes(col = cent_time_weighted))+
   theme_void()
 ```
 
@@ -364,7 +362,7 @@ ggplot()+
 bog_sfnet |> 
   activate("edges") |>
   data.frame() |> 
-  select(cent_time,cent_sfn_time) |> 
+  select(cent_time_weighted,cent_sfn_time_weighted) |> 
   pairs()
 ```
 
@@ -372,7 +370,7 @@ bog_sfnet |>
 bog_sfnet |> 
   activate("edges") |>
   data.frame() |> 
-  with(identical(cent_time,cent_sfn_time))
+  with(identical(cent_time_weighted,cent_sfn_time_weighted))
 ```
 
 
@@ -396,14 +394,14 @@ plot_path = function(node_path) {
     plot(cex = 1.5, lwd = 1.5, add = TRUE)
 }
 
-colors = sf.colors(3, categorical = TRUE)
+colors = sf.colors(4, categorical = TRUE)
 
 
 plot(bog_sfnet, col = "grey")
 paths %>%
   pull(node_paths) %>%
   walk(plot_path)
-plot(c(p1, p2, p3), col = colors, pch = 8, cex = 2, lwd = 2, add = TRUE)
+plot(c(p1, p2, p3,p4), col = colors, pch = 8, cex = 2, lwd = 2, add = TRUE)
 ```
 
 
