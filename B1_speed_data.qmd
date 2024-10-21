@@ -54,7 +54,7 @@ all_data[,
            INICIO := mdy_hms(INICIO,
                              tz = "America/Bogota")
          ][,
-           `:=`(YEAR = year(INICIO))
+           `:=`(year = year(INICIO))
            ]
 ```
 
@@ -67,9 +67,9 @@ links with enough data per year.
 
 links_summary <- unique(
   all_data[,
-           c("TID","YEAR","MES")])[,
+           c("TID","year","MES")])[,
                                    .(count = .N),
-                                   by = c("TID","YEAR")]
+                                   by = c("TID","year")]
 ```
 
 ```{r}
@@ -81,7 +81,7 @@ links_summary |>
   geom_histogram(binwidth = 1)+
   scale_y_log10()+
   scale_x_continuous(breaks = 0:12)+
-  facet_grid(YEAR~.)
+  facet_grid(year~.)
 ```
 
 Links with data in 5 or more months per year will be used for this analysis.
@@ -104,7 +104,7 @@ clean the memory:
 #| eval: false
 
 clean_data <- all_data[TID %in% links_data]
-rm(all_data,links_data,links_summary,lst_files,a)
+rm(all_data,links_data,links_summary,lst_files)
 gc()
 ```
 
@@ -145,7 +145,7 @@ clean_data[date(INICIO) %in% bank_holidays,
            DIA_SEMANA := "Festivo"
            ]
 
-clean_data[,DAY_TYPE := fcase(
+clean_data[,day_type := fcase(
              DIA_SEMANA == "Domingo","weekend",
              DIA_SEMANA == "Sabado","weekend",
              DIA_SEMANA == "Festivo","weekend",
@@ -163,7 +163,7 @@ max_speeds <- clean_data[,
                              .(p94_speed = quantile(VEL_PROMEDIO,
                                                        0.94,
                                                        na.rm = T)),
-                             by =  c("TID","YEAR")]
+                             by =  c("TID","year")]
 ```
 
 Now, we calculate the median hourly speed for each road link by day type and road link.
@@ -172,11 +172,11 @@ Now, we calculate the median hourly speed for each road link by day type and roa
 #| label: calc-summary-data
 
 summary_speeds <- clean_data[, as.list(summary(VEL_PROMEDIO)),
-  by = .(TID, HORA, DAY_TYPE, YEAR)]
+  by = .(TID, HORA, day_type, year)]
 
 setnames(summary_speeds,
-         old = c("Min.","1st Qu.","Median","Mean","3rd Qu.","Max."),
-         new = c("d_min_speed","d_q1_speed","d_median_speed","d_mean_speed","d_q3_speed","d_max_speed"))
+         old = c("HORA","Min.","1st Qu.","Median","Mean","3rd Qu.","Max."),
+         new = c("hour","d_min_speed","d_q1_speed","d_median_speed","d_mean_speed","d_q3_speed","d_max_speed"))
 
 ```
 
@@ -185,11 +185,10 @@ Now we normalise the values by dividing by the 95th-percentile speed
 ```{r}
 norm_summary_spd <- merge(summary_speeds,
                           max_speeds,
-                          by = c("TID","YEAR"))[,
+                          by = c("TID","year"))[,
                                                 d_norm_speed := d_median_speed/p94_speed
                                                 ]
 ```
-
 
 
 ```{r}
@@ -218,16 +217,16 @@ norm_summary_spd <- fread(file = "sf_network/summary_speeds.csv")
 #### Normalised speed
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = d_norm_speed))+
-  geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
+  ggplot(aes(x = hour,y = d_norm_speed))+
+  geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
   geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
                fun = "mean",
-               aes(col = DAY_TYPE),
+               aes(col = day_type),
                linewidth = 1,
                alpha = 0.6,
                show.legend = F)+
-  facet_grid(DAY_TYPE~.)+
+  facet_grid(day_type~.)+
   theme_minimal()+
   labs(x = "Hour", y = "Norm speed (observed/94th percentile)")+
   scale_x_continuous(breaks = 0:23,
@@ -240,16 +239,16 @@ norm_summary_spd |>
 #### Absolute speed
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = d_median_speed))+
-  geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
+  ggplot(aes(x = hour,y = d_median_speed))+
+  geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
   geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
                fun = "mean",
-               aes(col = DAY_TYPE),
+               aes(col = day_type),
                linewidth = 1,
                alpha = 0.6,
                show.legend = F)+
-  facet_grid(DAY_TYPE~YEAR)+
+  facet_grid(day_type~year)+
   theme_minimal()+
   labs(x = "Hour", y = "Observed speed")+
   scale_x_continuous(breaks = 0:23,
@@ -265,18 +264,18 @@ norm_summary_spd |>
 
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = d_norm_speed))+
+  ggplot(aes(x = hour,y = d_norm_speed))+
   # geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
   # geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
                fun = "mean",
-               aes(col = DAY_TYPE,
+               aes(col = day_type,
                    group = TID),
                linewidth = 0.01,
                alpha = 0.04,
                # show.legend = F
                )+
-  facet_grid(DAY_TYPE~YEAR)+
+  facet_grid(day_type~year)+
   theme_minimal()+
   labs(x = "Hour", y = "Speed ratio (observed/94th percentile)")+
   scale_x_continuous(breaks = 0:23,
@@ -292,18 +291,16 @@ norm_summary_spd |>
 
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = d_median_speed))+
-  # geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
-  # geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
+  ggplot(aes(x = hour,y = d_median_speed))+
   stat_summary(geom = "line",
                fun = "mean",
-               aes(col = DAY_TYPE,
+               aes(col = day_type,
                    group = TID),
                linewidth = 0.01,
                alpha = 0.04,
                # show.legend = F
                )+
-  facet_grid(DAY_TYPE~YEAR)+
+  facet_grid(day_type~year)+
   geom_hline(yintercept = 60,col = "#EE4C97",linetype = "dashed",alpha = 0.6,linewidth = 1)+
   annotate(geom = "text",x = 23,y = 63,label = "Speed Limit ",vjust = 0,hjust = 1,face = "italic")+
   theme_minimal()+
@@ -321,17 +318,15 @@ Median overall speed profile
 
 ```{r}
 norm_summary_spd |> 
-  ggplot(aes(x = HORA,y = d_norm_speed))+
-  # geom_boxplot(aes(group = HORA), fill = NA,alpha = 0.3,outlier.shape = NA)+
-  # geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
+  ggplot(aes(x = hour,y = d_norm_speed))+
   stat_summary(geom = "line",
                fun = "mean",
-               aes(col = DAY_TYPE),
+               aes(col = day_type),
                linewidth = 1.5,
                alpha = 0.6,
                # show.legend = F
                )+
-  facet_grid(.~YEAR)+
+  facet_grid(.~year)+
   theme_minimal()+
   labs(x = "Hour", y = "Speed ratio (observed/94th percentile)")+
   scale_x_continuous(breaks = 0:23,
@@ -359,9 +354,9 @@ Ideally, we need a file that contains all `r unique(clean_data$TID) |> length()`
 
 unique(
   clean_data[,
-           c("TID","YEAR","MES")])[,
+           c("TID","year","MES")])[,
                                    .(count = .N),
-                                   by = c("YEAR","MES")][count == max(count)]
+                                   by = c("year","MES")][count == max(count)]
 ```
 
 As the file of February 2019 does not have all the links, we identify alternative files.
@@ -369,14 +364,14 @@ As the file of February 2019 does not have all the links, we identify alternativ
 ```{r}
 #| label: id-spatial-files
 
-tid_feb2019 <- unique(clean_data[YEAR == 2019 & MES == "February","TID"])[,1]
+tid_feb2019 <- unique(clean_data[year == 2019 & MES == "February","TID"])[,1]
 tid_missing <- unique(clean_data[!(TID %in% tid_feb2019$TID),"TID"])
 
 unique(
   clean_data[TID %in% tid_missing$TID,
-           c("TID","YEAR","MES")])[,
+           c("TID","year","MES")])[,
                                    .(count = .N),
-                                   by = c("YEAR","MES")][count == max(count)]
+                                   by = c("year","MES")][count == max(count)]
 ```
 
 The files for February 2019 and October 2020 have been downloaded manually from
@@ -391,11 +386,13 @@ the other data.
 sf_feb2019<- st_read(
    "../00_data/bogota/speed_data/Velocidades_Bitcarrier_Febrero_2019_1361955177739874723.gpkg",
    query="select TID,SHAPE from 'Velocidades_Bitcarrier_Febrero_2019'"
-   ) |> filter(TID %in% tid_feb2019$TID) |> select(TID) |> slice_head(n = 1,by = TID)
+   ) |>
+  filter(TID %in% tid_feb2019$TID) |> select(TID) |> slice_head(n = 1,by = TID)
 
 sf_oct2020 <- st_read(
   "../00_data/bogota/speed_data/Velocidades_Bitcarrier_Octubre_2020_-1518838627102027019.gpkg",
-  query="select TID,SHAPE from 'Velocidades_Bitcarrier_Octubre_2020'") |> filter(TID %in% tid_missing$TID) |> slice_head(n = 1,by = TID)
+  query="select TID,SHAPE from 'Velocidades_Bitcarrier_Octubre_2020'") |>
+  filter(TID %in% tid_missing$TID) |> slice_head(n = 1,by = TID)
 ```
 
 
@@ -408,12 +405,21 @@ gc()
 
 ```
 
+The elements in the spatial objects contain `MULTILINESTRINGS` which cover long sections of the main corridors. Before saving the results, we will cast all features as `LINESTRING` to ease the process of working out a correspondence with the OSM network.
+
+```{r}
+#| label: casting-lines
+
+sf_speed_cast <- sf_speed |> st_cast("LINESTRING")
+```
+
+
 Saving the network
 
 ```{r}
 #| label: save-speed-network
 
-st_write(sf_speed,dsn = "sf_network/sf_speed_network.gpkg",delete_dsn = T)
+st_write(sf_speed_cast,dsn = "sf_network/sf_speed_network.gpkg",delete_dsn = T)
 
 ```
 
@@ -425,18 +431,18 @@ st_write(sf_speed,dsn = "sf_network/sf_speed_network.gpkg",delete_dsn = T)
 urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg")
 ```
 
-A quick visualisation of the maximum speeds:
+A quick visualisation of the maximum speeds in 2019:
 
 ```{r}
 #| label: map-max-speeds
 
-sf_speed[urban_perimeter,] |> 
-  left_join(max_speeds,by = "TID") |> 
+sf_speed_cast[urban_perimeter,] |> 
+  left_join(max_speeds |> filter(year==2019), by = "TID") |> 
   ggplot()+
   geom_sf(aes(col = p94_speed),linewidth = 0.3,alpha = 0.7)+
   scale_color_gradientn(colours = paletteer_c("grDevices::Plasma", 30))+
   theme_void()+
-  facet_grid(.~YEAR)
+  facet_grid(.~year)
 
 ```
 

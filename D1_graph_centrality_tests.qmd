@@ -1,4 +1,10 @@
-# Graph Centrlity Tests
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Graph Centrality Tests
 
 ```{r,message=FALSE}
 #| label: libraries
@@ -9,7 +15,8 @@ if (!require("remotes")) install.packages("remotes")
 pkgs = c(
     "sf",
     "tidyverse",
-    "zonebuilder"
+    "zonebuilder",
+    "tmap"
     # "dodgr" # Using the developer version of dodgr
 )
 remotes::install_cran(pkgs)
@@ -32,15 +39,21 @@ We will use a small subset of the network for this test to speed up the process.
 ```{r}
 #| label: zone4clipping
 
-bog_zone <- zonebuilder::zb_zone("Bogota",n_circles = 2) |> st_transform(st_crs(sf_bogota_2019_full))
+bog_zone <- zonebuilder::zb_zone("Bogota",n_circles = 2) |>
+  st_transform(st_crs(sf_bogota_2019_full))
 # zb_view(bog_zone)
 ```
+
+The following the code will clip the network; also, since we will be using wrong-way-driving, we have to `allow` both directions inone-way links to capture the changes of centrality.
+
 
 ```{r}
 #| label: clipping-net
 
-sf_bogota_2019 <- sf_bogota_2019_full[bog_zone,]
+sf_bogota_2019 <- sf_bogota_2019_full[bog_zone,] |> 
+  mutate(oneway = if_else(highway %in% c("residential"),"no",oneway))
 ```
+
 
 ```{r}
 #| label: graph-building
@@ -111,10 +124,9 @@ graph_bogota_custom <- weight_streetnet(sf_bogota_2019_cwp,
 
 ```
 
-
 ### Comparing results of wp method
 
-We calculate the 
+We calculate the centralities with both weighting profiles
 
 ```{r}
 graph_baseline_centrality <- graph_bogota |> 

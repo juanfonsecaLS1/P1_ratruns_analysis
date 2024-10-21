@@ -10,20 +10,20 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - text: "Network procesing"
+      - text: "Data Pre-processing"
         menu:
           - A1_network.qmd
-          - A2_graph.qmd
-      - text: "Speed Data"
-        menu:
           - B1_speed_data.qmd
-          - B2_congestion_data.qmd
-      - text: "Tickets of Traffic Offences"
-        menu:
           - C1_infractions.qmd
-      - text: "Tests"
+      - text: "Small Reproducible Test"
         menu:
           - D1_graph_centrality_tests.qmd
+          - D2_congestion_tests.qmd
+          - D3_WWD_joining.qmd
+      - text: "Data Pre-processing"
+        menu:
+          - A2_graph.qmd
+          - A3_Congested_graph.qmd
       - about.qmd
 format:
   html:
