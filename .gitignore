@@ -58,7 +58,7 @@ raw_data/*
 
 
 # Site 
-_site/
-_site/*
+/_site/
+/_site/*
 
 
