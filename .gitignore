@@ -65,3 +65,4 @@ raw_data/*
 # rds files
 *.rds
 
+sf_network/
