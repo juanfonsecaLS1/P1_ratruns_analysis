@@ -52,7 +52,7 @@ rsconnect/
 
 *.gpkg
 
-
+# raw data
 raw_data/
 raw_data/*
 
@@ -61,4 +61,7 @@ raw_data/*
 /_site/
 /_site/*
 
+
+# rds files
+*.rds
 
