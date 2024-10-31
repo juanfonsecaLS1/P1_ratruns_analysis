@@ -127,40 +127,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-network-procesing" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Network procesing</span>
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-data-pre-processing" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Data Pre-processing</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-network-procesing">    
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-data-pre-processing">    
         <li>
     <a class="dropdown-item" href="./A1_network.html">
  <span class="dropdown-text">Extracting OSM networks</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./A2_graph.html">
- <span class="dropdown-text">Baseline Network Graph</span></a>
-  </li>  
-    </ul>
-  </li>
-  <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-speed-data" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Speed Data</span>
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-speed-data">    
-        <li>
     <a class="dropdown-item" href="./B1_speed_data.html">
  <span class="dropdown-text">Speed Data Processing</span></a>
   </li>  
-        <li>
-    <a class="dropdown-item" href="./B2_congestion_data.html">
- <span class="dropdown-text">Congestion Data</span></a>
-  </li>  
-    </ul>
-  </li>
-  <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tickets-of-traffic-offences" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Tickets of Traffic Offences</span>
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-tickets-of-traffic-offences">    
         <li>
     <a class="dropdown-item" href="./C1_infractions.html">
  <span class="dropdown-text">Ticket Data</span></a>
@@ -168,13 +146,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
   </li>
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-tests" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Tests</span>
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-small-reproducible-test" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Small Reproducible Test</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-tests">    
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-small-reproducible-test">    
         <li>
     <a class="dropdown-item" href="./D1_graph_centrality_tests.html">
  <span class="dropdown-text">Graph Centrality Tests</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./D2_congestion_tests.html">
+ <span class="dropdown-text">Testing changes in centrality</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./D3_WWD_joining.html">
+ <span class="dropdown-text">Joining the WWD reports</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-data-pre-processing-1" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Data Pre-processing</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-data-pre-processing-1">    
+        <li>
+    <a class="dropdown-item" href="./A2_graph.html">
+ <span class="dropdown-text">Baseline Network Graph</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./A3_Congested_graph.html">
+ <span class="dropdown-text">Congested Network</span></a>
   </li>  
     </ul>
   </li>
@@ -198,14 +199,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#testing-dummy-changes-in-centrality" id="toc-testing-dummy-changes-in-centrality" class="nav-link active" data-scroll-target="#testing-dummy-changes-in-centrality">Testing dummy changes in centrality</a>
+  <li><a href="#testing-changes-in-centrality" id="toc-testing-changes-in-centrality" class="nav-link active" data-scroll-target="#testing-changes-in-centrality">Testing changes in centrality</a>
   <ul class="collapse">
   <li><a href="#loading-network" id="toc-loading-network" class="nav-link" data-scroll-target="#loading-network">Loading network</a></li>
-  <li><a href="#baseline-graph-building" id="toc-baseline-graph-building" class="nav-link" data-scroll-target="#baseline-graph-building">Baseline graph building</a></li>
-  <li><a href="#congested-graph" id="toc-congested-graph" class="nav-link" data-scroll-target="#congested-graph">Congested graph</a></li>
-  <li><a href="#comparison" id="toc-comparison" class="nav-link" data-scroll-target="#comparison">Comparison</a>
+  <li><a href="#baseline-graph-building" id="toc-baseline-graph-building" class="nav-link" data-scroll-target="#baseline-graph-building">Baseline graph building</a>
   <ul class="collapse">
-  <li><a href="#visualising-differences" id="toc-visualising-differences" class="nav-link" data-scroll-target="#visualising-differences">Visualising differences</a></li>
+  <li><a href="#testing-a-dummy-congested-graph" id="toc-testing-a-dummy-congested-graph" class="nav-link" data-scroll-target="#testing-a-dummy-congested-graph">Testing a dummy congested graph</a></li>
+  </ul></li>
+  <li><a href="#using-the-actual-speeds-for-adjusting-graph" id="toc-using-the-actual-speeds-for-adjusting-graph" class="nav-link" data-scroll-target="#using-the-actual-speeds-for-adjusting-graph">Using the actual speeds for adjusting graph</a>
+  <ul class="collapse">
+  <li><a href="#building-a-correspondence" id="toc-building-a-correspondence" class="nav-link" data-scroll-target="#building-a-correspondence">Building a correspondence</a></li>
+  <li><a href="#loading-speed-data" id="toc-loading-speed-data" class="nav-link" data-scroll-target="#loading-speed-data">loading speed data</a></li>
+  <li><a href="#distance-from-major-network" id="toc-distance-from-major-network" class="nav-link" data-scroll-target="#distance-from-major-network">Distance from major network</a></li>
+  </ul></li>
+  <li><a href="#saving-results-for-further-analysis" id="toc-saving-results-for-further-analysis" class="nav-link" data-scroll-target="#saving-results-for-further-analysis">Saving results for further analysis</a></li>
+  <li><a href="#tests-for-wrong-direction-speed" id="toc-tests-for-wrong-direction-speed" class="nav-link" data-scroll-target="#tests-for-wrong-direction-speed">Tests for Wrong Direction speed</a>
+  <ul class="collapse">
+  <li><a href="#free-flow-network" id="toc-free-flow-network" class="nav-link" data-scroll-target="#free-flow-network">Free-flow network</a></li>
+  <li><a href="#congested-network" id="toc-congested-network" class="nav-link" data-scroll-target="#congested-network">Congested network</a></li>
+  <li><a href="#comparison-2" id="toc-comparison-2" class="nav-link" data-scroll-target="#comparison-2">Comparison</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -217,34 +229,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="testing-dummy-changes-in-centrality" class="level1">
-<h1>Testing dummy changes in centrality</h1>
+<section id="testing-changes-in-centrality" class="level1">
+<h1>Testing changes in centrality</h1>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repos =</span> <span class="fu">c</span>(<span class="at">CRAN =</span> <span class="st">"https://cloud.r-project.org"</span>))</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"remotes"</span>)) <span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pkgs <span class="ot">=</span> <span class="fu">c</span>(</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"sf"</span>,</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tidyverse"</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"zonebuilder"</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># "dodgr" # Using the developer version of dodgr</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_cran</span>(pkgs)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(pkgs, require, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"zonebuilder"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tmap"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># "dodgr" # Using the developer version of dodgr</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_cran</span>(pkgs)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(pkgs, require, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         sf   tidyverse zonebuilder 
-       TRUE        TRUE        TRUE </code></pre>
+<pre><code>         sf   tidyverse zonebuilder        tmap 
+       TRUE        TRUE        TRUE        TRUE </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(dodgr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(dodgr)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">packageVersion</span> (<span class="st">"dodgr"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] '0.4.1.37'</code></pre>
+</div>
 </div>
 <section id="loading-network" class="level2">
 <h2 class="anchored" data-anchor-id="loading-network">Loading network</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sf_bogota_2019_full <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">layer =</span> <span class="st">"network_2019"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">way_speed =</span> <span class="fu">case_when</span>(highway <span class="sc">%in%</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">c</span>(<span class="st">"trunk_link"</span>,<span class="st">"primary_link"</span>,<span class="st">"primary"</span>,<span class="st">"trunk"</span>)<span class="sc">~</span><span class="st">"road_60"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                               <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"road_30"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">roadclass =</span> highway)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sf_bogota_2019_raw <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">layer =</span> <span class="st">"network_2019"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">way_speed =</span> <span class="fu">case_when</span>(highway <span class="sc">%in%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">c</span>(<span class="st">"trunk_link"</span>,<span class="st">"primary_link"</span>,<span class="st">"primary"</span>,<span class="st">"trunk"</span>)<span class="sc">~</span><span class="st">"road_60"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                               <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"road_30"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">roadclass =</span> highway) <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(oneway.raw = oneway,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#        oneway = if_else(roadclass %in% c("residential","unclassified"),</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                         "no",</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                         oneway)) |&gt; </span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">4326</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `network_2019' from data source 
   `C:\Users\ts18jpf\OneDrive - University of Leeds\03_PhD\P1_Ratruns\P1_ratruns_analysis\sf_network\bogota_osm_network.gpkg' 
@@ -256,100 +278,124 @@ Bounding box:  xmin: -74.441 ymin: 4.236862 xmax: -73.72583 ymax: 5.042826
 Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 </div>
 </div>
+<p>Inspecting the values of the <code>oneway</code> tag in residential and unclassified roads</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sf_bogota_2019_raw <span class="sc">|&gt;</span> <span class="fu">filter</span>(roadclass <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"residential"</span>,<span class="st">"unclassified"</span>)) <span class="sc">|&gt;</span> <span class="fu">pull</span>(oneway) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] NA           "yes"        "no"         "reversible" "-1"        
+[6] "nolt"      </code></pre>
+</div>
+</div>
+<p>We will reverse those links to allow the vehicles to <code>travel</code> in the wrong direction</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>oneway_minor_rev <span class="ot">&lt;-</span> sf_bogota_2019_raw <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(roadclass <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"residential"</span>,<span class="st">"unclassified"</span>),</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(<span class="at">pattern =</span> <span class="st">"yes"</span>,oneway)) <span class="sc">|&gt;</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_reverse</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">osm_id =</span> <span class="fu">paste0</span>(osm_id,<span class="st">"r"</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">way_speed =</span> <span class="st">"road_10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sf_bogota_2019_full <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sf_bogota_2019_raw,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                                 oneway_minor_rev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>We will use a small subset of the network for this test to speed up the process.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bog_zone <span class="ot">&lt;-</span> zonebuilder<span class="sc">::</span><span class="fu">zb_zone</span>(<span class="st">"Bogota"</span>,<span class="at">n_circles =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(sf_bogota_2019_full))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required namespace: tmaptools</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># zb_view(bog_zone)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>bog_zone <span class="ot">&lt;-</span> zonebuilder<span class="sc">::</span><span class="fu">zb_zone</span>(<span class="st">"Bogota"</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">n_circles =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">4326</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># zb_view(bog_zone)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sf_bogota_2019 <span class="ot">&lt;-</span> sf_bogota_2019_full[bog_zone,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>sf_bogota_2019 <span class="ot">&lt;-</span> sf_bogota_2019_full[bog_zone,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="baseline-graph-building" class="level2">
 <h2 class="anchored" data-anchor-id="baseline-graph-building">Baseline graph building</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>graph_bogota <span class="ot">&lt;-</span> <span class="fu">weight_streetnet</span>(sf_bogota_2019,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">left_side =</span> F,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">wt_profile_file =</span> <span class="st">"custom_wp_speeds.json"</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">type_col =</span> <span class="st">"way_speed"</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">wt_profile =</span> <span class="st">"motorcar"</span>,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">keep_cols =</span> <span class="fu">c</span>(<span class="st">"way_speed"</span>,<span class="st">"oneway"</span>,<span class="st">"lanes"</span>,<span class="st">"surface"</span>,<span class="st">"maxspeed"</span>,<span class="st">"roadclass"</span>),</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">turn_penalty =</span> F)</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>bog_contracted <span class="ot">&lt;-</span> graph_bogota <span class="sc">|&gt;</span> </span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dodgr_contract_graph</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>graph_bogota <span class="ot">&lt;-</span> <span class="fu">weight_streetnet</span>(sf_bogota_2019,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">left_side =</span> F,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">wt_profile_file =</span> <span class="st">"custom_wp_speeds.json"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">type_col =</span> <span class="st">"way_speed"</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">wt_profile =</span> <span class="st">"motorcar"</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">keep_cols =</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>                                   <span class="fu">c</span>(<span class="st">"way_speed"</span>,<span class="st">"oneway"</span>,<span class="st">"lanes"</span>,<span class="st">"surface"</span>,<span class="st">"maxspeed"</span>,<span class="st">"roadclass"</span>),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">turn_penalty =</span> F)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>bog_contracted <span class="ot">&lt;-</span> graph_bogota <span class="sc">|&gt;</span> </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dodgr_contract_graph</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Fixing the weighted time column</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>bog_contracted<span class="sc">$</span>time_weighted[bog_contracted<span class="sc">$</span>time_weighted<span class="sc">==</span><span class="dv">0</span>] <span class="ot">&lt;-</span> (<span class="fl">3.6</span><span class="sc">*</span>bog_contracted<span class="sc">$</span>d_weighted[bog_contracted<span class="sc">$</span>time_weighted<span class="sc">==</span><span class="dv">0</span>])<span class="sc">/</span><span class="fu">case_when</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>      bog_contracted<span class="sc">$</span>highway[bog_contracted<span class="sc">$</span>time_weighted<span class="sc">==</span><span class="dv">0</span>] <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"trunk_link"</span>,<span class="st">"primary_link"</span>,<span class="st">"primary"</span>,<span class="st">"trunk"</span>)<span class="sc">~</span><span class="dv">60</span>,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>      T<span class="sc">~</span><span class="dv">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>bog_contracted<span class="sc">$</span>time_weighted <span class="ot">&lt;-</span> <span class="fl">3.6</span><span class="sc">*</span>bog_contracted<span class="sc">$</span>d_weighted<span class="sc">/</span><span class="fu">as.numeric</span>(<span class="fu">str_extract</span>(bog_contracted<span class="sc">$</span>highway,<span class="st">"</span><span class="sc">\\</span><span class="st">d{1,2}$"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Calculating the centrality</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>bog_centrality <span class="ot">&lt;-</span> bog_contracted <span class="sc">|&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>,<span class="at">dist_threshold =</span> <span class="fl">3e3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>bog_centrality <span class="ot">&lt;-</span> bog_contracted <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="congested-graph" class="level2">
-<h2 class="anchored" data-anchor-id="congested-graph">Congested graph</h2>
+<section id="testing-a-dummy-congested-graph" class="level3">
+<h3 class="anchored" data-anchor-id="testing-a-dummy-congested-graph">Testing a dummy congested graph</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>congested_contracted <span class="ot">&lt;-</span> bog_contracted</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>congested_contracted<span class="sc">$</span>time_weighted[congested_contracted<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_60"</span>] <span class="ot">&lt;-</span> (<span class="fl">3.6</span><span class="sc">*</span>congested_contracted<span class="sc">$</span>d_weighted[congested_contracted<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_60"</span>])<span class="sc">/</span><span class="dv">30</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>congested_contracted <span class="ot">&lt;-</span> bog_contracted</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>congested_contracted<span class="sc">$</span>time_weighted[congested_contracted<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_60"</span>] <span class="ot">&lt;-</span> (<span class="fl">3.6</span><span class="sc">*</span>congested_contracted<span class="sc">$</span>d_weighted[congested_contracted<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_60"</span>])<span class="sc">/</span><span class="dv">30</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Calculating the centrality</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>congested_centrality <span class="ot">&lt;-</span> congested_contracted <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>,<span class="at">dist_threshold =</span> <span class="fl">3e3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>congested_centrality <span class="ot">&lt;-</span> congested_contracted <span class="sc">|&gt;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>,<span class="at">dist_threshold =</span> <span class="fl">1e3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="comparison" class="level4">
+<h4 class="anchored" data-anchor-id="comparison">Comparison</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>cent_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">edge_id =</span> bog_centrality<span class="sc">$</span>edge_id,</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">cent_bl =</span> bog_centrality<span class="sc">$</span>centrality) <span class="sc">|&gt;</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">edge_id =</span> congested_centrality<span class="sc">$</span>edge_id,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">cent_cong =</span> congested_centrality<span class="sc">$</span>centrality),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"edge_id"</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> cent_cong <span class="sc">-</span> cent_bl,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">reldiff =</span> diff<span class="sc">/</span>(<span class="fl">0.5</span><span class="sc">*</span>(cent_bl<span class="sc">+</span>cent_cong))</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="comparison" class="level2">
-<h2 class="anchored" data-anchor-id="comparison">Comparison</h2>
+<section id="visualising-differences" class="level4">
+<h4 class="anchored" data-anchor-id="visualising-differences">Visualising differences</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cent_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">edge_id =</span> bog_centrality<span class="sc">$</span>edge_id, <span class="at">cent_bl =</span> bog_centrality<span class="sc">$</span>centrality) <span class="sc">|&gt;</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">edge_id =</span> congested_centrality<span class="sc">$</span>edge_id, <span class="at">cent_cong =</span> congested_centrality<span class="sc">$</span>centrality),</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"edge_id"</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> cent_cong <span class="sc">-</span> cent_bl,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">reldiff =</span> diff<span class="sc">/</span>cent_bl</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<section id="visualising-differences" class="level3">
-<h3 class="anchored" data-anchor-id="visualising-differences">Visualising differences</h3>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="ot">&lt;-</span> graph_bogota <span class="sc">|&gt;</span> </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dodgr_to_sf</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(cent_all,<span class="at">by =</span> <span class="st">"edge_id"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="ot">&lt;-</span> graph_bogota <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dodgr_to_sf</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(cent_all,<span class="at">by =</span> <span class="st">"edge_id"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cent_all, <span class="fu">aes</span>(diff))<span class="sc">+</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cent_all, <span class="fu">aes</span>(diff))<span class="sc">+</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cent_all, <span class="fu">aes</span>(reldiff))<span class="sc">+</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()<span class="sc">+</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cent_all, <span class="fu">aes</span>(reldiff))<span class="sc">+</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()<span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 1208 rows containing non-finite outside the scale range
+<pre><code>Warning: Removed 2960 rows containing non-finite outside the scale range
 (`stat_bin()`).</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
@@ -359,22 +405,751 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="sc">|&gt;</span> </span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">reldiff =</span> <span class="fu">if_else</span>(<span class="fu">abs</span>(reldiff)<span class="sc">&gt;</span><span class="dv">2</span>,<span class="cn">NA_real_</span>,reldiff)) <span class="sc">|&gt;</span> </span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span> reldiff))<span class="sc">+</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()<span class="sc">+</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_gradient2</span>(<span class="at">midpoint =</span> <span class="dv">0</span>,<span class="at">low =</span> <span class="st">"red3"</span>,<span class="at">high =</span> <span class="st">"green4"</span>,<span class="at">mid =</span> <span class="st">"yellow"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">reldiff =</span> <span class="fu">if_else</span>(<span class="fu">abs</span>(reldiff)<span class="sc">&gt;</span><span class="dv">2</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                           <span class="cn">NA_real_</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>                           reldiff)) <span class="sc">|&gt;</span> </span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span> reldiff))<span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()<span class="sc">+</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_gradient2</span>(<span class="at">midpoint =</span> <span class="dv">0</span>,</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>                        <span class="at">low =</span> <span class="st">"red3"</span>,</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>                        <span class="at">high =</span> <span class="st">"green4"</span>,</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>                        <span class="at">mid =</span> <span class="st">"yellow"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="using-the-actual-speeds-for-adjusting-graph" class="level2">
+<h2 class="anchored" data-anchor-id="using-the-actual-speeds-for-adjusting-graph">Using the actual speeds for adjusting graph</h2>
+<section id="building-a-correspondence" class="level3">
+<h3 class="anchored" data-anchor-id="building-a-correspondence">Building a correspondence</h3>
+<p>This section includes the code for joining the speed data network with OSM network</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>sf_speed <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"sf_network/sf_speed_network.gpkg"</span>) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="dv">3116</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `sf_speed_network' from data source 
+  `C:\Users\ts18jpf\OneDrive - University of Leeds\03_PhD\P1_Ratruns\P1_ratruns_analysis\sf_network\sf_speed_network.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 1267 features and 1 field
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: -74.18353 ymin: 5.684342e-14 xmax: 1 ymax: 4.764635
+Geodetic CRS:  MAGNA-SIRGAS</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>sf_speed_clean <span class="ot">&lt;-</span> sf_speed[bog_zone <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="dv">3116</span>) ,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>road_types <span class="ot">&lt;-</span> <span class="fu">rev</span>(<span class="fu">c</span>(</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"trunk"</span>          ,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"trunk_link"</span>     ,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"primary"</span>      ,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"primary_link"</span>   ,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"secondary"</span>      ,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"secondary_link"</span> ,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tertiary"</span>       ,</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"tertiary_link"</span>  ,</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"unclassified"</span>   ,</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"residential"</span>    </span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>sf_bog_major <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">roadclass =</span> <span class="fu">factor</span>(roadclass,</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>                          <span class="at">levels =</span> road_types,</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>                          <span class="at">ordered =</span> T)) <span class="sc">|&gt;</span> </span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">as.integer</span>(roadclass)<span class="sc">&gt;</span><span class="dv">2</span>,<span class="fu">str_detect</span>(roadclass,<span class="st">"link"</span>,<span class="at">negate =</span> T)) <span class="sc">|&gt;</span> </span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">3116</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Extracting bearings and creating a buffer to produce a correspondence</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>sf_speed_clean<span class="sc">$</span>s.bearing <span class="ot">&lt;-</span> stplanr<span class="sc">::</span><span class="fu">line_bearing</span>(sf_speed_clean)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>speed_buffer <span class="ot">&lt;-</span> sf_speed_clean  <span class="sc">|&gt;</span>  <span class="fu">st_buffer</span>(<span class="dv">100</span>,<span class="at">endCapStyle =</span> <span class="st">"FLAT"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A quick visualisation of the network that could be part of the correspondence</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(sf_bog_major[speed_buffer,])<span class="sc">+</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_lines</span>()<span class="sc">+</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(speed_buffer)<span class="sc">+</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"blue"</span>,<span class="at">alpha =</span> <span class="fl">0.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/buffer-network-map-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>using the spatial operation <code>st_intersects</code> we select the links that can be related to the buffer.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>speed_corresp <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(speed_buffer,sf_bog_major)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>TID_to_edge_id <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">lapply</span>(<span class="fu">seq_along</span>(speed_corresp),</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>               \(i) {</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>                 </span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>                 x <span class="ot">&lt;-</span> speed_corresp[[i]]</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>                 </span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>                 subset_net <span class="ot">&lt;-</span> sf_bog_major[x, ]</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>                 </span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>                 ref_bearing <span class="ot">&lt;-</span> speed_buffer<span class="sc">$</span>s.bearing[[i]]</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>                 ref_TID <span class="ot">&lt;-</span> speed_buffer<span class="sc">$</span>TID[[i]]</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>                 </span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>                 subset_net<span class="sc">$</span>bearing <span class="ot">&lt;-</span> stplanr<span class="sc">::</span><span class="fu">line_bearing</span>(subset_net)</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>                 </span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>                 sf_ids <span class="ot">&lt;-</span> subset_net <span class="sc">|&gt;</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">mutate</span>(<span class="at">bearing_check =</span> <span class="fu">round</span>(<span class="fu">abs</span>(bearing <span class="sc">-</span> ref_bearing))<span class="sc">&lt;=</span><span class="dv">15</span>) <span class="sc">|&gt;</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">filter</span>(bearing_check) <span class="sc">|&gt;</span></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">pull</span>(edge_id)</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>                 </span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">tibble</span>(<span class="at">TID =</span> ref_TID, <span class="at">edge_id =</span> sf_ids)</span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>                 }</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>        )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It is possible that some links in the road network are found to be linked to multiple links in the speed network, so we will resolve such situation. First, we identify the overlaps</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>overlap_buffer <span class="ot">&lt;-</span> TID_to_edge_id <span class="sc">|&gt;</span> </span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(edge_id) <span class="sc">|&gt;</span> </span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>n) <span class="sc">|&gt;</span> </span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n<span class="sc">&gt;</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A quick check on the distribution of overlaps</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>overlap_buffer <span class="sc">|&gt;</span> </span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(n))<span class="sc">+</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/overlaps-hist-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The following code will produce plots for all links with one-to-many correspondence. However, we will calculate the average of the speed of the observed speeds</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for (j in 1:nrow(overlap_buffer)){</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   mmap &lt;- tm_shape(speed_buffer[speed_buffer$TID %in% TID_to_edge_id$TID[TID_to_edge_id$edge_id==overlap_buffer$edge_id[j]],])+</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="co">#     tm_polygons("TID",alpha = 0.3)+</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co">#     tm_shape(sf_bog_major[sf_bog_major$edge_id == overlap_buffer$edge_id[j],])+</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     tm_lines("yellow")</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   print(mmap)</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   }</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To check if there is any link in the speed dataset that has not been linked to any object of the road network.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>no_match_speed <span class="ot">&lt;-</span> sf_speed_clean <span class="sc">|&gt;</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(TID_to_edge_id <span class="sc">|&gt;</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">select</span>(TID) <span class="sc">|&gt;</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">unique</span>(),</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"TID"</span>)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(no_match_speed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+</section>
+<section id="loading-speed-data" class="level3">
+<h3 class="anchored" data-anchor-id="loading-speed-data">loading speed data</h3>
+<p>The following code loads the data</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>speed_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"sf_network/summary_speeds.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 110880 Columns: 12
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (1): day_type
+dbl (11): TID, year, hour, d_min_speed, d_q1_speed, d_median_speed, d_mean_s...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<p>We identify the hour that showed the lowest speeds in average</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>min_speed_key <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_norm_speed =</span> <span class="fu">mean</span>(d_norm_speed),<span class="at">.by =</span> <span class="fu">c</span>(year,day_type,hour)) <span class="sc">|&gt;</span> </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(mean_norm_speed,<span class="at">by =</span> <span class="fu">c</span>(year,day_type)) <span class="sc">|&gt;</span> </span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2019</span>,day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>mean_norm_speed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will extract the observed speed for the hour we just identified</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>speed_tbl <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(min_speed_key,</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">join_by</span>(year,day_type,hour)) <span class="sc">|&gt;</span> </span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(TID,d_mean_speed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We join the speed data to the correspondence we produced before</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>obs_speeds_edges <span class="ot">&lt;-</span> TID_to_edge_id <span class="sc">|&gt;</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(speed_tbl,<span class="at">by =</span> <span class="st">"TID"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">obs_speed =</span> <span class="fu">mean</span>(d_mean_speed),<span class="at">.by =</span> edge_id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Using the observed speed we recalculate the <code>time_weighted</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>bog_contr_adjusted <span class="ot">&lt;-</span> bog_contracted</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>bog_contr_adjusted<span class="sc">$</span>obs_speed <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">edge_id =</span> bog_contr_adjusted<span class="sc">$</span>edge_id) <span class="sc">|&gt;</span> </span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(obs_speeds_edges,<span class="at">by =</span> <span class="st">"edge_id"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(obs_speed)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>bog_contr_adjusted<span class="sc">$</span>time_weighted[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)] <span class="ot">&lt;-</span> (<span class="fl">3.6</span><span class="sc">*</span>bog_contr_adjusted<span class="sc">$</span>d_weighted[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)])<span class="sc">/</span>bog_contr_adjusted<span class="sc">$</span>obs_speed[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We calculate the centrality for the <em>congested</em> graph.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>congested_centrality <span class="ot">&lt;-</span> bog_contr_adjusted <span class="sc">|&gt;</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="comparison-1" class="level4">
+<h4 class="anchored" data-anchor-id="comparison-1">Comparison</h4>
+<p>We consolidate the values of free-flow network and congested network into a single dataset</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>cent_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">edge_id =</span> bog_centrality<span class="sc">$</span>edge_id,</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">cent_bl =</span> bog_centrality<span class="sc">$</span>centrality) <span class="sc">|&gt;</span> </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">edge_id =</span> congested_centrality<span class="sc">$</span>edge_id,</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">cent_cong =</span> congested_centrality<span class="sc">$</span>centrality),</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"edge_id"</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> cent_cong <span class="sc">-</span> cent_bl,</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">reldiff =</span> diff<span class="sc">/</span>(<span class="fl">0.5</span><span class="sc">*</span>(cent_bl<span class="sc">+</span>cent_cong))</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="visualising-differences-1" class="level4">
+<h4 class="anchored" data-anchor-id="visualising-differences-1">Visualising differences</h4>
+<p>The following code produce some quick visualisation of the differences</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="ot">&lt;-</span> graph_bogota <span class="sc">|&gt;</span> </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dodgr_to_sf</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(cent_all,<span class="at">by =</span> <span class="st">"edge_id"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cent_all, <span class="fu">aes</span>(diff))<span class="sc">+</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/centrality-distribution-obs-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cent_all, <span class="fu">aes</span>(reldiff))<span class="sc">+</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()<span class="sc">+</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 472 rows containing non-finite outside the scale range
+(`stat_bin()`).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 2 rows containing missing values or values outside the scale range
+(`geom_bar()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/centrality-distribution-obs-relative-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">reldiff =</span> <span class="fu">if_else</span>(<span class="fu">abs</span>(reldiff)<span class="sc">&gt;</span><span class="dv">2</span>,</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>                           <span class="cn">NA_real_</span>,</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>                           reldiff)) <span class="sc">|&gt;</span> </span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span> reldiff))<span class="sc">+</span></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()<span class="sc">+</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_gradient2</span>(<span class="at">midpoint =</span> <span class="dv">0</span>,</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>                        <span class="at">low =</span> <span class="st">"red3"</span>,</span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>                        <span class="at">high =</span> <span class="st">"green4"</span>,</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>                        <span class="at">mid =</span> <span class="st">"yellow"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/centrality-obs-map-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="distance-from-major-network" class="level3">
+<h3 class="anchored" data-anchor-id="distance-from-major-network">Distance from major network</h3>
+<p>The distance from the major network might be related to the reports of traffic offences. For this purpose, we need the following code to obtain the average distance of each minor link to the major network.</p>
+<p>Identifying the junctions and classifying them based on the road hierarchy</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>low_hierarchy <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"residential"</span>,<span class="st">"unclassified"</span>)</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>junction_class_to <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">road_type =</span> <span class="fu">if_else</span>(roadclass <span class="sc">%in%</span> low_hierarchy,</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"minor"</span>,</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"major"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(to_id,road_type)) <span class="sc">|&gt;</span></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> road_type,<span class="at">values_from =</span> count)<span class="sc">|&gt;</span> </span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> to_id)</span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>junction_class_from <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">road_type =</span> <span class="fu">if_else</span>(roadclass <span class="sc">%in%</span> low_hierarchy,</span>
+<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"minor"</span>,</span>
+<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"major"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb56-17"><a href="#cb56-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(from_id,road_type)) <span class="sc">|&gt;</span></span>
+<span id="cb56-18"><a href="#cb56-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> road_type,<span class="at">values_from =</span> count) <span class="sc">|&gt;</span></span>
+<span id="cb56-19"><a href="#cb56-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> from_id)</span>
+<span id="cb56-20"><a href="#cb56-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-21"><a href="#cb56-21" aria-hidden="true" tabindex="-1"></a>junctions_classed <span class="ot">&lt;-</span> junction_class_to <span class="sc">|&gt;</span> </span>
+<span id="cb56-22"><a href="#cb56-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(junction_class_from,<span class="at">by =</span> <span class="st">"id"</span>,<span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">".to"</span>,<span class="st">".from"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb56-23"><a href="#cb56-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">jct_type =</span> <span class="fu">case_when</span>(<span class="fu">is.na</span>(minor.to)<span class="sc">&amp;</span><span class="fu">is.na</span>(minor.from)<span class="sc">~</span><span class="st">"major"</span>,</span>
+<span id="cb56-24"><a href="#cb56-24" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">is.na</span>(major.to)<span class="sc">&amp;</span><span class="fu">is.na</span>(major.from)<span class="sc">~</span><span class="st">"minor"</span>,</span>
+<span id="cb56-25"><a href="#cb56-25" aria-hidden="true" tabindex="-1"></a>                              (<span class="sc">!</span><span class="fu">is.na</span>(minor.to)<span class="sc">&amp;!</span><span class="fu">is.na</span>(major.from))<span class="sc">|</span></span>
+<span id="cb56-26"><a href="#cb56-26" aria-hidden="true" tabindex="-1"></a>                                (<span class="sc">!</span><span class="fu">is.na</span>(minor.from)<span class="sc">&amp;!</span><span class="fu">is.na</span>(major.to))<span class="sc">~</span><span class="st">"minmaj"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb56-27"><a href="#cb56-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">starts_with</span>(<span class="st">"m"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Calculating the network distance for all nodes in the minor network to the major network</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>minmaj_ids <span class="ot">&lt;-</span> junctions_classed <span class="sc">|&gt;</span> <span class="fu">filter</span>(jct_type <span class="sc">==</span> <span class="st">"minmaj"</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(id)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>minor_from_ids <span class="ot">&lt;-</span> junctions_classed <span class="sc">|&gt;</span> <span class="fu">filter</span>(jct_type <span class="sc">==</span> <span class="st">"minor"</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(id)</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="fu">dodgr_dists</span>(bog_contracted,</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">from =</span> minor_from_ids,</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">to =</span> minmaj_ids,</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">shortest =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">colSums</span>(dist_matrix)[<span class="fu">is.na</span>(<span class="fu">colSums</span>(dist_matrix,<span class="at">na.rm =</span> T))])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>fastest_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">id.jct =</span> minor_from_ids,</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dist.jct =</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">apply</span>(dist_matrix, <span class="dv">1</span>,\(x) <span class="fu">min</span>(x,<span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
+Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>sf_net_jct <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> <span class="fu">left_join</span>(fastest_all,</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from_id"</span><span class="ot">=</span><span class="st">"id.jct"</span>),</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">relationship =</span> <span class="st">"many-to-one"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dist.jct =</span> <span class="fu">case_when</span>(<span class="fu">is.na</span>(dist.jct)<span class="sc">&amp;</span>roadclass <span class="sc">%in%</span> low_hierarchy <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">is.infinite</span>(dist.jct)<span class="sc">~</span><span class="cn">NA</span>,</span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>                              T<span class="sc">~</span>dist.jct))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="saving-results-for-further-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="saving-results-for-further-analysis">Saving results for further analysis</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(sf_net_jct,<span class="st">"sf_network/small_sf_network_cent_results.gpkg"</span>,<span class="at">delete_dsn =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Deleting source `sf_network/small_sf_network_cent_results.gpkg' using driver `GPKG'
+Writing layer `small_sf_network_cent_results' to data source 
+  `sf_network/small_sf_network_cent_results.gpkg' using driver `GPKG'
+Writing 10970 features with 26 fields and geometry type Line String.</code></pre>
+</div>
+</div>
+</section>
+<section id="tests-for-wrong-direction-speed" class="level2">
+<h2 class="anchored" data-anchor-id="tests-for-wrong-direction-speed">Tests for Wrong Direction speed</h2>
+<section id="free-flow-network" class="level3">
+<h3 class="anchored" data-anchor-id="free-flow-network">Free-flow network</h3>
+<p>We assumed an initial speed of 10 km/h for the links that represent the wrong direction. But that choice is arbitrary. The following section will produce the results for multiple speeds, to compare the changes in centrality based on the assumed fre-flow speed of wrong-way links. First, we will test the changes on the free-flow network</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>test_centralities <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_cols,</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">lapply</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">30</span>, <span class="dv">1</span>), \(v) {</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>                               bog_ff_test <span class="ot">&lt;-</span> bog_contracted</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>                               dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>                               bog_ff_test<span class="sc">$</span>time_weighted[bog_ff_test<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_10"</span>] <span class="ot">&lt;-</span> (<span class="fl">3.6</span> <span class="sc">*</span> bog_ff_test<span class="sc">$</span>d_weighted[bog_ff_test<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_10"</span>]) <span class="sc">/</span> v</span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>                               test_centrality <span class="ot">&lt;-</span> bog_ff_test <span class="sc">|&gt;</span></span>
+<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>)</span>
+<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a>                               t <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">cent =</span> test_centrality<span class="sc">$</span>centrality)</span>
+<span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">names</span>(t) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"cent_"</span>, v)</span>
+<span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">return</span>(t)</span>
+<span id="cb65-16"><a href="#cb65-16" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a>                             }))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'</code></pre>
+</div>
+</div>
+<p>Visualising the impact of the assigned speed on centrality distribution across the network (top)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>test_centralities <span class="sc">|&gt;</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">any_of</span>(<span class="fu">names</span>(test_centralities)),</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_prefix =</span> <span class="st">"cent_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.integer</span>(name)) <span class="sc">|&gt;</span> </span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(name),<span class="at">y =</span> value<span class="sc">+</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>)<span class="sc">+</span></span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>()<span class="sc">+</span></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Centrality distribution"</span>,</span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"WWD links assigned speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-45-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">highway =</span> bog_contracted[,<span class="fu">c</span>(<span class="st">"highway"</span>)]) <span class="sc">|&gt;</span> </span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(test_centralities) <span class="sc">|&gt;</span> </span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(highway <span class="sc">==</span> <span class="st">"road_10"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>highway,<span class="at">names_prefix =</span> <span class="st">"cent_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.integer</span>(name)) <span class="sc">|&gt;</span> </span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(name),<span class="at">y =</span> value<span class="sc">+</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>)<span class="sc">+</span></span>
+<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>()<span class="sc">+</span></span>
+<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Centrality distribution (only WW-links)"</span>,</span>
+<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"WWD links assigned speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-45-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="congested-network" class="level3">
+<h3 class="anchored" data-anchor-id="congested-network">Congested network</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>test_centralities_cong <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_cols,</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">lapply</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">30</span>, <span class="dv">1</span>), \(v) {</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>                               bog_ff_test <span class="ot">&lt;-</span> bog_contr_adjusted </span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>                               dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>                               bog_ff_test<span class="sc">$</span>time_weighted[bog_ff_test<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_10"</span>] <span class="ot">&lt;-</span> (<span class="fl">3.6</span> <span class="sc">*</span> bog_ff_test<span class="sc">$</span>d_weighted[bog_ff_test<span class="sc">$</span>highway <span class="sc">==</span> <span class="st">"road_10"</span>]) <span class="sc">/</span> v</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a>                               test_centrality <span class="ot">&lt;-</span> bog_ff_test <span class="sc">|&gt;</span></span>
+<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>)</span>
+<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a>                               t <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">cent =</span> test_centrality<span class="sc">$</span>centrality)</span>
+<span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">names</span>(t) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"cent_"</span>, v)</span>
+<span id="cb69-15"><a href="#cb69-15" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">return</span>(t)</span>
+<span id="cb69-16"><a href="#cb69-16" aria-hidden="true" tabindex="-1"></a>                               </span>
+<span id="cb69-17"><a href="#cb69-17" aria-hidden="true" tabindex="-1"></a>                             }))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'
+Warning in file.remove(lf): cannot remove file
+'C:/Users/ts18jpf/AppData/Local/Temp/Rtmp2fWTC2/dodgr_graph_cca416ed5a88b57f886e0f7c81bb40c4.Rds',
+reason 'Permission denied'</code></pre>
+</div>
+</div>
+<p>Visualising the impact of the assigned speed on centrality distribution across the network (top)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>test_centralities_cong <span class="sc">|&gt;</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">any_of</span>(<span class="fu">names</span>(test_centralities_cong)),</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_prefix =</span> <span class="st">"cent_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.integer</span>(name)) <span class="sc">|&gt;</span> </span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(name),<span class="at">y =</span> value<span class="sc">+</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>)<span class="sc">+</span></span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>()<span class="sc">+</span></span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Centrality distribution"</span>,</span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"WWD links assigned speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-47-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">highway =</span> bog_contr_adjusted[,<span class="fu">c</span>(<span class="st">"highway"</span>)]) <span class="sc">|&gt;</span> </span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(test_centralities_cong) <span class="sc">|&gt;</span> </span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(highway <span class="sc">==</span> <span class="st">"road_10"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>highway,<span class="at">names_prefix =</span> <span class="st">"cent_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.integer</span>(name)) <span class="sc">|&gt;</span> </span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(name),<span class="at">y =</span> value<span class="sc">+</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>)<span class="sc">+</span></span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>()<span class="sc">+</span></span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Centrality distribution (only WW-links)"</span>,</span>
+<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"WWD links assigned speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-47-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="comparison-2" class="level3">
+<h3 class="anchored" data-anchor-id="comparison-2">Comparison</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>wwlinks <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">highway =</span> bog_contr_adjusted[, <span class="fu">c</span>(<span class="st">"highway"</span>)]) <span class="sc">|&gt;</span></span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_cols</span>(test_centralities_cong) <span class="sc">|&gt;</span></span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(highway <span class="sc">==</span> <span class="st">"road_10"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">-</span>highway, <span class="at">names_prefix =</span> <span class="st">"cent_"</span>,</span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">values_to =</span> <span class="st">"ff_cent"</span>),</span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">highway =</span> bog_contracted[, <span class="fu">c</span>(<span class="st">"highway"</span>)]) <span class="sc">|&gt;</span></span>
+<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_cols</span>(test_centralities) <span class="sc">|&gt;</span></span>
+<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(highway <span class="sc">==</span> <span class="st">"road_10"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="sc">-</span>highway, <span class="at">names_prefix =</span> <span class="st">"cent_"</span>,</span>
+<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>                 <span class="at">values_to =</span> <span class="st">"cong_cent"</span>)</span>
+<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>New names:
+• `highway` -&gt; `highway...1`
+• `name` -&gt; `name...2`
+• `highway` -&gt; `highway...4`
+• `name` -&gt; `name...5`</code></pre>
+</div>
+</div>
+<p>A simple linear model</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(ff_cent<span class="sc">~</span>cong_cent<span class="sc">+</span><span class="dv">0</span>, <span class="at">data =</span> wwlinks)</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = ff_cent ~ cong_cent + 0, data = wwlinks)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-545233       0       1    1308  984026 
+
+Coefficients:
+          Estimate Std. Error t value Pr(&gt;|t|)    
+cong_cent 0.931455   0.007189   129.6   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 38040 on 50033 degrees of freedom
+Multiple R-squared:  0.2512,    Adjusted R-squared:  0.2512 
+F-statistic: 1.679e+04 on 1 and 50033 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>wwlinks <span class="sc">|&gt;</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.integer</span>(name...<span class="dv">2</span>),</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">sign =</span> (cong_cent<span class="sc">-</span>ff_cent)<span class="sc">/</span><span class="fu">abs</span>(cong_cent<span class="sc">-</span>ff_cent)) <span class="sc">|&gt;</span></span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(name),<span class="at">y =</span> <span class="fu">abs</span>(cong_cent<span class="sc">-</span>ff_cent),<span class="at">fill =</span> <span class="fu">factor</span>(sign)))<span class="sc">+</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>)<span class="sc">+</span></span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>()<span class="sc">+</span></span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Centrality distribution (only WW-links)"</span>,</span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"WWD links assigned speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in scale_y_log10(): log-10 transformation introduced infinite values.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 18483 rows containing non-finite outside the scale range
+(`stat_boxplot()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-50-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>wwlinks <span class="sc">|&gt;</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.integer</span>(name...<span class="dv">2</span>),</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">sign =</span> (cong_cent<span class="sc">-</span>ff_cent)<span class="sc">/</span><span class="fu">abs</span>(cong_cent<span class="sc">-</span>ff_cent)) <span class="sc">|&gt;</span></span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(name),<span class="at">y =</span> <span class="fu">abs</span>(cong_cent<span class="sc">-</span>ff_cent)<span class="sc">/</span>(<span class="fl">0.5</span><span class="sc">*</span>(cong_cent<span class="sc">+</span>ff_cent)),<span class="at">fill =</span> <span class="fu">factor</span>(sign)))<span class="sc">+</span></span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>)<span class="sc">+</span></span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>()<span class="sc">+</span></span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Centrality distribution (only WW-links)"</span>,</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"WWD links assigned speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in scale_y_log10(): log-10 transformation introduced infinite values.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 18483 rows containing non-finite outside the scale range
+(`stat_boxplot()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="D2_congestion_tests_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -478,7 +1253,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
+      var filterRegex = new RegExp("https:\/\/juanfonsecaLS1\.github\.io\/P1_ratruns_analysis\/");
     var isInternal = (href) => {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
