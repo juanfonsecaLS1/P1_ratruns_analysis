@@ -408,7 +408,6 @@ plot_path = function(node_path) {
 
 colors = sf.colors(4, categorical = TRUE)
 
-
 plot(bog_sfnet, col = "grey")
 paths %>%
   pull(node_paths) %>%

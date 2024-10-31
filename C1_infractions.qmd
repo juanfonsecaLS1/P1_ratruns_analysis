@@ -14,8 +14,7 @@ pkgs = c(
     "sf",
     "tidyverse",
     "tmap",
-    "webshot2",
-    ggTime
+    "webshot2"
 )
 remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
@@ -493,6 +492,36 @@ manual_reports_2019 |>
   coord_flip()
 ```
 
+
+```{r}
+manual_reports_2019 |> 
+  st_drop_geometry() |> 
+  mutate(highway = str_remove(highway,"_link")) |>
+  mutate(highway = factor(highway,
+                          levels =
+                            c("trunk","primary","secondary","tertiary","residential","unclassified"),
+                          ordered = T)) |> 
+  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
+  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
+         hour = hour(time),
+         year = year(timestamp),
+         month = month(timestamp)) |> 
+  count(date = date(timestamp),highway) |> 
+  summarise(n = median(n),.by = c(highway)) |>
+  arrange(highway) |> 
+  mutate(perc = n/sum(n)) |>
+  # mutate(prev = cumsum(perc)-perc) |> 
+  # select(-n) |> 
+  # pivot_longer(-highway) |> 
+  ggplot(aes(x = 1,y = perc,fill = highway))+
+  geom_col(position = "stack")+
+  # scale_alpha_manual(values = c(1,0.2))+
+  coord_flip()+
+  theme_minimal()+
+  scale_y_continuous(labels = scales::label_percent())
+```
+
+
 Median daily reports in residential roads
 
 ```{r}
@@ -513,7 +542,7 @@ manual_reports_2019 |>
   coord_flip()
 ```
 
-Distance to major network vs all reports
+Euclidean distance to major network vs all reports
 
 ```{r}
 ggplot()+
@@ -580,7 +609,7 @@ ggplot()+
 ```
 
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 
 tm_shape(major_network)+
   tm_lines()+

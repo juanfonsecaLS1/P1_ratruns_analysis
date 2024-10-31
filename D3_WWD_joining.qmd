@@ -91,7 +91,9 @@ Using the `pair_id` we extract the minimum, maximum and average change in centra
 ```{r}
 summary_pairs <- subset_net |>
   st_drop_geometry() |>
-  summarise(across(diff:reldiff,
+  # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
+  summarise(across(diff:dist.jct,
                    list(min=min, max=max, avg = mean)),
             .by = pair_id)
 ```
@@ -100,7 +102,14 @@ A simplified version of the `sf` object is produced extracting the first element
 we discard will the columns with the centrality metrics from this object to avoid confusion
 
 ```{r}
-simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
+# simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
+
+simpl_network_sf <- subset_net |>
+  # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),
+         .by = pair_id) |>
+  slice_head(n = 1,by = pair_id) |>
+  select(lanes:component,pair_id)
 ```
 
 We can take a quick look at the results of the simplified network
@@ -111,11 +120,10 @@ summary_pairs |>
   geom_histogram(aes(reldiff_min),alpha = 0.3,fill = "dodgerblue2",binwidth = 0.05)+
   geom_histogram(aes(reldiff_max),alpha = 0.3,fill = "firebrick3",binwidth = 0.05)+
   geom_histogram(aes(reldiff_avg),alpha = 0.3,fill = "darkgreen",binwidth = 0.05)+
-  scale_x_continuous(limits = c(-2,2))+
+  # scale_x_continuous(limits = c(-2,2))+
   theme_minimal()
   
 ```
-
 
 We are interested in the reports on residential and unclassified streets. For this, we will create a buffer. It is uncertain how the coordinates of each report are recorded, there might be some error associated with the use of GPS devices, and also, some uncertainty in the way the officers do it.
 
@@ -133,16 +141,11 @@ subset_wwd <- (wwd_sf |> filter(abs(hour - 18)<=2) |> st_transform(3116))[subset
 ```
 
 
-
 ```{r}
-tmap_mode("view")
-
 tm_shape(subset_buffer)+
   tm_polygons("gray60",alpha = 0.6)+
   tm_shape(subset_wwd)+
   tm_dots()
-
-tmap_mode("plot")
 ```
 
 
@@ -154,14 +157,15 @@ subset_wwd$pair_id <- simpl_network_sf$pair_id[subset_wwd$near_index]
 ```
 
 
-```{r}
+### Exploring results
 
-min_offset <- 1 - min(summary_pairs$reldiff_min,na.rm = T)
+```{r}
+min_offset <- 0
 
 summary_pairs |>
   mutate(bool = pair_id %in% subset_wwd$pair_id,
-         reldiff_avg = reldiff_avg + min_offset,
-         reldiff_max = reldiff_max + min_offset) |> 
+         reldiff_avg = reldiff_avg,
+         reldiff_max = reldiff_max) |> 
   ggplot(aes(x = reldiff_avg,
              y = reldiff_max,
              alpha = bool,
@@ -170,48 +174,137 @@ summary_pairs |>
   geom_hline(yintercept = min_offset,linetype = "dashed", col = "gray30") +
   geom_vline(xintercept = min_offset,linetype = "dashed", col = "gray30") +
   geom_point()+
-  scale_x_log10(
-    breaks = scales::trans_breaks("log10", function(x)
-      10 ^ x),
-    labels = scales::trans_format("log10", scales::math_format(10 ^ .x)))+
-  scale_y_log10(
-    breaks = scales::trans_breaks("log10", function(x)
-      10 ^ x),
-    labels = scales::trans_format("log10", scales::math_format(10 ^ .x)))+
   scale_colour_manual(values = c("gray70","dodgerblue4"))+
   scale_alpha_manual(values = c(0.05,1))+
   coord_fixed() +
   theme_minimal()
 ```
 
+
+
 ```{r}
 simpl_network_sf |>
+  st_drop_geometry() |> 
   filter(pair_id %in% subset_wwd$pair_id) |> 
-  mutate(oneway.raw = if_else(is.na(oneway.raw),"no",oneway.raw),
-         oneway.raw = str_detect(oneway.raw,"(yes|Yes|YES)")) |>
-  ggplot(aes(oneway.raw))+
+  ggplot(aes(oneway))+
   geom_bar()
 ```
 
 ```{r}
 simpl_network_sf |> 
-  mutate(oneway.raw = if_else(is.na(oneway.raw),"no",oneway.raw),
-         oneway.raw = str_detect(oneway.raw,"(yes|Yes|YES)")) |> 
-  ggplot(aes(col = oneway.raw))+
+  ggplot(aes(col = oneway))+
   geom_sf()+
   theme_void()
 ```
 
+
+
 ```{r}
-simpl_network_sf |> 
-  mutate(oneway.raw = if_else(is.na(oneway.raw),"no",oneway.raw),
-         oneway.raw = str_detect(oneway.raw,"(yes|Yes|YES)")) |> 
-  filter(oneway.raw) |> 
+simpl_network_sf |>
+  filter(oneway) |> 
   left_join(summary_pairs,by = "pair_id") |> 
-  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |> 
-  ggplot(aes(x = log10(reldiff_max),y = wwd_bool,size = log10(abs(diff_max))))+
-    geom_point(alpha = 0.3)
+  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |>
+  st_drop_geometry() |> 
+  ggplot(aes(dist.jct_avg,col = wwd_bool))+
+  stat_ecdf(alpha = 0.7)+
+  theme_minimal()
 ```
 
 
+```{r}
+simpl_network_sf |> 
+  filter(oneway) |> 
+  left_join(summary_pairs,by = "pair_id") |> 
+  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |>
+  st_drop_geometry() |> 
+  ggplot(aes(dist.jct_avg,fill = wwd_bool))+
+  geom_histogram(alpha = 0.7,col="white")+
+  theme_minimal()
+```
+
+
+```{r}
+simpl_network_sf |> 
+  filter(oneway) |> 
+  left_join(summary_pairs,by = "pair_id") |> 
+  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |>
+  st_drop_geometry() |> 
+  ggplot(aes(x = dist.jct_avg,
+             y = diff_max,
+             alpha = abs(diff_max),
+             col = wwd_bool))+
+  # scale_y_log10()+
+  geom_point()+
+  theme_minimal()
+```
+
+```{r}
+model_data <- simpl_network_sf |> 
+  filter(oneway) |>
+  left_join(summary_pairs,by = "pair_id") |> 
+  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) 
+```
+
+
+```{r}
+model_data |> 
+  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_jitter(alpha = 0.1)+
+  theme_minimal()
+```
+
+```{r}
+model_data |> 
+  ggplot(aes(x = (reldiff_max),fill = wwd_bool))+
+  geom_histogram(alpha = 0.4)+
+  theme_minimal()
+```
+
+
+```{r}
+test1 <- model_data |> group_by(way_id) |> 
+  summarise(across(c(diff_max,reldiff_max),
+                   \(x) mean(x,na.rm = T)),
+            across(wwd_bool,\(x) sum(x)>=1))
+
+```
+
+```{r}
+test1 |>
+  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_jitter(alpha = 0.1)+
+  theme_minimal()
+```
+
+
+
+
+Fitting a logistic model with all the data (not useful)
+```{r}
+# cent_diff <- glm(wwd_bool~reldiff_max,data = model_data)
+# 
+# library(jtools)
+# effect_plot(model_data,pred = reldiff_max,plot.points = T,jitter = c(0.1,0.05),point.alpha = 0.1)
+# 
+# plot(cent_diff)
+# 
+# 
+
+
+
+```
+
+
+
+
+```{r}
+
+# simpl_network_sf |> 
+#   mutate(oneway.raw = if_else(is.na(oneway.raw),"no",oneway.raw),
+#          oneway.raw = str_detect(oneway.raw,"(yes|Yes|YES)")) |> 
+#   # filter(oneway.raw) |> 
+#   left_join(summary_pairs,by = "pair_id") |> 
+#   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |> 
+#   st_write("sf_network/simpl_net.gpkg",delete_dsn = T)
+```
 
