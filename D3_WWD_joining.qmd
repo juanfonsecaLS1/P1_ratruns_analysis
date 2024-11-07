@@ -136,8 +136,9 @@ subset_buffer <- simpl_network_sf |>
 A subset of the reports during peak hour +/- 2 hours
 
 ```{r}
-subset_wwd <- (wwd_sf |> filter(abs(hour - 18)<=2) |> st_transform(3116))[subset_buffer,]|> 
-             filter(year==2019)
+subset_wwd <- (wwd_sf |>
+                 filter(abs(hour - 18)<=2) |> st_transform(3116))[subset_buffer,]|> 
+  filter(year==2019)
 ```
 
 
@@ -156,8 +157,7 @@ subset_wwd$near_index <- st_nearest_feature(subset_wwd,simpl_network_sf)
 subset_wwd$pair_id <- simpl_network_sf$pair_id[subset_wwd$near_index]
 ```
 
-
-### Exploring results
+#### Exploring preliminary results
 
 ```{r}
 min_offset <- 0
@@ -181,7 +181,6 @@ summary_pairs |>
 ```
 
 
-
 ```{r}
 simpl_network_sf |>
   st_drop_geometry() |> 
@@ -197,7 +196,7 @@ simpl_network_sf |>
   theme_void()
 ```
 
-
+The following plot compares the cumulative probability of distance to the major network looking for a sampling bias
 
 ```{r}
 simpl_network_sf |>
@@ -210,6 +209,7 @@ simpl_network_sf |>
   theme_minimal()
 ```
 
+The following produces a histogram with the distribution
 
 ```{r}
 simpl_network_sf |> 
@@ -222,7 +222,7 @@ simpl_network_sf |>
   theme_minimal()
 ```
 
-
+Also (unsuccessfully) looking for some relation between the changes in centrality and the distance from the major network 
 ```{r}
 simpl_network_sf |> 
   filter(oneway) |> 
@@ -238,6 +238,9 @@ simpl_network_sf |>
   theme_minimal()
 ```
 
+Let's try see if a naive logistic regression can be fit with the data. For this,
+we subset the data for one-way links
+
 ```{r}
 model_data <- simpl_network_sf |> 
   filter(oneway) |>
@@ -245,6 +248,7 @@ model_data <- simpl_network_sf |>
   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) 
 ```
 
+A jitter plot to explore the distribution
 
 ```{r}
 model_data |> 
@@ -253,6 +257,8 @@ model_data |>
   theme_minimal()
 ```
 
+Distribution of average relative change for the data
+
 ```{r}
 model_data |> 
   ggplot(aes(x = (reldiff_max),fill = wwd_bool))+
@@ -260,6 +266,8 @@ model_data |>
   theme_minimal()
 ```
 
+Some OSM links have been split, so we will simplify the data by summarising the 
+results by OSM way id
 
 ```{r}
 test1 <- model_data |> group_by(way_id) |> 
@@ -269,17 +277,218 @@ test1 <- model_data |> group_by(way_id) |>
 
 ```
 
+The following code shows how a logistic regression fits the data. Unfortunately,
+the *false positives* do have a significant impact.
+
 ```{r}
 test1 |>
+  mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
   ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_point(alpha = 0.1)+
+  theme_minimal()+
+  geom_smooth(method = "glm",
+              formula = y ~ x,
+              family = "binomial",
+              method.args=list(family="binomial"),se = F)
+```
+
+
+```{r}
+m1 <- glm(formula = wwd_bool ~ reldiff_max,
+          data = test1,
+          family = "binomial")
+
+summary(m1)
+```
+
+### Filling the reports to adjacent links 
+
+```{r}
+subset_net_wwd <- subset_net |> 
+  left_join(summary_pairs,
+            by = "pair_id") |> 
+  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id)
+```
+
+Let's take one link with a wwd report
+
+```{r}
+sample_wwd <- subset_net_wwd |> filter(wwd_bool) |> slice_head(n=1)
+```
+
+```{r}
+buf_sample <- sample_wwd |> st_buffer(500)
+```
+
+```{r}
+net_sample <- subset_net_wwd[buf_sample,]
+
+net_sample |> 
+  tm_shape()+tm_lines("gray80")+
+  tm_shape(sample_wwd)+tm_lines("dodgerblue")
+```
+
+```{r}
+fill_probs <- function(edges_df,
+                       direction = c("1","-1")
+                       ) {
+  
+  direction = match.arg(direction)
+
+    if (direction == "1") {
+      do.call(bind_rows, lapply(1:nrow(edges_df), \(j) {
+        subset_net_wwd |>
+          st_drop_geometry() |>
+          select(from_id, to_id) |>
+          filter(to_id == edges_df$from_id[j],
+                 from_id != edges_df$to_id[j]) |>
+          mutate(p = edges_df$p[j] / n())
+      }))
+  } else {
+    do.call(bind_rows, lapply(1:nrow(edges_df), \(j) {
+      subset_net_wwd |>
+        st_drop_geometry() |>
+        select(from_id, to_id) |>
+        filter(from_id == edges_df$to_id[j],
+               to_id != edges_df$from_id[j]) |>
+        mutate(p = edges_df$p[j] / n())
+    }))
+    
+  }
+}
+
+
+expand_reports <- function(
+    df,
+    max_degree = 5
+) {
+  
+  check0 <- df |>
+    st_drop_geometry() |>
+    select(from_id, to_id) |>
+    mutate(p = 1)
+  
+  check <- list()
+  check[[1]] <- fill_probs(check0)
+  for (i in 2:max_degree) {
+    check[[i]] <- fill_probs(check[[i - 1]])
+    if (nrow(check[[i]]) < 1)
+      break
+  }
+  
+  checkr <- list()
+  checkr[[1]] <- fill_probs(check0, direction = "-1")
+  for (i in 2:max_degree) {
+    if (nrow(check[[i - 1]]) < 1)
+      break
+    checkr[[i]] <- fill_probs(checkr[[i - 1]], direction = "-1")
+  }
+  
+  ckeck_df <- bind_rows(check0, do.call(bind_rows, check), do.call(bind_rows, checkr)) |>
+    summarise(across(p, max), .by = c(from_id, to_id))
+  return(ckeck_df)
+}
+
+```
+
+```{r}
+sample_exp <- expand_reports(sample_wwd)
+```
+
+```{r}
+net_sample |> 
+  left_join(sample_exp,
+            by = join_by(from_id,to_id)) |> 
+  tm_shape()+
+  tm_lines("p",lwd = 2,alpha = 0.5)
+```
+
+
+### Applygin to the whole network
+
+```{r}
+full_exp <- subset_net_wwd |> filter(wwd_bool) |> expand_reports()
+```
+
+```{r}
+full_exp |> nrow()
+```
+
+```{r}
+full_exp |> select(from_id,to_id) |>  unique() |> nrow()
+```
+
+
+```{r}
+summary_pairs_adj <- subset_net_wwd |>
+  left_join(full_exp,by = join_by(from_id, to_id)) |> 
+  st_drop_geometry() |>
+  # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
+  summarise(across(diff:dist.jct,
+                   list(min=min, max=max, avg = mean)),
+            across(p,\(x) sum(x,na.rm = T)),
+            .by = pair_id) |>
+  mutate(p = if_else(p>1,1,p))
+  
+```
+
+
+```{r}
+model_data_adj <- simpl_network_sf |> 
+  filter(oneway) |>
+  left_join(summary_pairs_adj,by = "pair_id")
+```
+
+A jitter plot to explore the distribution
+
+```{r}
+model_data_adj |> 
+  ggplot(aes(x = (reldiff_max),y = p))+
     geom_jitter(alpha = 0.1)+
-  theme_minimal()
+  theme_minimal()+
+  geom_smooth(method = "glm",
+              formula = y ~ x,
+              family = "binomial",
+              method.args=list(family="binomial"),se = F)
+```
+
+```{r}
+model_data_adj |> select()
 ```
 
 
 
 
-Fitting a logistic model with all the data (not useful)
+Some OSM links have been split, so we will simplify the data by summarising the 
+results by OSM way id
+
+```{r}
+test2 <- model_data_adj |>
+  group_by(way_id) |> 
+  summarise(across(c(diff_max,reldiff_max),
+                   \(x) mean(x,na.rm = T)))
+
+```
+
+The following code shows how a logistic regression fits the data. Unfortunately,
+the *false positives* do have a significant impact.
+
+```{r}
+test1 |>
+  mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
+  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_point(alpha = 0.1)+
+  theme_minimal()+
+  geom_smooth(method = "glm",
+              formula = y ~ x,
+              family = "binomial",
+              method.args=list(family="binomial"),se = F)
+```
+
+
+
+
 ```{r}
 # cent_diff <- glm(wwd_bool~reldiff_max,data = model_data)
 # 

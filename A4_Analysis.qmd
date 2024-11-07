@@ -1,0 +1,224 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Joining the WWD reports
+
+```{r,message=FALSE}
+#| label: libraries
+#| message: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "zonebuilder",
+    "tmap"
+    # "dodgr" # Using the developer version of dodgr
+)
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+```
+
+
+
+### WWD reports
+
+```{r}
+wwd_sf <- st_read("sf_network/wwd_clean_sf.gpkg")
+```
+
+
+```{r}
+sf_net_exp <- st_read("sf_network/full_sf_network_cent_results.gpkg") |> st_transform(3116)
+```
+
+
+```{r}
+urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |>st_transform(3116)
+```
+
+
+```{r}
+sf_net <- sf_net_exp[urban_perimeter,]
+```
+
+
+```{r}
+subset_net <- sf_net |> 
+  filter(roadclass %in% c(
+    "residential",
+    "unclassified"
+    )) 
+```
+
+From this subset, we first find the pairs of links with the `st_contains` function. 
+
+
+```{r}
+simplifed_net_indexes <- lapply(st_contains(subset_net,subset_net),
+            \(x){
+              x[order(x)]
+}) |> unique()
+```
+
+Each pair is then assigned a unique id.
+
+```{r}
+simp_groups <- do.call(bind_rows,
+        lapply(seq_along(simplifed_net_indexes),
+               \(i){
+                 tibble(id = simplifed_net_indexes[[i]],
+                        pair_id = i)
+               })) |> 
+  arrange(id)
+
+subset_net$pair_id <- simp_groups$pair_id
+```
+
+Using the `pair_id` we extract the minimum, maximum and average change in centrality for each pair.
+
+```{r}
+summary_pairs <- subset_net |>
+  st_drop_geometry() |>
+  # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
+  summarise(across(diff:reldiff,
+                   list(min=min, max=max, avg = mean)),
+            .by = pair_id)
+```
+
+A simplified version of the `sf` object is produced extracting the first element of each pair,
+we discard will the columns with the centrality metrics from this object to avoid confusion
+
+```{r}
+# simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
+
+simpl_network_sf <- subset_net |>
+  # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),
+         .by = pair_id) |>
+  slice_head(n = 1,by = pair_id) |>
+  select(lanes:component,pair_id)
+```
+
+```{r}
+subset_buffer <- simpl_network_sf |> 
+  st_union()  |> 
+  st_buffer(20)
+```
+
+A subset of the reports during peak hour +/- 2 hours
+
+```{r}
+subset_wwd <- (wwd_sf |>
+                 filter(abs(hour - 18)<=2) |> st_transform(3116))[subset_buffer,]|> 
+  filter(year==2019)
+```
+
+### Finding the closest element of the network
+
+```{r}
+subset_wwd$near_index <- st_nearest_feature(subset_wwd,simpl_network_sf)
+subset_wwd$pair_id <- simpl_network_sf$pair_id[subset_wwd$near_index]
+```
+
+
+
+```{r}
+model_data <- simpl_network_sf |> 
+  filter(oneway) |>
+  left_join(summary_pairs,by = "pair_id") |> 
+  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) 
+```
+
+A jitter plot to explore the distribution
+
+```{r}
+model_data |> 
+  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_jitter(alpha = 0.1)+
+  theme_minimal()+
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1))+
+  labs(x = "Average relative change in BC",
+       y = "Wrong-way driving report")
+```
+
+Distribution of average relative change for the data
+
+```{r}
+model_data |> 
+  ggplot(aes(x = (reldiff_max),fill = wwd_bool))+
+  geom_histogram(alpha = 0.4)+
+  theme_minimal()
+```
+
+
+```{r}
+mean_bl <- mean(subset_net$cent_bl[subset_net$cent_bl>0],na.rm = T)
+mean_cong <- mean(subset_net$cent_cong[subset_net$cent_cong>0],na.rm = T)
+
+library(extrafont)
+
+hist_centrality <- subset_net |>
+  st_drop_geometry() |> 
+  filter(oneway,cent_bl+cent_cong>0) |>
+  select(cent_bl,cent_cong) |> 
+  pivot_longer(cols = cent_bl:cent_cong) |> 
+  ggplot(aes(x = value+1,fill = name))+
+  geom_histogram(alpha = 0.3,col = "white",position = "identity")+
+  geom_vline(xintercept = mean_bl,col = "dodgerblue",alpha = 0.8,linewidth = 1.5)+
+  geom_vline(xintercept = mean_cong,col = "firebrick",alpha = 0.8,linewidth = 1.5)+
+  scale_x_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
+    labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+  scale_y_continuous(labels = scales::label_comma())+
+  theme_minimal()+
+  labs(x = "Centrality",
+       fill = "Network",
+       title = "Centrality distribution",
+       subtitle = "Only oneway residential links")+
+  scale_fill_manual(values = c("dodgerblue","firebrick"),labels = c("Free-flow","congested"))+
+  theme(text = element_text(family = "Roboto Light"),
+        legend.position = "top")
+
+ggsave(hist_centrality,filename = "histogram_centralities.png",dpi = 320,units = "mm",height = 110,width = 170)
+  
+```
+
+```{r}
+test1 <- model_data |> group_by(way_id) |> 
+  summarise(across(c(diff_max,reldiff_max),
+                   \(x) mean(x,na.rm = T)),
+            across(wwd_bool,\(x) sum(x)>=1))
+
+```
+
+The following code shows how a logistic regression fits the data. Unfortunately,
+the *false positives* do have a significant impact.
+
+```{r}
+ref_plot <- test1 |>
+  mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
+  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_point(alpha = 0.1,col = "dodgerblue3")+
+  theme_minimal()+
+  geom_smooth(method = "glm",
+              formula = y ~ x,
+              family = "binomial",
+              method.args=list(family="binomial"),
+              se = F,
+              col = "goldenrod")+
+  labs(title = "Naive Logistic Regression",
+       subtitle = "Only one-way residential roads",
+       y = "Probability of report",
+       x = "Mean Relative Change in BC")+
+  scale_x_continuous(labels = scales::label_percent(1))+
+  theme(text = element_text(family = "Roboto Light"),
+        legend.position = "top")
+
+ggsave(ref_plot,filename = "reg_naive.png",dpi = 320,units = "mm",height = 110,width = 170)
+
+```
