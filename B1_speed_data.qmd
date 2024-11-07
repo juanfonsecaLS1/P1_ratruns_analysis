@@ -24,15 +24,34 @@ sapply(pkgs, require, character.only = TRUE)
 setDTthreads(0)
 ```
 
+# Downloading data
+
+We obtained speed data from [Datos Abiertos Movilidad de Bogotá (Movility Open Data of Bogotá)](https://datos.movilidadbogota.gov.co/search?groupIds=71ef3e63c60749cbb89028c76558a304). However, direct download might be restricted. A copy of the original data is saved 
+as a pre-release of the repository for this analysis. The following code downloads 
+the necesary files:
+
+```{r}
+if(!dir.exists("raw_data/bogota")) {
+  if (!file.exists("raw_data/bogota_data.zip")) {
+    options(timeout = 180)
+    download.file(
+      "https://github.com/juanfonsecaLS1/P1_ratruns_analysis/releases/download/v0/bogota_data.zip",
+      destfile = "raw_data/bogota_data.zip",
+      mode = "wb"
+    )
+    unzip("raw_data/bogota_data.zip", exdir = "raw_data")
+  }
+}
+```
+
 # Loading and cleaning
 
-We obtained speed data from [Datos Abiertos Movilidad de Bogotá (Movility Open Data of Bogotá)](https://datos.movilidadbogota.gov.co/search?groupIds=71ef3e63c60749cbb89028c76558a304)
 
 ```{r}
 #| label: read-speed-files
 #| eval: false
 
-lst_files <- list.files("../00_data/bogota/speed_data/",pattern = "csv$",full.names = T)
+lst_files <- list.files("raw_data/bogota/speed_data/",pattern = "csv$",full.names = T)
 
 all_data <- rbindlist(lapply(lst_files,fread),fill = T)[,
          c("OBJECTID",
@@ -133,7 +152,7 @@ First, we will identify the days that were bank holidays in Colombia
 ```{r}
 #| label: read_bankholidays
 
-bank_holidays <- read.csv("../00_data/bogota/bank_holidays.csv") |>
+bank_holidays <- read.csv("raw_data/bogota/bank_holidays.csv") |>
   mutate(bank_holiday = dmy(bank_holiday)) |>
   pull(bank_holiday)
 ```
@@ -384,13 +403,13 @@ the other data.
 #| label: read-spatial-speeds
 
 sf_feb2019<- st_read(
-   "../00_data/bogota/speed_data/Velocidades_Bitcarrier_Febrero_2019_1361955177739874723.gpkg",
+   "raw_data/bogota/speed_data/Velocidades_Bitcarrier_Febrero_2019_1361955177739874723.gpkg",
    query="select TID,SHAPE from 'Velocidades_Bitcarrier_Febrero_2019'"
    ) |>
   filter(TID %in% tid_feb2019$TID) |> select(TID) |> slice_head(n = 1,by = TID)
 
 sf_oct2020 <- st_read(
-  "../00_data/bogota/speed_data/Velocidades_Bitcarrier_Octubre_2020_-1518838627102027019.gpkg",
+  "raw_data/bogota/speed_data/Velocidades_Bitcarrier_Octubre_2020_-1518838627102027019.gpkg",
   query="select TID,SHAPE from 'Velocidades_Bitcarrier_Octubre_2020'") |>
   filter(TID %in% tid_missing$TID) |> slice_head(n = 1,by = TID)
 ```

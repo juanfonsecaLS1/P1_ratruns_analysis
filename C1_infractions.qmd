@@ -22,11 +22,29 @@ sapply(pkgs, require, character.only = TRUE)
 tmap_mode("plot")
 ```
 
+
+## Download data
+
+```{r}
+if(!dir.exists("raw_data/bogota")) {
+  if (!file.exists("raw_data/bogota_data.zip")) {
+    options(timeout = 180)
+    download.file(
+      "https://github.com/juanfonsecaLS1/P1_ratruns_analysis/releases/download/v0/bogota_data.zip",
+      destfile = "raw_data/bogota_data.zip",
+      mode = "wb"
+    )
+    unzip("raw_data/bogota_data.zip", exdir = "raw_data")
+  }
+}
+```
+
+
 ## Loading Infractions
 
 ```{r}
 #| label: reading-data
-reports2019 <- read_csv("../00_data/bogota/Comparendos_2019_Bogota_D_C.csv",
+reports2019 <- read_csv("raw_data/bogota/Comparendos_2019_Bogota_D_C.csv",
                         col_types = cols(
                           X = col_double(),
                           Y = col_double(),
@@ -48,7 +66,7 @@ reports2019 <- read_csv("../00_data/bogota/Comparendos_2019_Bogota_D_C.csv",
                           GlobalID = col_character()
                         ))
 
-reports2020 <- read_csv("../00_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.csv",
+reports2020 <- read_csv("raw_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.csv",
                         col_types = cols(
                           X = col_double(),
                           Y = col_double(),
@@ -121,7 +139,7 @@ we will use the bank holiday list we used for the speed data processing.
 ```{r}
 #| label: read_bankholidays
 
-bank_holidays <- read.csv("../00_data/bogota/bank_holidays.csv") |>
+bank_holidays <- read.csv("raw_data/bogota/bank_holidays.csv") |>
   mutate(bank_holiday = dmy(bank_holiday)) |>
   pull(bank_holiday)
 ```
