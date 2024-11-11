@@ -23,13 +23,13 @@ remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
 ```
 
-
+## Loading data
 
 ```{r}
 #| label: zone4clipping
 
 bog_zone <- zonebuilder::zb_zone("Bogota",
-                                 n_circles = 2) |> 
+                                 n_circles = 3) |> 
   st_transform(4326)
 # zb_view(bog_zone)
 ```
@@ -40,17 +40,35 @@ bog_zone <- zonebuilder::zb_zone("Bogota",
 wwd_sf <- st_read("sf_network/wwd_clean_sf.gpkg")
 ```
 
+### Network
 
 ```{r}
 sf_net <- st_read("sf_network/small_sf_network_cent_results.gpkg")
 ```
 
+### Centrality results
+
+```{r}
+{
+  cent_tests <- read_csv("sf_network/cent_tests.csv",
+                         lazy = F)
+  cent_tests$logdiff[cent_tests$diff == 0] <- 0
+  cent_tests$reldiff[cent_tests$diff==0]<-0
+}
+```
+
 ### Assigning reports to the network
 
-We need to assign the reports to the network. As we are interested in the residential roads, any bi-directional road is represented in the `sf` object as two objects. Since we do not have information to know which specific direction the reports correspond to, we will need to simplify the spatial object. Our target variable is the betweenness centrality, so we are going to keep the two centrality values for each bi-directional element.
+We need to assign the reports to the network. As we are interested in
+the residential roads, any bi-directional road is represented in the
+`sf` object as two objects. Since we do not have information to know
+which specific direction the reports correspond to, we will need to
+simplify the spatial object. Our target variable is the betweenness
+centrality, so we are going to keep the two centrality values for each
+bi-directional element.
 
-
-First, we will create a subset of the `residential` and `unclassified` roads 
+First, we will create a subset of the `residential` and `unclassified`
+roads
 
 ```{r}
 subset_net <- sf_net |> 
@@ -61,8 +79,8 @@ subset_net <- sf_net |>
   st_transform(3116)
 ```
 
-From this subset, we first find the pairs of links with the `st_contains` function. 
-
+From this subset, we first find the pairs of links with the
+`st_contains` function.
 
 ```{r}
 simplifed_net_indexes <- lapply(st_contains(subset_net,subset_net),
@@ -86,20 +104,35 @@ simp_groups <- do.call(bind_rows,
 subset_net$pair_id <- simp_groups$pair_id
 ```
 
-Using the `pair_id` we extract the minimum, maximum and average change in centrality for each pair.
+Using the `pair_id` we extract the minimum, maximum and average change
+in centrality for each pair.
 
 ```{r}
-summary_pairs <- subset_net |>
-  st_drop_geometry() |>
+summary_pairs <- cent_tests |> 
+  right_join(subset_net |>
+               st_drop_geometry() |>
+               select(edge_id,way_id,pair_id),
+            by = "edge_id") |> 
   # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
-  summarise(across(diff:dist.jct,
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  summarise(across(diff:reldiff,
                    list(min=min, max=max, avg = mean)),
-            .by = pair_id)
+            .by = c(pair_id,wwd.speed,dist.th))
 ```
 
-A simplified version of the `sf` object is produced extracting the first element of each pair,
-we discard will the columns with the centrality metrics from this object to avoid confusion
+```{r}
+summary_pairs_dist.jct <- 
+  subset_net |>
+  st_drop_geometry() |>
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  summarise(across(dist.jct,mean),
+            .by = c(pair_id))
+```
+
+
+A simplified version of the `sf` object is produced extracting the first
+element of each pair, we will discard columns with the centrality
+metrics from this object to avoid confusion
 
 ```{r}
 # simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
@@ -112,20 +145,11 @@ simpl_network_sf <- subset_net |>
   select(lanes:component,pair_id)
 ```
 
-We can take a quick look at the results of the simplified network
-
-```{r}
-summary_pairs |> 
-  ggplot() + 
-  geom_histogram(aes(reldiff_min),alpha = 0.3,fill = "dodgerblue2",binwidth = 0.05)+
-  geom_histogram(aes(reldiff_max),alpha = 0.3,fill = "firebrick3",binwidth = 0.05)+
-  geom_histogram(aes(reldiff_avg),alpha = 0.3,fill = "darkgreen",binwidth = 0.05)+
-  # scale_x_continuous(limits = c(-2,2))+
-  theme_minimal()
-  
-```
-
-We are interested in the reports on residential and unclassified streets. For this, we will create a buffer. It is uncertain how the coordinates of each report are recorded, there might be some error associated with the use of GPS devices, and also, some uncertainty in the way the officers do it.
+We are interested in the reports on residential and unclassified
+streets. For this, we will create a buffer. It is uncertain how the
+coordinates of each report are recorded, there might be some error
+associated with the use of GPS devices, and also, some uncertainty in
+the way the officers do it.
 
 ```{r}
 subset_buffer <- simpl_network_sf |> 
@@ -137,10 +161,10 @@ A subset of the reports during peak hour +/- 2 hours
 
 ```{r}
 subset_wwd <- (wwd_sf |>
-                 filter(abs(hour - 18)<=2) |> st_transform(3116))[subset_buffer,]|> 
+                 filter(abs(hour - 18)<=2) |>
+                 st_transform(3116))[subset_buffer,]|> 
   filter(year==2019)
 ```
-
 
 ```{r}
 tm_shape(subset_buffer)+
@@ -148,7 +172,6 @@ tm_shape(subset_buffer)+
   tm_shape(subset_wwd)+
   tm_dots()
 ```
-
 
 ### Finding the closest element of the network
 
@@ -158,27 +181,6 @@ subset_wwd$pair_id <- simpl_network_sf$pair_id[subset_wwd$near_index]
 ```
 
 #### Exploring preliminary results
-
-```{r}
-min_offset <- 0
-
-summary_pairs |>
-  mutate(bool = pair_id %in% subset_wwd$pair_id,
-         reldiff_avg = reldiff_avg,
-         reldiff_max = reldiff_max) |> 
-  ggplot(aes(x = reldiff_avg,
-             y = reldiff_max,
-             alpha = bool,
-             col = bool,
-             shape = bool))+
-  geom_hline(yintercept = min_offset,linetype = "dashed", col = "gray30") +
-  geom_vline(xintercept = min_offset,linetype = "dashed", col = "gray30") +
-  geom_point()+
-  scale_colour_manual(values = c("gray70","dodgerblue4"))+
-  scale_alpha_manual(values = c(0.05,1))+
-  coord_fixed() +
-  theme_minimal()
-```
 
 
 ```{r}
@@ -196,15 +198,16 @@ simpl_network_sf |>
   theme_void()
 ```
 
-The following plot compares the cumulative probability of distance to the major network looking for a sampling bias
+The following plot compares the cumulative probability of distance to
+the major network looking for a sampling bias
 
 ```{r}
 simpl_network_sf |>
   filter(oneway) |> 
-  left_join(summary_pairs,by = "pair_id") |> 
+  left_join(summary_pairs_dist.jct, by = "pair_id") |> 
   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |>
   st_drop_geometry() |> 
-  ggplot(aes(dist.jct_avg,col = wwd_bool))+
+  ggplot(aes(dist.jct,col = wwd_bool))+
   stat_ecdf(alpha = 0.7)+
   theme_minimal()
 ```
@@ -214,37 +217,22 @@ The following produces a histogram with the distribution
 ```{r}
 simpl_network_sf |> 
   filter(oneway) |> 
-  left_join(summary_pairs,by = "pair_id") |> 
+  left_join(summary_pairs_dist.jct, by = "pair_id") |> 
   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |>
   st_drop_geometry() |> 
-  ggplot(aes(dist.jct_avg,fill = wwd_bool))+
+  ggplot(aes(dist.jct, fill = wwd_bool))+
   geom_histogram(alpha = 0.7,col="white")+
   theme_minimal()
 ```
 
-Also (unsuccessfully) looking for some relation between the changes in centrality and the distance from the major network 
-```{r}
-simpl_network_sf |> 
-  filter(oneway) |> 
-  left_join(summary_pairs,by = "pair_id") |> 
-  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |>
-  st_drop_geometry() |> 
-  ggplot(aes(x = dist.jct_avg,
-             y = diff_max,
-             alpha = abs(diff_max),
-             col = wwd_bool))+
-  # scale_y_log10()+
-  geom_point()+
-  theme_minimal()
-```
-
-Let's try see if a naive logistic regression can be fit with the data. For this,
-we subset the data for one-way links
+Let's try see if a naive logistic regression can be fit with the data.
+For this, we subset the data for one-way links
 
 ```{r}
-model_data <- simpl_network_sf |> 
-  filter(oneway) |>
-  left_join(summary_pairs,by = "pair_id") |> 
+model_data <- summary_pairs |>
+  semi_join(simpl_network_sf |>
+              filter(oneway),
+            by = "pair_id") |> 
   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) 
 ```
 
@@ -252,6 +240,7 @@ A jitter plot to explore the distribution
 
 ```{r}
 model_data |> 
+  filter(wwd.speed == 9, dist.th == 1140) |> 
   ggplot(aes(x = (reldiff_max),y = wwd_bool))+
     geom_jitter(alpha = 0.1)+
   theme_minimal()
@@ -261,29 +250,50 @@ Distribution of average relative change for the data
 
 ```{r}
 model_data |> 
+    filter(wwd.speed == 9, dist.th == 1140) |> 
   ggplot(aes(x = (reldiff_max),fill = wwd_bool))+
   geom_histogram(alpha = 0.4)+
   theme_minimal()
 ```
 
-Some OSM links have been split, so we will simplify the data by summarising the 
-results by OSM way id
+Some OSM links have been split, so we will simplify the data by
+summarising the results by OSM way id
 
 ```{r}
-test1 <- model_data |> group_by(way_id) |> 
-  summarise(across(c(diff_max,reldiff_max),
+test1 <- model_data |>
+  filter(wwd.speed == 9, dist.th == 1140) |>
+  left_join(simpl_network_sf |>
+              st_drop_geometry() |> 
+              select(pair_id,way_id),
+            by = "pair_id") |> 
+  group_by(way_id) |> 
+  summarise(across(c(diff_max,reldiff_max,logdiff_max),
                    \(x) mean(x,na.rm = T)),
             across(wwd_bool,\(x) sum(x)>=1))
 
 ```
 
-The following code shows how a logistic regression fits the data. Unfortunately,
-the *false positives* do have a significant impact.
+The following code shows how a logistic regression fits the data.
+Unfortunately, the *false positives* do have a significant impact.
 
 ```{r}
 test1 |>
   mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
   ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+    geom_point(alpha = 0.1)+
+  theme_minimal()+
+  geom_smooth(method = "glm",
+              formula = y ~ x,
+              family = "binomial",
+              method.args=list(family="binomial"),se = F)
+```
+
+
+```{r}
+test1 |>
+  mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
+  ggplot(aes(x = (logdiff_max),
+             y = wwd_bool))+
     geom_point(alpha = 0.1)+
   theme_minimal()+
   geom_smooth(method = "glm",
@@ -301,12 +311,12 @@ m1 <- glm(formula = wwd_bool ~ reldiff_max,
 summary(m1)
 ```
 
-### Filling the reports to adjacent links 
+### Filling the reports to adjacent links
 
 ```{r}
 subset_net_wwd <- subset_net |> 
-  left_join(summary_pairs,
-            by = "pair_id") |> 
+  # left_join(summary_pairs,
+  #           by = "pair_id") |> 
   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id)
 ```
 
@@ -360,7 +370,7 @@ fill_probs <- function(edges_df,
 
 expand_reports <- function(
     df,
-    max_degree = 5
+    max_degree = 6
 ) {
   
   check0 <- df |>
@@ -371,16 +381,14 @@ expand_reports <- function(
   check <- list()
   check[[1]] <- fill_probs(check0)
   for (i in 2:max_degree) {
+    if (nrow(check[[i-1]]) < 1) break
     check[[i]] <- fill_probs(check[[i - 1]])
-    if (nrow(check[[i]]) < 1)
-      break
   }
   
   checkr <- list()
   checkr[[1]] <- fill_probs(check0, direction = "-1")
   for (i in 2:max_degree) {
-    if (nrow(check[[i - 1]]) < 1)
-      break
+    if (nrow(check[[i - 1]]) < 1) break
     checkr[[i]] <- fill_probs(checkr[[i - 1]], direction = "-1")
   }
   
@@ -403,7 +411,6 @@ net_sample |>
   tm_lines("p",lwd = 2,alpha = 0.5)
 ```
 
-
 ### Applygin to the whole network
 
 ```{r}
@@ -418,102 +425,61 @@ full_exp |> nrow()
 full_exp |> select(from_id,to_id) |>  unique() |> nrow()
 ```
 
-
 ```{r}
-summary_pairs_adj <- subset_net_wwd |>
-  left_join(full_exp,by = join_by(from_id, to_id)) |> 
+summary_probs_adj <- subset_net_wwd |>
   st_drop_geometry() |>
+  left_join(full_exp,
+            by = join_by(from_id, to_id)) |>
+  mutate(p = if_else(is.na(p),0,p)) |> 
   # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
-  summarise(across(diff:dist.jct,
-                   list(min=min, max=max, avg = mean)),
-            across(p,\(x) sum(x,na.rm = T)),
+  # filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
+  summarise(across(p,\(x) sum(x,na.rm = T)),
             .by = pair_id) |>
   mutate(p = if_else(p>1,1,p))
   
 ```
 
-
 ```{r}
-model_data_adj <- simpl_network_sf |> 
-  filter(oneway) |>
-  left_join(summary_pairs_adj,by = "pair_id")
-```
-
-A jitter plot to explore the distribution
-
-```{r}
-model_data_adj |> 
-  ggplot(aes(x = (reldiff_max),y = p))+
-    geom_jitter(alpha = 0.1)+
-  theme_minimal()+
-  geom_smooth(method = "glm",
-              formula = y ~ x,
-              family = "binomial",
-              method.args=list(family="binomial"),se = F)
+net_wwd_p <- simpl_network_sf |>
+  left_join(summary_probs_adj,
+            by = "pair_id")
 ```
 
 ```{r}
-model_data_adj |> select()
-```
-
-
-
-
-Some OSM links have been split, so we will simplify the data by summarising the 
-results by OSM way id
-
-```{r}
-test2 <- model_data_adj |>
-  group_by(way_id) |> 
-  summarise(across(c(diff_max,reldiff_max),
-                   \(x) mean(x,na.rm = T)))
-
-```
-
-The following code shows how a logistic regression fits the data. Unfortunately,
-the *false positives* do have a significant impact.
-
-```{r}
-test1 |>
-  mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
-  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
-    geom_point(alpha = 0.1)+
-  theme_minimal()+
-  geom_smooth(method = "glm",
-              formula = y ~ x,
-              family = "binomial",
-              method.args=list(family="binomial"),se = F)
+tm_shape(net_wwd_p)+
+  tm_lines("p",style = "fisher")
 ```
 
 
 
 
 ```{r}
-# cent_diff <- glm(wwd_bool~reldiff_max,data = model_data)
-# 
-# library(jtools)
-# effect_plot(model_data,pred = reldiff_max,plot.points = T,jitter = c(0.1,0.05),point.alpha = 0.1)
-# 
-# plot(cent_diff)
-# 
-# 
-
-
-
+adjusted_probs_model_data <- summary_pairs |> 
+  left_join(net_wwd_p |> 
+              st_drop_geometry(),
+            by = join_by(pair_id))
 ```
-
-
-
 
 ```{r}
+glm_models <- adjusted_probs_model_data |> 
+  nest(data = c(pair_id,diff_min:p)) |> 
+  mutate(
+    model_rel = map(data,
+                \(.x) {
+                 glm(p ~ reldiff_max,
+                     data = .x,
+                     family = binomial(link = "logit"))
+                },
+                model_abs = map(data,
+                \(.x) {
+                 glm(p ~ logdiff_max,
+                     data = .x,
+                     family = binomial(link = "logit"))
+                }
+                )
+                )
+    )
 
-# simpl_network_sf |> 
-#   mutate(oneway.raw = if_else(is.na(oneway.raw),"no",oneway.raw),
-#          oneway.raw = str_detect(oneway.raw,"(yes|Yes|YES)")) |> 
-#   # filter(oneway.raw) |> 
-#   left_join(summary_pairs,by = "pair_id") |> 
-#   mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) |> 
-#   st_write("sf_network/simpl_net.gpkg",delete_dsn = T)
 ```
+
 

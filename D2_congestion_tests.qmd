@@ -72,7 +72,7 @@ We will use a small subset of the network for this test to speed up the process.
 #| label: zone4clipping
 
 bog_zone <- zonebuilder::zb_zone("Bogota",
-                                 n_circles = 2) |> 
+                                 n_circles = 3) |> 
   st_transform(4326)
 # zb_view(bog_zone)
 ```
@@ -693,6 +693,139 @@ wwlinks |>
        x = "WWD links assigned speed")
 ```
 
+## Tests for distance threshold
 
 
+
+```{r}
+#| eval: false
+
+# t_thresholds = round(30*1.2^seq(0,30,2),-1) |> unique()
+t_thresholds = seq(1,25,2)*60
+
+grid_test <- expand_grid(v = seq(3, 30, 3),
+                         th = t_thresholds)
+
+test_centralities_threshold <- do.call(bind_cols,
+                                       lapply(1:nrow(grid_test),
+                                              # lapply(1:2,
+                                              \(i) {
+                                                bog_ff_test <- bog_contracted
+                                                bog_cong_test <- bog_contr_adjusted
+                                                
+                                                dodgr::clear_dodgr_cache()
+                                                
+                                                bog_ff_test$time_weighted[bog_ff_test$highway == "road_10"] <-
+                                                  (3.6 * bog_ff_test$d_weighted[bog_ff_test$highway == "road_10"]) / grid_test$v[i]
+                                                
+                                                bog_cong_test$time_weighted[bog_cong_test$highway == "road_10"] <-
+                                                  (3.6 * bog_cong_test$d_weighted[bog_cong_test$highway == "road_10"]) / grid_test$v[i]
+                                                
+                                                dodgr::clear_dodgr_cache()
+                                                
+                                                # Centrality calculations
+                                                
+                                                test_centrality_ff <- bog_ff_test |>
+                                                  dodgr_centrality(column = "time_weighted",
+                                                                   dist_threshold = grid_test$th[i])
+                                                
+                                                test_centrality <- bog_cong_test |>
+                                                  dodgr_centrality(column = "time_weighted",
+                                                                   dist_threshold = grid_test$th[i])
+                                                
+                                                
+                                                t <-
+                                                  tibble(cent.ff = test_centrality_ff$centrality,
+                                                         cent.cong = test_centrality$centrality)
+                                                
+                                                names(t) <-
+                                                  paste(names(t), grid_test$v[i], grid_test$th[i], sep = "_")
+                                                
+                                                return(t)
+                                                
+                                              }))
+```
+
+```{r}
+#| eval: false
+#| include: false
+
+test_centralities_threshold$edge_id <- bog_contr_adjusted$edge_id
+save(test_centralities_threshold,file = "sf_network/test_cent_thresholds.rdata")
+```
+
+```{r}
+#| include: false
+
+load(file = "sf_network/test_cent_thresholds.rdata")
+```
+
+
+```{r}
+
+tidy_test <- test_centralities_threshold |>
+  pivot_longer(-edge_id,
+               names_to = "test",
+               values_to = "cent",names_prefix = "cent.") |> 
+  separate_wider_delim(test,delim = "_",names = c("network","wwd.speed","dist.th")) |> 
+  pivot_wider(names_from = network,values_from = cent) |>
+  mutate(diff = cong - ff,
+         logdiff = sign(diff)*log10(abs(diff)),
+         reldiff = diff/(0.5*(ff+cong)))
+```
+
+Exploration of distributions for the entire network
+
+```{r}
+tidy_test |>
+  arrange(dist.th) |> 
+  mutate(across(wwd.speed:dist.th,as.integer)) |> 
+  ggplot(aes(x = factor(wwd.speed), y = reldiff))+
+  geom_boxplot()+
+  facet_wrap(dist.th~.)
+```
+
+For one-way residential links
+```{r}
+tidy_test |>
+  left_join(tibble(edge_id = bog_contr_adjusted$edge_id,
+                   highway = bog_contr_adjusted$highway)) |> 
+  filter(highway =="road_10") |> 
+  mutate(across(wwd.speed:dist.th,as.integer)) |> 
+  ggplot(aes(x = factor(wwd.speed), y = reldiff))+
+  geom_boxplot()+
+  facet_wrap(dist.th~.)
+```
+
+```{r}
+sample_ids <- bog_contr_adjusted |>
+  data.frame() |>
+  filter(highway =="road_10") |>
+  pull(edge_id) |>
+  sample(15)
+
+
+tidy_test |>
+  left_join(tibble(edge_id = bog_contr_adjusted$edge_id,
+                   highway = bog_contr_adjusted$highway)) |> 
+  filter(highway =="road_10",edge_id %in% sample_ids) |> 
+  mutate(across(wwd.speed:dist.th,as.integer)) |> 
+  ggplot(aes(x = dist.th,
+             y = logdiff,
+             group = factor(edge_id),col = factor(edge_id)))+
+  geom_line(alpha = 0.3)+
+  theme_minimal()+
+  facet_wrap(wwd.speed~.)+
+  scale_x_continuous(breaks = t_thresholds,labels = round(t_thresholds/60,1))+
+  theme(panel.grid.minor.x = element_blank(),
+        axis.text.x = element_text(angle = 90))
+```
+
+
+
+```{r}
+tidy_test |>
+  mutate(across(wwd.speed:dist.th,as.integer)) |> 
+write_csv(file = "sf_network/cent_tests.csv")
+```
 
