@@ -16,7 +16,8 @@ pkgs = c(
     "sf",
     "tidyverse",
     "zonebuilder",
-    "tmap"
+    "tmap",
+    "ggExtra"
     # "dodgr" # Using the developer version of dodgr
 )
 remotes::install_cran(pkgs)
@@ -157,11 +158,11 @@ subset_buffer <- simpl_network_sf |>
   st_buffer(20)
 ```
 
-A subset of the reports during peak hour +/- 2 hours
+A subset of the reports during the morning peak hour +/- 2 hours
 
 ```{r}
 subset_wwd <- (wwd_sf |>
-                 filter(abs(hour - 18)<=2) |>
+                 filter(abs(hour - 9)<=2) |>
                  st_transform(3116))[subset_buffer,]|> 
   filter(year==2019)
 ```
@@ -460,26 +461,109 @@ adjusted_probs_model_data <- summary_pairs |>
             by = join_by(pair_id))
 ```
 
+Fitting GLM for the different parameters
+
+
 ```{r}
 glm_models <- adjusted_probs_model_data |> 
-  nest(data = c(pair_id,diff_min:p)) |> 
+  nest(data = c(pair_id,
+                diff_min:p)) |> 
   mutate(
     model_rel = map(data,
                 \(.x) {
                  glm(p ~ reldiff_max,
                      data = .x,
-                     family = binomial(link = "logit"))
-                },
-                model_abs = map(data,
-                \(.x) {
-                 glm(p ~ logdiff_max,
-                     data = .x,
-                     family = binomial(link = "logit"))
+                     family = quasibinomial(link = "logit"))
+                # },
+                # model_abs = map(data,
+                # \(.x) {
+                #  glm(p ~ logdiff_max,
+                #      data = .x,
+                #      family = binomial(link = "logit"))
                 }
                 )
                 )
-    )
+
+
+mod_pred <- glm_models |> 
+  mutate(predicted = map2(model_rel, data ,\(.x,.y) {
+    tibble(reldiff_max = .y$reldiff_max,
+      p = predict(.x, newdata = .y,type = "response"))
+  })) |> 
+  select(-data,-model_rel) |> 
+  unnest(cols = predicted) |> 
+  unite("id",wwd.speed:dist.th,remove = F) |> unique()
 
 ```
 
+A visual exploration of the coefficients
+
+```{r}
+mod_coefs <- glm_models |> 
+  mutate(coefs = map(model_rel,\(.x) {
+    broom::tidy(.x)
+  }
+  )
+  ) |>
+  select(wwd.speed,dist.th,coefs) |> 
+  unnest(coefs) |> 
+  # pivot_wider(names_from = term,values_from = estimate) |> 
+  mutate(term = term |> str_replace(pattern = "\\(Intercept\\)",replacement = "intercept"),
+         term = term |> str_replace(pattern = "reldiff_max",replacement = "slope"))
+
+```
+
+
+```{r}
+mod_coefs |> 
+  filter(term == "slope") |> 
+ggplot(aes(x = wwd.speed,
+           y = estimate,
+           # col = wwd.speed,
+           col = dist.th,
+           size = 1/p.value))+
+  geom_point(alpha = 0.3)+
+  theme_minimal()+
+  scale_color_viridis_b(option = "plasma")+
+  scale_size_binned(transform = "log10")
+```
+
+```{r}
+mod_coefs |> 
+  filter(term == "intercept") |> 
+ggplot(aes(x = dist.th,
+           y = estimate,
+           col = wwd.speed,
+           # col = dist.th,
+           size = 1/std.error))+
+  geom_point(alpha = 0.3)+
+  theme_minimal()+
+  scale_color_viridis_b(option = "plasma")+
+  scale_size_binned(transform = "log")
+```
+
+
+```{r}
+p <- mod_coefs |> 
+ggplot(aes(x = intercept,y = slope,col = wwd.speed, alpha = dist.th))+
+  geom_point()+
+  theme_minimal()+
+  scale_color_viridis_b(option = "plasma")
+
+  ggMarginal(p,type = "histogram")
+  
+  
+```
+
+
+A visual of the fitted lines
+
+```{r}
+mod_pred |> 
+  ggplot(aes(x = reldiff_max,y = p,group = id, col = wwd.speed))+
+  geom_line(alpha = 0.1)+
+  scale_y_continuous(limits = c(0,1))+
+  theme_minimal()+
+  scale_color_viridis_c(option = "plasma")
+```
 

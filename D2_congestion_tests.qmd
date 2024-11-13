@@ -339,12 +339,24 @@ speed_data <- read_csv("sf_network/summary_speeds.csv")
 We identify the hour that showed the lowest speeds in average
 
 ```{r}
-#| label: pre-processing-speed
+#| label: pre-processing-speed1
 
-min_speed_key <- speed_data |>
-  summarise(mean_norm_speed = mean(d_norm_speed),.by = c(year,day_type,hour)) |> 
-  slice_min(mean_norm_speed,by = c(year,day_type)) |> 
-  filter(year == 2019,day_type == "weekday") |> 
+summary_speed_ratios <- speed_data |>
+  summarise(mean_norm_speed = mean(d_norm_speed),.by = c(year,day_type,hour)) 
+
+summary_speed_ratios |>
+  filter(year==2019,day_type == "weekday") |>
+  arrange(mean_norm_speed) |> 
+  head(5)
+```
+
+The morning peak is selected as the number of WWD reports is higher
+
+```{r}
+#| label: pre-processing-speed2
+
+min_speed_key <- summary_speed_ratios |>  
+  filter(year == 2019,day_type == "weekday",hour == 9) |> 
   select(-mean_norm_speed)
 ```
 
@@ -695,16 +707,17 @@ wwlinks |>
 
 ## Tests for distance threshold
 
-
-
 ```{r}
-#| eval: false
-
 # t_thresholds = round(30*1.2^seq(0,30,2),-1) |> unique()
 t_thresholds = seq(1,25,2)*60
 
 grid_test <- expand_grid(v = seq(3, 30, 3),
                          th = t_thresholds)
+```
+
+
+```{r}
+#| eval: false
 
 test_centralities_threshold <- do.call(bind_cols,
                                        lapply(1:nrow(grid_test),

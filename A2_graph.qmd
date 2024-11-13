@@ -77,13 +77,6 @@ sf_net_cent <- sf_network |>
 st_write(sf_net_cent,"sf_network/bogota_osm_network_cent.gpkg",delete_dsn = F,delete_layer = T,layer = "bog_cent_2019")
 ```
 
-```{r}
-#| label: loading-results
-#| include: false
-
-sf_net_cent <- st_read("sf_network/bogota_osm_network_cent.gpkg",layer = "bog_cent_2019")
-```
-
 
 ### Visualising
 
@@ -94,53 +87,6 @@ To clip the network for visualisation, we will load the file with urban perimete
 
 urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |> 
   st_transform(4326)
-
-```
-
-The following code produces a visualisation of the network with the calculated
-centrality.
-
-```{r}
-#| label: map-centr-bl
-
-
-road_hierarchy <- c( 
-  "trunk",
-  "trunk_link",
-  "primary",
-  "primary_link",
-  "secondary",
-  "secondary_link",
-  "tertiary",
-  "tertiary_link",
-  "residential",
-  "unclassified"
-  )
-
-mymap <- sf_net_cent[urban_perimeter,] |> 
-  mutate(highway = factor(highway,levels = road_hierarchy,ordered = T)) |> 
-  ggplot(aes(linewidth = centrality+1))+
-  geom_sf(aes(col = log(centrality)))+
-  scale_color_viridis_c(direction = -1)+
-  scale_linewidth_continuous(range = c(0.05,0.3),
-                             transform = scales::transform_boxcox(p = 2))+
-  theme_void()+
-  guides(linewidth = "none",)+
-  labs(col = "Centrality (log)",
-       caption = "BC at posted speed limit")+
-  theme(legend.position = "inside",
-        legend.position.inside = c(0.25,0.8),
-        # text = element_text(family = "Roboto Condensed"),
-        legend.key.width = unit(3, "mm"))
-
-## For saving the final plot
-# ggsave(plot = mymap,
-#        filename = "bog_centrality.png",
-#        dpi = 330,
-#        units = "cm",
-#        height = 13,
-#        width = 11)
-mymap
 
 ```
 

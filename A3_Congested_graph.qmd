@@ -275,17 +275,16 @@ We consolidate the values of free-flow network and congested network into a sing
 ```{r}
 #| label: compare-congested-centrality
 
-cent_all <- tibble(edge_id = bog_centrality$edge_id,
-                   cent_bl = bog_centrality$centrality) |> 
+cent_all <- tibble(
+  edge_id = bog_centrality$edge_id,
+  cent_bl = bog_centrality$centrality) |>
   left_join(
     tibble(edge_id = congested_centrality$edge_id,
            cent_cong = congested_centrality$centrality),
     by = "edge_id"
-  ) |> 
-  mutate(
-    diff = cent_cong - cent_bl,
-    reldiff = diff/(0.5*(cent_bl+cent_cong))
-  )
+  ) |>
+  mutate(diff = cent_cong - cent_bl,
+         reldiff = diff / (0.5 * (cent_bl + cent_cong)))
 ```
 
 
