@@ -162,6 +162,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="./D3_WWD_joining.html">
  <span class="dropdown-text">Joining the WWD reports</span></a>
   </li>  
+        <li class="dropdown-header">D4_offences_joining.qmd</li>
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -657,8 +658,8 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `lines' from data source 
-  `/tmp/RtmpNVQ0mD/geofabrik_colombia-200101.gpkg' using driver `GPKG'
-Simple feature collection with 461429 features and 15 fields
+  `/tmp/Rtmp9EL6PH/geofabrik_colombia-200101.gpkg' using driver `GPKG'
+Simple feature collection with 461488 features and 17 fields
 Geometry type: LINESTRING
 Dimension:     XY
 Bounding box:  xmin: -81.73539 ymin: -4.259884 xmax: -66.83441 ymax: 13.38586
@@ -1029,8 +1030,8 @@ Starting with the vectortranslate operations on the input file!</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `lines' from data source 
-  `/tmp/RtmpNVQ0mD/geofabrik_colombia-210101.gpkg' using driver `GPKG'
-Simple feature collection with 650682 features and 15 fields
+  `/tmp/Rtmp9EL6PH/geofabrik_colombia-210101.gpkg' using driver `GPKG'
+Simple feature collection with 650882 features and 17 fields
 Geometry type: LINESTRING
 Dimension:     XY
 Bounding box:  xmin: -81.73539 ymin: -4.259656 xmax: -66.83441 ymax: 13.38586
@@ -1078,7 +1079,7 @@ Geodetic CRS:  WGS 84</code></pre>
 <pre><code>Deleting layer `network_2019' using driver `GPKG'
 Writing layer `network_2019' to data source 
   `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
-Writing 54531 features with 15 fields and geometry type Line String.</code></pre>
+Writing 54535 features with 17 fields and geometry type Line String.</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(osm_bogota_210101,</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">file.path</span>(<span class="st">"sf_network"</span>,<span class="st">"bogota_osm_network.gpkg"</span>),</span>
@@ -1089,7 +1090,7 @@ Writing 54531 features with 15 fields and geometry type Line String.</code></pre
 <pre><code>Deleting layer `network_2020' using driver `GPKG'
 Writing layer `network_2020' to data source 
   `sf_network/bogota_osm_network.gpkg' using driver `GPKG'
-Writing 62166 features with 15 fields and geometry type Line String.</code></pre>
+Writing 62175 features with 17 fields and geometry type Line String.</code></pre>
 </div>
 </div>
 
