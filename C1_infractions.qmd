@@ -14,14 +14,14 @@ pkgs = c(
     "sf",
     "tidyverse",
     "tmap",
-    "webshot2"
+    "webshot2",
+    "gganimate"
 )
 remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
 
 tmap_mode("plot")
 ```
-
 
 ## Download data
 
@@ -39,6 +39,13 @@ if(!dir.exists("raw_data/bogota")) {
 }
 ```
 
+### Urban perimeter
+
+```{r}
+urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |>
+  st_transform(4326)
+
+```
 
 ## Loading Infractions
 
@@ -88,6 +95,13 @@ reports2020 <- read_csv("raw_data/bogota/Comparendos_DEI_2020_Bogot%C3%A1_D_C.cs
 
 ```
 
+A list of the codes with codes of offences related to vehicles
+circulating.
+
+```{r}
+selected_codes <- read.csv("list_infractions.csv")$INFRACCION
+```
+
 ## Exploring types of infractions
 
 ```{r}
@@ -116,7 +130,6 @@ count_infractions <- reports2019 |>
 Creating an `sf` object with the reports for driving in the wrong-way
 
 ```{r}
-#| label: top-infractions-plot2
 
 wrong_way_2019_sf <- reports2019 |>
   filter(INFRACCION == "D03") |> 
@@ -131,20 +144,34 @@ wrong_way_2020_sf <- reports2020 |>
   st_as_sf(coords = c("LONGITUD","LATITUD"),crs = 4326)
 ```
 
+```{r}
+
+manual_2019_sf <- reports2019 |>
+  filter(INFRACCION %in% selected_codes) |> 
+  select(-DES_INFRACCION) |>
+  mutate(time = hms(HORA_OCURRENCIA)) |> 
+  st_as_sf(coords = c("LONGITUD","LATITUD"),crs = 4326)
+
+manual_2020_sf <- reports2020 |>
+  filter(INFRACCION %in% selected_codes) |> 
+  select(-DES_INFRAC) |> 
+  mutate(time = hms(HORA_OCURR)) |>
+  st_as_sf(coords = c("LONGITUD","LATITUD"),crs = 4326)
+```
+
 ## Tidying-up the datasets
 
-We will select only relevant columns and also classify the records by type of day. For that,
-we will use the bank holiday list we used for the speed data processing.
+We will select only relevant columns and also classify the records by
+type of day. For that, we will use the bank holiday list we used for the
+speed data processing.
 
 ```{r}
-#| label: read_bankholidays
+#| label: read-bankholidays
 
 bank_holidays <- read.csv("raw_data/bogota/bank_holidays.csv") |>
   mutate(bank_holiday = dmy(bank_holiday)) |>
   pull(bank_holiday)
 ```
-
-
 
 ```{r}
 wwd_2019_clean <- wrong_way_2019_sf |> 
@@ -184,24 +211,63 @@ wwd_2020_clean <- wrong_way_2020_sf |>
                               T~"weekend"))
 ```
 
+All manual tickets
+
+```{r}
+manual_2019_clean <-  manual_2019_sf|> 
+  select(FECHA_HORA,
+         MEDIO_DETECCION,
+         CLASE_VEHICULO,
+         time,
+         INFRACCION) |>
+  rename(date_time = FECHA_HORA,
+         detect_device = MEDIO_DETECCION,
+         veh_class = CLASE_VEHICULO,
+         off_code = INFRACCION) |>
+  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
+  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
+         hour = hour(time),
+         year = year(timestamp)) |> 
+  mutate(day_type = case_when(date(timestamp) %in% bank_holidays~"weekend",
+                              wday(timestamp,week_start = 1)<=4~"weekday",
+                              wday(timestamp,week_start = 1) == 5~"friday",
+                              T~"weekend"))
+```
+
+```{r}
+manual_2020_clean <- manual_2020_sf |> 
+  select(FECHA_HORA,
+         MEDIO_DETE,
+         CLASE_VEHI,
+         time,
+         INFRACCION) |>
+  rename(date_time = FECHA_HORA,
+         detect_device = MEDIO_DETE,
+         veh_class = CLASE_VEHI,
+         off_code = INFRACCION) |>
+  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
+  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
+         hour = hour(time),
+         year = year(timestamp)) |> 
+  mutate(day_type = case_when(date(timestamp) %in% bank_holidays~"weekend",
+                              wday(timestamp,week_start = 1)<=4~"weekday",
+                              wday(timestamp,week_start = 1) == 5~"friday",
+                              T~"weekend"))
+```
+
 And consolidating the two datasets
 
 ```{r}
-all_wwd_reports <- bind_rows(wwd_2019_clean,wwd_2020_clean) |> 
-  mutate(veh_class = str_to_lower(veh_class))
+all_wwd_reports <- bind_rows(wwd_2019_clean,wwd_2020_clean)[urban_perimeter,] |> 
+  mutate(veh_class = str_to_lower(veh_class)) |> drop_na()
+
+all_manual_reports <- bind_rows(manual_2019_clean,manual_2020_clean)[urban_perimeter,] |> 
+  mutate(veh_class = str_to_lower(veh_class)) |> drop_na()
 ```
 
 ## EDA
 
-### Mapping the traffic offence tickets
-
-```{r}
-ggplot(all_wwd_reports,aes(col = factor(year)))+
-         geom_sf(alpha = 0.2,size = 0.5)+
-  theme_void()
-```
-
-## Temporal distribution
+### Temporal distribution
 
 A daily profile
 
@@ -212,11 +278,32 @@ ggplot(all_wwd_reports,
     scale_x_time()+
   scale_colour_manual(values = c("dodgerblue3","firebrick3"))+
   # scale_y_continuous(labels = scales::label_percent(accuracy = 2))+
-theme_minimal()
+theme_minimal()+
+  labs(title = "WWD reports")+
+  facet_grid(.~day_type)
+
+ggplot(all_manual_reports,
+         aes(x = time, col = factor(year)))+
+  geom_density(alpha = 0.5,linewidth = 2)+
+    scale_x_time()+
+  scale_colour_manual(values = c("dodgerblue3","firebrick3"))+
+  # scale_y_continuous(labels = scales::label_percent(accuracy = 2))+
+theme_minimal()+
+  labs(title = "All manual reports")+
+  facet_grid(.~day_type)
 ```
 
 ```{r}
 all_wwd_reports |>
+  st_drop_geometry() |> 
+  count(date(timestamp),day_type,hour,year) |> 
+  ggplot(aes(x=factor(hour),y = n,col = day_type))+
+  geom_jitter(alpha = 0.05)+
+  geom_boxplot(alpha = 0.5,outlier.shape = NA)+
+  facet_grid(year~.)+
+  theme_minimal()
+
+all_manual_reports |>
   st_drop_geometry() |> 
   count(date(timestamp),day_type,hour,year) |> 
   ggplot(aes(x=factor(hour),y = n,col = day_type))+
@@ -236,10 +323,19 @@ exp_dates_count <- all_wwd_reports |>
     tibble(date = seq(min(date(all_wwd_reports$date_time)),
                       max(date(all_wwd_reports$date_time)),
                       by = "1 day")),by = "date")
+
+exp_dates_count_all <- all_manual_reports |>
+  st_drop_geometry() |> 
+  count(date = date(timestamp)) |> 
+  right_join(
+    tibble(date = seq(min(date(all_manual_reports$date_time)),
+                      max(date(all_manual_reports$date_time)),
+                      by = "1 day")),by = "date")
   
 ```
 
-A quick check of the timeline reveals gaps in the reports of 2019. We do not know the causes.
+A quick check of the timeline reveals gaps in the reports of 2019. We do
+not know the causes.
 
 ```{r}
 exp_dates_count |> 
@@ -249,7 +345,6 @@ exp_dates_count |>
   theme_minimal()
 ```
 
-
 ```{r}
 exp_dates_count |> 
   mutate(wday = wday(date,week_start = 2),
@@ -258,11 +353,117 @@ exp_dates_count |>
   geom_tile()+
   theme_minimal()+
   facet_grid(year(date)~.)+
-  scale_fill_viridis_c(direction = -1)
+  scale_fill_viridis_c(direction = -1)+
+  labs(title = "Daily WWD reports")
+
+exp_dates_count_all |> 
+  mutate(wday = wday(date,week_start = 2),
+         week = week(date)) |> 
+  ggplot(aes(y = factor(wday),x = factor(week),fill = n))+
+  geom_tile()+
+  theme_minimal()+
+  facet_grid(year(date)~.)+
+  scale_fill_viridis_c(direction = -1)+
+  labs(title = "Daily manual reports (all)")
 
 ```
 
-### Temporal sampling bias?
+### Spatial distribution
+
+```{r}
+ggplot(all_wwd_reports,aes(col = factor(year)))+
+  geom_sf(alpha = 0.2,size = 0.5)+
+  theme_void()   
+```
+
+Generating a grid covering the urban perimeter
+
+```{r}
+grid_bog <- urban_perimeter |> 
+  st_transform(3116) |> 
+  st_make_grid(cellsize = 1e3) |> 
+  st_as_sf() 
+
+
+grid_bog <- grid_bog[urban_perimeter |> 
+                       st_transform(3116) |>
+                       st_union() |> 
+                       st_convex_hull(),] |> 
+  st_transform(st_crs(all_manual_reports)) |> 
+  rowid_to_column("cell_id")
+```
+
+Assigning the reports to the grid cells
+
+```{r}
+all_manual_grid <- all_manual_reports
+
+all_manual_grid$grid_cell <- st_intersects(all_manual_reports,
+                                              grid_bog) |> 
+  unlist()
+```
+
+```{r}
+exp_hourly_grid <- expand_grid(grid_cell = all_manual_grid$grid_cell |> unique(),
+                               hour=all_manual_grid$hour |> unique(),
+                               date = seq(min(date(all_manual_grid$date_time)),
+                                          max(date(all_manual_grid$date_time)),
+                                          by = "1 day"))
+
+hourly_grid <- all_manual_grid |> 
+  st_drop_geometry() |> 
+  count(grid_cell,date = date(timestamp),hour) |>
+  right_join(exp_hourly_grid,
+             by = join_by(date, hour,grid_cell)) |>
+  mutate(n = if_else(is.na(n),0,n)) |> 
+  mutate(year = year(date),
+         day_type = case_when(date %in% bank_holidays~"weekend",
+                              wday(date, week_start = 1)<=4~"weekday",
+                              wday(date, week_start = 1) == 5~"friday",
+                              T~"weekend")) |> 
+  summarise(across(n,
+                   list(mean = mean,
+                        median = median)),
+            .by = c(grid_cell,hour,year,day_type)
+            ) 
+```
+
+```{r}
+#| eval: false
+
+p <- grid_bog |>
+  right_join(hourly_grid |>
+               expand(grid_cell,hour,year,day_type),
+             by = c("cell_id" = "grid_cell")) |>
+  left_join(hourly_grid |> filter(n_mean>0),
+            by = c("cell_id" = "grid_cell","hour","year","day_type")) |>
+            # by = c("cell_id" = "grid_cell")) |>
+  filter(day_type == "weekday") |>
+  ggplot() +
+  geom_sf(aes(fill = n_mean,
+              group = cell_id),
+          alpha = 0.6) +
+  scale_fill_viridis_b(na.value = "gray80") +
+  theme_void() +
+  facet_grid(. ~ year) +
+  labs(title = "Mean hourly reports",
+    subtitle = 'Hour: {closest_state}') +
+  transition_states(hour, transition_length = 2, state_length = 1) +
+  enter_appear()
+
+anim_save(animation = p,filename = "sf_network/map_animated.gif")
+
+```
+
+```{r}
+#| echo: false
+
+knitr::include_graphics("sf_network/map_animated.gif")
+```
+
+### Exploring biases
+
+#### Temporal sampling bias?
 
 Let us check if there is any patter related to the day of the week
 
@@ -279,186 +480,88 @@ all_wwd_reports |>
   labs(x="")
 ```
 
-There seems to be a pattern that might be related to the sampling i.e. how the enforcement
-officers are assigned along the week.
+There seems to be a pattern that might be related to the sampling i.e.
+how the enforcement officers are assigned along the week.
 
-Let's compare with other types of infractions reported by officers
+Let's compare with other offences reported manually by officers
 
 ```{r}
-reports2019 |>
-  select(-DES_INFRACCION) |>
-  filter(MEDIO_DETECCION == "LAPIZ") |> 
-  mutate(time = hms(HORA_OCURRENCIA)) |> 
-  select(FECHA_HORA,
-         MEDIO_DETECCION,
-         CLASE_VEHICULO,
-         time,
-         INFRACCION) |>
-  rename(date_time = FECHA_HORA,
-         detect_device = MEDIO_DETECCION,
-         veh_class = CLASE_VEHICULO,
-         offence = INFRACCION) |>
-  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
-  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
-         hour = hour(time),
-         year = year(timestamp)) |> 
-  count(date = date(timestamp),offence) |> 
+all_manual_reports |>
+  st_drop_geometry() |> 
+  count(date = date(timestamp),year) |> 
   mutate(wday = wday(date,week_start = 2)) |> 
-  summarise(n = mean(n),.by = c(wday,offence)) |> 
-  filter(sum(n)>250,.by = offence) |> 
-  ggplot(aes(x= wday,y = n, col = factor(offence)))+
+  summarise(n = mean(n),.by = c(wday,year)) |> 
+  ggplot(aes(x= wday,y = n, col = factor(year)))+
   geom_line()+
   scale_x_continuous(breaks = 1:7,
                      labels = weekdays(as.Date(4,"1970-01-01",tz="GMT")+0:6))+
   labs(x="")
 ```
 
-We can also inspect the median number of tickets per weekday for all offences that are reported by 
-traffic management officers in 2019 and 2020
+We can also inspect the median number of tickets per weekday for all
+offences that are reported by traffic management officers in 2019 and
+2020
 
 ```{r}
-reports2019 |>
-  select(-DES_INFRACCION) |>
-  filter(MEDIO_DETECCION == "LAPIZ") |> 
-  mutate(time = hms(HORA_OCURRENCIA)) |> 
-  select(FECHA_HORA,
-         MEDIO_DETECCION,
-         CLASE_VEHICULO,
-         time,
-         INFRACCION) |>
-  rename(date_time = FECHA_HORA,
-         detect_device = MEDIO_DETECCION,
-         veh_class = CLASE_VEHICULO,
-         offence = INFRACCION) |>
-  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
-  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
-         hour = hour(time),
-         year = year(timestamp)) |> 
-  count(date = date(timestamp)) |> 
+all_manual_reports |> 
+  st_drop_geometry() |> 
+  count(date = date(timestamp),year) |> 
   mutate(wday = wday(date,week_start = 2)) |> 
-  summarise(n = mean(n),.by = c(wday)) |> 
+  summarise(n = mean(n),.by = c(wday,year)) |> 
   # filter(sum(n)>250,.by = offence) |> 
-  ggplot(aes(x= wday,y = n))+
+  ggplot(aes(x= wday,y = n,col = factor(year)))+
   geom_line()+
   scale_x_continuous(breaks = 1:7,
                      labels = weekdays(as.Date(4,"1970-01-01",tz="GMT")+0:6))+
-  labs(x="")
+  labs(x="")+
+  theme_minimal()
 ```
 
+Is it a problem with the data, as some months are not reported? Let's
+see if the pattern is similar across months
 
 ```{r}
-reports2020 |> 
-  select(-DES_INFRAC) |>
-  filter(MEDIO_DETE == "DISPOSITIVOS EN VÍA") |> 
-  mutate(time = hms(HORA_OCURR)) |> 
-  select(FECHA_HORA,
-         MEDIO_DETE,
-         CLASE_VEHI,
-         time,
-         INFRACCION) |>
-  rename(date_time = FECHA_HORA,
-         detect_device = MEDIO_DETE,
-         veh_class = CLASE_VEHI,
-         offence = INFRACCION) |>
-  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
-  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
-         hour = hour(time),
-         year = year(timestamp)) |> 
-  count(date = date(timestamp)) |> 
+all_manual_reports |> 
+  st_drop_geometry() |>  
+  mutate(month = month(timestamp)) |> 
+  count(date = date(timestamp),month,year) |> 
   mutate(wday = wday(date,week_start = 2)) |> 
-  summarise(n = mean(n),.by = c(wday)) |> 
-  # filter(sum(n)>250,.by = offence) |> 
-  ggplot(aes(x= wday,y = n))+
-  geom_line()+
-  scale_x_continuous(breaks = 1:7,
-                     labels = weekdays(as.Date(4,"1970-01-01",tz="GMT")+0:6))+
-  labs(x="")
-```
-
-Is it a problem with the data, as some months are not reported? Let's see if the pattern is similar 
-across months
-
-```{r}
-reports2019 |>
-  select(-DES_INFRACCION) |>
-  filter(MEDIO_DETECCION == "LAPIZ") |> 
-  mutate(time = hms(HORA_OCURRENCIA)) |> 
-  select(FECHA_HORA,
-         MEDIO_DETECCION,
-         CLASE_VEHICULO,
-         time,
-         INFRACCION) |>
-  rename(date_time = FECHA_HORA,
-         detect_device = MEDIO_DETECCION,
-         veh_class = CLASE_VEHICULO,
-         offence = INFRACCION) |>
-  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
-  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
-         hour = hour(time),
-         year = year(timestamp),
-         month = month(timestamp)) |> 
-  count(date = date(timestamp),month) |> 
-  mutate(wday = wday(date,week_start = 2)) |> 
-  summarise(n = median(n),.by = c(wday,month)) |> 
+  summarise(n = median(n),.by = c(wday,month,year)) |> 
   # filter(sum(n)>250,.by = offence) |> 
   ggplot(aes(x= wday,y = n,col =  factor(month)))+
   geom_line()+
   scale_x_continuous(breaks = 1:7,
                      labels = weekdays(as.Date(4,"1970-01-01",tz="GMT")+0:6))+
-  labs(x="")
+  labs(x="")+
+  theme_minimal()+
+  facet_grid(.~year)+
+  theme(axis.text.x = element_text(angle = 90))
+  
+```
+
+Visually, there seems to be a consistent pattern of a low number of
+reports during Friday and Saturday, followed by a surge on Sundays.
+
+#### Spatial sampling bias?
+
+Let's assign all reports to the nearest link to explore where the
+enforcement offices tend to `catch` the offenders
+
+```{r}
+net_bog_2019 <-
+  st_read(file.path("sf_network", "bogota_osm_network.gpkg")) |>
+  st_transform(3116)
 ```
 
 ```{r}
-reports2020 |> 
-  select(-DES_INFRAC) |>
-  filter(MEDIO_DETE == "DISPOSITIVOS EN VÍA") |> 
-  mutate(time = hms(HORA_OCURR)) |> 
-  select(FECHA_HORA,
-         MEDIO_DETE,
-         CLASE_VEHI,
-         time,
-         INFRACCION) |>
-  rename(date_time = FECHA_HORA,
-         detect_device = MEDIO_DETE,
-         veh_class = CLASE_VEHI,
-         offence = INFRACCION) |>
-  mutate(date_time = str_replace(date_time,"\\+00","-05")) |> 
-  mutate(timestamp = ymd_hms(date_time, tz = "America/Bogota"),
-         hour = hour(time),
-         year = year(timestamp),
-         month = month(timestamp)) |> 
-  count(date = date(timestamp),month) |> 
-  mutate(wday = wday(date,week_start = 2)) |> 
-  summarise(n = median(n),.by = c(wday,month)) |> 
-  # filter(sum(n)>250,.by = offence) |> 
-  ggplot(aes(x= wday,y = n,col =  factor(month)))+
-  geom_line()+
-  scale_x_continuous(breaks = 1:7,
-                     labels = weekdays(as.Date(4,"1970-01-01",tz="GMT")+0:6))+
-  labs(x="")
+major_network <- net_bog_2019 |>
+  filter(!(highway %in% c("residential","unclassified")))
 ```
-
-Visually, there seems to be a consistent pattern of a low number of reports during friday and saturday, followed by a surge on Sundays.
-
-## Spatial sampling bias?
-
-Let's assign all reports to the nearest link to explore where the enforcement offices tend to `catch` the offenders
-
-
-```{r}
-net_bog_2019 <- st_read(file.path("sf_network","bogota_osm_network.gpkg")) |> st_transform(3116)
-```
-
-
-```{r}
-major_network <- net_bog_2019 |> filter(!(highway %in% c("residential","unclassified")))
-```
-
 
 ```{r}
 manual_reports_2019 <- reports2019 |>
   select(-DES_INFRACCION) |>
-  filter(MEDIO_DETECCION == "LAPIZ") |> 
+  filter(MEDIO_DETECCION == "LAPIZ",INFRACCION %in% selected_codes) |> 
   mutate(time = hms(HORA_OCURRENCIA)) |> 
   select(FECHA_HORA,
          MEDIO_DETECCION,
@@ -478,7 +581,6 @@ manual_reports_2019 <- reports2019 |>
 manual_reports_2019$near_index <- st_nearest_feature(manual_reports_2019,net_bog_2019)
 manual_reports_2019$near_major_index <- st_nearest_feature(manual_reports_2019,major_network)
 ```
-
 
 ```{r}
 manual_reports_2019$highway <- net_bog_2019$highway[manual_reports_2019$near_index]
@@ -510,7 +612,6 @@ manual_reports_2019 |>
   coord_flip()
 ```
 
-
 ```{r}
 manual_reports_2019 |> 
   st_drop_geometry() |> 
@@ -538,7 +639,6 @@ manual_reports_2019 |>
   theme_minimal()+
   scale_y_continuous(labels = scales::label_percent())
 ```
-
 
 Median daily reports in residential roads
 
@@ -577,7 +677,6 @@ ggplot()+
   
 ```
 
-
 ```{r}
 ggplot()+
   geom_histogram(data = manual_reports_2019 |> 
@@ -595,8 +694,6 @@ ggplot()+
 
 ```
 
-
-
 ```{r}
 net_points <- net_bog_2019 |>
   st_cast("POINT") |>
@@ -609,7 +706,6 @@ net_points$dist_to_major <- st_distance(net_points,
                                         by_element = T) |>
   as.numeric()
 ```
-
 
 ```{r}
 ggplot()+
@@ -636,7 +732,7 @@ tm_shape(major_network)+
   tm_dots("dist_to_major")
 ```
 
-## Summary by vehicle type
+### Summary by vehicle type
 
 ```{r}
 all_wwd_reports |>
@@ -657,5 +753,11 @@ all_wwd_reports |>
 ```{r}
 st_write(all_wwd_reports,
          dsn = "sf_network/wwd_clean_sf.gpkg",
+         delete_dsn = T)
+```
+
+```{r}
+st_write(all_manual_reports,
+         dsn = "sf_network/manualtickets_clean_sf.gpkg",
          delete_dsn = T)
 ```

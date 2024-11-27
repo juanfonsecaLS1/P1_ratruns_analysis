@@ -39,8 +39,8 @@ bog_zone <- zonebuilder::zb_zone("Bogota",
 ### Offence reports (tickets)
 
 ```{r}
-off_sf_all <- st_read("sf_network/wwd_clean_sf.gpkg")
-#off_sf_all <- st_read("sf_network/manualtickets_clean_sf.gpkg")
+# off_sf_all <- st_read("sf_network/wwd_clean_sf.gpkg")
+off_sf_all <- st_read("sf_network/manualtickets_clean_sf.gpkg")
 ```
 
 ### Network
@@ -125,7 +125,7 @@ summary_pairs <- cent_tests |>
                select(edge_id,way_id,pair_id),
             by = "edge_id") |> 
   # # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  # filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
   summarise(across(diff:logreldiff.ff,
                    list(min=min, max=max, avg = mean)),
             .by = c(pair_id,wwd.speed,dist.th))
@@ -136,7 +136,7 @@ summary_pairs_wkend <- cent_tests_wkend |>
                select(edge_id,way_id,pair_id),
             by = "edge_id") |> 
   # # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  # filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
   summarise(across(diff:logreldiff.ff,
                    list(min=min, max=max, avg = mean)),
             .by = c(pair_id,wwd.speed,dist.th))
@@ -159,8 +159,8 @@ metrics from this object to avoid confusion
 
 simpl_network_sf <- subset_net |>
   # # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),
-         .by = pair_id) |>
+  # filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),
+  #        .by = pair_id) |>
   slice_head(n = 1,by = pair_id) |>
   select(lanes:component,pair_id)
 ```
@@ -564,7 +564,7 @@ rand_absences_data <- bind_rows(
   model_reports,
   model_data |>
     filter(!offence_bool) |>
-    sample_n(size = nrow(model_reports)*2, replace = F)
+    sample_n(size = nrow(model_reports), replace = F)
 )
 
 
@@ -710,13 +710,16 @@ RR_summary_rand <- mod_0_coefs_rand |>
 
 ```{r}
 RR_summary_rand |> 
-  filter(between(wwd.speed,3,22),dist.th>500) |> 
-  ggplot(aes(y = RR, x = e.value, col = wwd.speed))+
+  ggplot(aes(y = RR, x = e.value, col = dist.th))+
   # geom_vline(xintercept = 0,linetype = "dashed",col= "gray70")+
-  geom_point(alpha = 0.6)+
+  geom_point()+
   # coord_fixed()+
   theme_minimal()+
-  labs(y="RR")
+  labs(y="E-value")
+  theme(axis.text.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()
+        )
 ```
 
 
@@ -857,7 +860,7 @@ summary_probs_adj <- subset_net_offence |>
             by = join_by(from_id, to_id)) |>
   mutate(p = if_else(is.na(p),0,p)) |> 
   # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  # filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
   summarise(across(p,\(x) sum(x,na.rm = T)),
             .by = pair_id) |>
   mutate(p = if_else(p>1,1,p)) |> 

@@ -3,7 +3,6 @@ project:
   output-dir: _site
   render:
     - "*.qmd"
-
 website:
   title: "P1_ratruns_analysis"
   navbar:
@@ -20,6 +19,7 @@ website:
           - D1_graph_centrality_tests.qmd
           - D2_congestion_tests.qmd
           - D3_WWD_joining.qmd
+          - D4_offences_joining.qmd
       - text: "Data Pre-processing"
         menu:
           - A2_graph.qmd
