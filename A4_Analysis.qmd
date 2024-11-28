@@ -23,29 +23,48 @@ remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
 ```
 
+## Loading data
 
-
-### WWD reports
+### Offence reports (tickets)
 
 ```{r}
-wwd_sf <- st_read("sf_network/wwd_clean_sf.gpkg")
+urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |> st_transform(3116)
 ```
 
-
 ```{r}
-sf_net_exp <- st_read("sf_network/full_sf_network_cent_results.gpkg") |> st_transform(3116)
+off_sf_all <- (st_read("sf_network/wwd_clean_sf.gpkg") |>
+                 st_transform(3116))[urban_perimeter,]
 ```
 
+### Network
 
 ```{r}
-urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |>st_transform(3116)
-```
-
-
-```{r}
+sf_net_exp <- st_read("sf_network/full_sf_network.gpkg") |> st_transform(3116)
 sf_net <- sf_net_exp[urban_perimeter,]
 ```
 
+### Centrality results
+
+```{r}
+cent_results <- read_csv("sf_network/cent_resaults.csv",
+                       lazy = F)
+
+cent_results_wkend <- read_csv("sf_network/cent_results_wkend.csv",
+                             lazy = F)
+```
+
+## Assigning reports to the network
+
+We need to assign the reports to the network. As we are interested in
+the residential roads, any bi-directional road is represented in the
+`sf` object as two `LINESTRING` objects. Since we do not have
+information to know which specific direction the reports correspond to,
+we will need to simplify the spatial object. Our target variable is the
+betweenness centrality, so we are going to keep the two centrality
+values for each bi-directional element.
+
+First, we will create a subset of the `residential` and `unclassified`
+roads, and another with all other roads
 
 ```{r}
 subset_net <- sf_net |> 
@@ -55,8 +74,16 @@ subset_net <- sf_net |>
     )) 
 ```
 
-From this subset, we first find the pairs of links with the `st_contains` function. 
+```{r}
+major_net <- sf_net |> 
+  filter(!roadclass %in% c(
+    "residential",
+    "unclassified"
+    )) 
+```
 
+From this subset, we first find the pairs of links with the
+`st_contains` function.
 
 ```{r}
 simplifed_net_indexes <- lapply(st_contains(subset_net,subset_net),
@@ -76,149 +103,517 @@ simp_groups <- do.call(bind_rows,
                })) |> 
   arrange(id)
 
+
 subset_net$pair_id <- simp_groups$pair_id
 ```
 
-Using the `pair_id` we extract the minimum, maximum and average change in centrality for each pair.
+Using the `pair_id` we extract the minimum, maximum and average change
+in centrality for each pair.
 
 ```{r}
-summary_pairs <- subset_net |>
-  st_drop_geometry() |>
-  # Filtering only the links that were inverted during the network creation and standard links
-  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |> 
-  summarise(across(diff:reldiff,
+summary_pairs <- cent_results |> 
+  right_join(subset_net |>
+               st_drop_geometry() |>
+               select(edge_id,way_id,pair_id),
+            by = "edge_id") |> 
+  # # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  summarise(across(diff:logreldiff.ff,
                    list(min=min, max=max, avg = mean)),
-            .by = pair_id)
+            .by = c(pair_id,wwd.speed,dist.th))
+
+summary_pairs_wkend <- cent_results_wkend |> 
+  right_join(subset_net |>
+               st_drop_geometry() |>
+               select(edge_id,way_id,pair_id),
+            by = "edge_id") |> 
+  # # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  summarise(across(diff:logreldiff.ff,
+                   list(min=min, max=max, avg = mean)),
+            .by = c(pair_id,wwd.speed,dist.th))
 ```
 
-A simplified version of the `sf` object is produced extracting the first element of each pair,
-we discard will the columns with the centrality metrics from this object to avoid confusion
+```{r}
+summary_pairs_dist.jct <- 
+  subset_net |>
+  st_drop_geometry() |>
+  summarise(across(dist.jct,\(x) mean(x) |> round()),
+            .by = c(pair_id))
+```
+
+A simplified version of the `sf` object is produced extracting the first
+element of each pair, we will discard columns with the centrality
+metrics from this object to avoid confusion
 
 ```{r}
 # simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
 
 simpl_network_sf <- subset_net |>
-  # Filtering only the links that were inverted during the network creation and standard links
+  # # Filtering only the links that were inverted during the network creation and standard links
   filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),
          .by = pair_id) |>
   slice_head(n = 1,by = pair_id) |>
   select(lanes:component,pair_id)
 ```
 
+We are interested in the reports on residential and unclassified
+streets. For this, we will create two buffers from the subsets created
+before. It is uncertain how thecoordinates of each report are recorded,
+there might be some error associated with the use of GPS devices, and
+also, some uncertainty in the way the officers do it.
+
+```{r}
+anti_buffer <- major_net |>
+  st_union() |> 
+  st_buffer(10,endCapStyle = "FLAT")
+```
+
 ```{r}
 subset_buffer <- simpl_network_sf |> 
   st_union()  |> 
-  st_buffer(20)
+  st_buffer(15,endCapStyle = "FLAT")
 ```
 
-A subset of the reports during peak hour +/- 2 hours
+As some reports might be associated to the major network, we will first
+filter reports within 10 meters from a major road, so these do not get
+wrongly assigned to a minor road. We are also going to subset reports during
+the morning peak hour (+/- 2 hours) in 2019.
 
 ```{r}
-subset_wwd <- (wwd_sf |>
-                 filter(abs(hour - 18)<=2) |> st_transform(3116))[subset_buffer,]|> 
-  filter(year==2019)
+off_sf <- (off_sf_all |>
+                 filter(abs(hour - 9)<=2,
+                        year == 2019,
+                        day_type == "weekday") )[anti_buffer,,op = st_disjoint]
+
+off_sf_wkend <- (off_sf_all |>
+                 filter(abs(hour - 9)<=2,
+                        year == 2019,
+                        day_type == "weekend") |>
+                 st_transform(3116))[anti_buffer,,op = st_disjoint]
+```
+
+The offences that are assumed to happen in the minor offences are assumed to
+be within 20 meters.
+
+```{r}
+minor_offences <- off_sf[subset_buffer,,op = st_intersects]
+minor_offences_wkend <- off_sf_wkend[subset_buffer,,op = st_intersects]
+```
+
+
+```{r}
+# tmap_mode("view")
+tm_shape(major_net)+
+  tm_lines("gray60",alpha = 0.6)+
+  tm_shape(subset_buffer)+
+  tm_fill("blue",alpha = 0.6)+
+  tm_shape(off_sf_all|>
+                 filter(abs(hour - 9)<=2,
+                        year == 2019,
+                        day_type == "weekday"))+
+  tm_dots("yellow")+
+  tm_shape(minor_offences)+
+  tm_dots("red")+
+  tm_layout(bg.color = "grey10")
 ```
 
 ### Finding the closest element of the network
 
 ```{r}
-subset_wwd$near_index <- st_nearest_feature(subset_wwd,simpl_network_sf)
-subset_wwd$pair_id <- simpl_network_sf$pair_id[subset_wwd$near_index]
+minor_offences$near_index <- st_nearest_feature(minor_offences,simpl_network_sf)
+minor_offences$pair_id <- simpl_network_sf$pair_id[minor_offences$near_index]
+
+minor_offences_wkend$near_index <- st_nearest_feature(minor_offences_wkend,simpl_network_sf)
+minor_offences_wkend$pair_id <- simpl_network_sf$pair_id[minor_offences_wkend$near_index]
 ```
 
-
+## Modelling
 
 ```{r}
-model_data <- simpl_network_sf |> 
-  filter(oneway) |>
-  left_join(summary_pairs,by = "pair_id") |> 
-  mutate(wwd_bool = pair_id %in% subset_wwd$pair_id) 
+model_data <- (summary_pairs |>
+  semi_join(simpl_network_sf,
+            by = "pair_id")) |> 
+  mutate(offence_bool = pair_id %in% minor_offences$pair_id) |> 
+  left_join(summary_pairs_dist.jct,by = join_by(pair_id))
+
+model_data_wkend <- (summary_pairs_wkend |>
+  semi_join(simpl_network_sf,
+            by = "pair_id")) |> 
+  mutate(offence_bool = pair_id %in% minor_offences_wkend$pair_id) |> 
+  left_join(summary_pairs_dist.jct,by = join_by(pair_id))
 ```
+
 
 A jitter plot to explore the distribution
 
 ```{r}
+## Congested
 model_data |> 
-  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
+  filter(wwd.speed == 10, dist.th == 1020) |> 
+  ggplot(aes(x = logreldiff.ff_max,y = offence_bool))+
     geom_jitter(alpha = 0.1)+
-  theme_minimal()+
-  scale_x_continuous(labels = scales::label_percent(accuracy = 1))+
-  labs(x = "Average relative change in BC",
-       y = "Wrong-way driving report")
-```
+  theme_minimal()
 
-Distribution of average relative change for the data
 
-```{r}
-model_data |> 
-  ggplot(aes(x = (reldiff_max),fill = wwd_bool))+
-  geom_histogram(alpha = 0.4)+
+## Weekend
+model_data_wkend |> 
+  filter(wwd.speed == 10, dist.th == 1020) |> 
+  ggplot(aes(x = logreldiff.ff_max,y = offence_bool))+
+    geom_jitter(alpha = 0.1)+
   theme_minimal()
 ```
 
+#### Fitting logisting regressions 
 
 ```{r}
-mean_bl <- mean(subset_net$cent_bl[subset_net$cent_bl>0],na.rm = T)
-mean_cong <- mean(subset_net$cent_cong[subset_net$cent_cong>0],na.rm = T)
+glm_models_0 <- model_data |> 
+  nest(data = c(pair_id,
+                diff_min:dist.jct)) |> 
+  mutate(
+    model_rel = map(data,
+                \(.x) {
+                 glm(offence_bool ~ logdiff_max,
+                     data = .x,
+                     family = binomial(link = "logit"))
+                # },
+                # model_abs = map(data,
+                # \(.x) {
+                #  glm(p ~ logdiff_max,
+                #      data = .x,
+                #      family = binomial(link = "logit"))
+                }
+                )
+                )
 
-library(extrafont)
 
-hist_centrality <- subset_net |>
-  st_drop_geometry() |> 
-  filter(oneway,cent_bl+cent_cong>0) |>
-  select(cent_bl,cent_cong) |> 
-  pivot_longer(cols = cent_bl:cent_cong) |> 
-  ggplot(aes(x = value+1,fill = name))+
-  geom_histogram(alpha = 0.3,col = "white",position = "identity")+
-  geom_vline(xintercept = mean_bl,col = "dodgerblue",alpha = 0.8,linewidth = 1.5)+
-  geom_vline(xintercept = mean_cong,col = "firebrick",alpha = 0.8,linewidth = 1.5)+
-  scale_x_log10(breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x)))+
-  scale_y_continuous(labels = scales::label_comma())+
+mod_pred_0 <- glm_models_0 |> 
+  mutate(predicted = map2(model_rel, data ,\(.x,.y) {
+    tibble(logdiff_max = .y$logdiff_max,
+           offence_bool = predict(.x,
+                                  newdata = .y,
+                                  type = "response"))
+    })) |> 
+  select(-data,-model_rel) |> 
+  unnest(cols = predicted) |> 
+  unite("id",wwd.speed:dist.th,remove = F) |> unique()
+```
+
+```{r}
+glm_models_0_wkend <- model_data_wkend |> 
+  nest(data = c(pair_id,
+                diff_min:dist.jct)) |> 
+  mutate(
+    model_rel = map(data,
+                \(.x) {
+                 glm(offence_bool ~ 1,
+                     data = .x,
+                     family = binomial(link = "logit"))
+                # },
+                # model_abs = map(data,
+                # \(.x) {
+                #  glm(p ~ logdiff_max,
+                #      data = .x,
+                #      family = binomial(link = "logit"))
+                }
+                )
+                )
+
+
+mod_pred_0_wkend <- glm_models_0_wkend |> 
+  mutate(predicted = map2(model_rel, data ,\(.x,.y) {
+    tibble(logdiff_max = .y$logdiff_max,
+           offence_bool = predict(.x,
+                                  newdata = .y,
+                                  type = "response"))
+  })) |> 
+  select(-data,-model_rel) |> 
+  unnest(cols = predicted) |> 
+  unite("id",wwd.speed:dist.th,remove = F) |> unique()
+```
+
+A visual of the fitted lines
+
+```{r}
+mod_pred_0 |> 
+  ggplot(aes(x = logdiff_max,
+             y = offence_bool,
+             group = id,
+             col = wwd.speed))+
+  geom_line(alpha = 0.1)+
+  scale_y_continuous(limits = c(0,1))+
   theme_minimal()+
-  labs(x = "Centrality",
-       fill = "Network",
-       title = "Centrality distribution",
-       subtitle = "Only oneway residential links")+
-  scale_fill_manual(values = c("dodgerblue","firebrick"),labels = c("Free-flow","congested"))+
-  theme(text = element_text(family = "Roboto Light"),
-        legend.position = "top")
+  scale_color_viridis_c(option = "plasma")
 
-ggsave(hist_centrality,filename = "histogram_centralities.png",dpi = 320,units = "mm",height = 110,width = 170)
-  
-```
-
-```{r}
-test1 <- model_data |> group_by(way_id) |> 
-  summarise(across(c(diff_max,reldiff_max),
-                   \(x) mean(x,na.rm = T)),
-            across(wwd_bool,\(x) sum(x)>=1))
-
-```
-
-The following code shows how a logistic regression fits the data. Unfortunately,
-the *false positives* do have a significant impact.
-
-```{r}
-ref_plot <- test1 |>
-  mutate(wwd_bool = if_else(wwd_bool,1,0)) |> 
-  ggplot(aes(x = (reldiff_max),y = wwd_bool))+
-    geom_point(alpha = 0.1,col = "dodgerblue3")+
+mod_pred_0_wkend |> 
+  ggplot(aes(x = logdiff_max,
+             y = offence_bool,
+             group = id,
+             col = wwd.speed))+
+  geom_line(alpha = 0.1)+
+  scale_y_continuous(limits = c(0,1))+
   theme_minimal()+
-  geom_smooth(method = "glm",
-              formula = y ~ x,
-              family = "binomial",
-              method.args=list(family="binomial"),
-              se = F,
-              col = "goldenrod")+
-  labs(title = "Naive Logistic Regression",
-       subtitle = "Only one-way residential roads",
-       y = "Probability of report",
-       x = "Mean Relative Change in BC")+
-  scale_x_continuous(labels = scales::label_percent(1))+
-  theme(text = element_text(family = "Roboto Light"),
-        legend.position = "top")
+  scale_color_viridis_c(option = "plasma")
+```
 
-ggsave(ref_plot,filename = "reg_naive.png",dpi = 320,units = "mm",height = 110,width = 170)
+### Reducing the bias of pseudo-negatives by random sampling
+
+```{r}
+model_reports <- model_data |>
+  filter(offence_bool)
+
+set.seed(123)
+rand_absences_data <- bind_rows(
+  model_reports,
+  model_data |>
+    filter(!offence_bool) |>
+    sample_n(size = nrow(model_reports)*2, replace = F)
+)
+
+
+# Same links are considered
+rand_absences_data_wkend <- model_data_wkend |> 
+  semi_join(rand_absences_data,by = join_by(pair_id,wwd.speed,dist.th))
 
 ```
+
+
+```{r}
+glm_models_0_rand <- rand_absences_data |> 
+  nest(data = c(pair_id,
+                diff_min:dist.jct)) |> 
+  mutate(
+    model_rel = map(data,
+                \(.x) {
+                 glm(offence_bool ~ logdiff_max,
+                     data = .x,
+                     family = binomial(link = "logit"))
+                }
+                )
+                )
+
+
+mod_pred_0_rand <- glm_models_0_rand |> 
+  mutate(predicted = map2(model_rel, data ,\(.x,.y) {
+    tibble(logdiff_max = .y$logdiff_max,
+           offence_bool = predict(.x,
+                                  newdata = .y,
+                                  type = "response"))
+    })) |> 
+  select(-data,-model_rel) |> 
+  unnest(cols = predicted) |> 
+  unite("id",wwd.speed:dist.th,remove = F) |> unique()
+
+
+glm_models_0_rand_wkend <- rand_absences_data_wkend |> 
+  nest(data = c(pair_id,
+                diff_min:dist.jct)) |> 
+  mutate(
+    model_rel = map(data,
+                \(.x) {
+                 glm(offence_bool ~ 1,
+                     data = .x,
+                     family = binomial(link = "logit"))
+                }
+                )
+                )
+
+
+mod_pred_0_rand_wkend <- glm_models_0_rand_wkend |> 
+  mutate(predicted = map2(model_rel, data ,\(.x,.y) {
+    tibble(logdiff_max = .y$logdiff_max,
+           offence_bool = predict(.x,
+                                  newdata = .y,
+                                  type = "response"))
+    })) |> 
+  select(-data,-model_rel) |> 
+  unnest(cols = predicted) |> 
+  unite("id",wwd.speed:dist.th,remove = F) |> unique()
+```
+
+
+```{r}
+mod_pred_0_rand |>
+  filter(wwd.speed == 10) |>
+  ggplot(aes(
+    x = logdiff_max,
+    y = offence_bool,
+    group = id,
+    col = dist.th
+  )) +
+  geom_line(alpha = 0.3) +
+  geom_line(
+    data = mod_pred_0_rand_wkend |>
+      filter(wwd.speed == 10),
+    linetype = "dashed",
+    alpha = 0.6
+  ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  scale_color_viridis_c(option = "plasma")
+```
+
+#### Calculating Risk-ratios
+
+```{r}
+mod_0_coefs_rand <- glm_models_0_rand |> 
+  mutate(coefs = map(model_rel,\(.x) {
+    broom::tidy(.x)
+  }
+  )
+  ) |>
+  select(wwd.speed,dist.th,coefs) |> 
+  unnest(coefs) |> 
+  # pivot_wider(names_from = term,values_from = estimate) |> 
+  mutate(term = term |> str_replace(pattern = "\\(Intercept\\)",replacement = "intercept"),
+         term = term |> str_replace(pattern = "logdiff_max",replacement = "slope"))
+
+control_rates_rand <- glm_models_0_rand_wkend |> 
+  mutate(coefs = map(model_rel,\(.x) {
+    broom::tidy(.x)
+  }
+  )
+  ) |>
+  select(wwd.speed,dist.th,coefs) |> 
+  unnest(coefs) |> 
+  # pivot_wider(names_from = term,values_from = estimate) |> 
+  mutate(term = term |> str_replace(pattern = "\\(Intercept\\)",replacement = "intercept"),
+         term = term |> str_replace(pattern = "logdiff_max",replacement = "slope")) |> 
+  filter(term == "intercept") |> 
+  mutate(p0 = exp(estimate)) |> 
+  select(wwd.speed:dist.th,p0)
+```
+
+
+```{r}
+RR_summary_rand <- mod_0_coefs_rand |> 
+  filter(term == "slope") |>
+  left_join(control_rates_rand,
+            by = join_by(wwd.speed, dist.th)
+            ) |> 
+  mutate(OR = exp(estimate),
+         RR = OR / (1 - p0 + (p0 * OR)),         #risk ratios: RR = OR / (1 - p + (p x OR))
+         e.value = case_when(
+           RR >= 1 ~ RR + sqrt(RR * (RR - 1)),
+           RR < 1 ~ RR ^ (-1) + sqrt(RR ^ (-1)*(RR^(-1)-1))))
+```
+
+```{r}
+RR_summary_rand |> 
+  filter(between(wwd.speed,3,22),dist.th>500) |> 
+  ggplot(aes(y = RR, x = e.value, col = wwd.speed))+
+  # geom_vline(xintercept = 0,linetype = "dashed",col= "gray70")+
+  geom_point(alpha = 0.6)+
+  # coord_fixed()+
+  theme_minimal()+
+  labs(y="RR")
+```
+
+## Analysis by segments
+
+```{r}
+grid_bog <- urban_perimeter |> 
+  # st_transform(3116) |> 
+  st_make_grid(square = F,cellsize = 10e3,offset = c(1000,-500)) |> 
+  st_as_sf() 
+
+minor_reports_grid <- st_intersects(grid_bog,minor_offences) |> vapply(length,numeric(1))
+
+grid_bog <- grid_bog[minor_reports_grid>10,] |> 
+  rowid_to_column("cell_id")
+
+tm_shape(grid_bog)+
+  tm_fill(col = "cell_id")+
+  tm_shape(major_net)+
+  tm_lines("gray80")+
+  tm_shape(minor_offences)+
+  tm_dots("blue")
+
+```
+
+Spatial Join
+```{r}
+grid_off <- st_intersects(grid_bog,simpl_network_sf)
+```
+
+```{r}
+lapply(grid_off,
+       \(x) {
+         grid_reports <-
+           rand_absences_data |> filter(pair_id %in% simpl_network_sf$pair_id[x])
+         grid_reports_wkend <-
+           rand_absences_data_wkend |> filter(pair_id %in% simpl_network_sf$pair_id[x])
+         
+         glm_models_1_rand <- grid_reports |>
+           nest(data = c(pair_id,
+                         diff_min:dist.jct)) |>
+           mutate(model_rel = map(data,
+                                  \(.x) {
+                                    glm(offence_bool ~ logdiff_max,
+                                        data = .x,
+                                        family = binomial(link = "logit"))
+                                  }))
+         
+         
+         mod_pred_1_rand <- glm_models_1_rand |>
+           mutate(predicted = map2(model_rel, data , \(.x, .y) {
+             tibble(
+               logdiff_max = .y$logdiff_max,
+               offence_bool = predict(.x,
+                                      newdata = .y,
+                                      type = "response")
+             )
+           })) |>
+           select(-data, -model_rel) |>
+           unnest(cols = predicted) |>
+           unite("id", wwd.speed:dist.th, remove = F) |> unique()
+         
+         
+         glm_models_1_rand_wkend <- grid_reports_wkend |>
+           nest(data = c(pair_id,
+                         diff_min:dist.jct)) |>
+           mutate(model_rel = map(data,
+                                  \(.x) {
+                                    glm(offence_bool ~ 1,
+                                        data = .x,
+                                        family = binomial(link = "logit"))
+                                  }))
+         
+         
+         mod_pred_1_rand_wkend <- glm_models_1_rand_wkend |>
+           mutate(predicted = map2(model_rel, data , \(.x, .y) {
+             tibble(
+               logdiff_max = .y$logdiff_max,
+               offence_bool = predict(.x,
+                                      newdata = .y,
+                                      type = "response")
+             )
+           })) |>
+           select(-data, -model_rel) |>
+           unnest(cols = predicted) |>
+           unite("id", wwd.speed:dist.th, remove = F) |> unique()
+         
+         myplot <- mod_pred_1_rand |>
+           filter(wwd.speed == 10) |>
+           ggplot(aes(
+             x = logdiff_max,
+             y = offence_bool,
+             group = id,
+             col = dist.th
+           )) +
+           geom_line(alpha = 0.3) +
+           geom_line(
+             data = mod_pred_0_rand_wkend |>
+               filter(wwd.speed == 10),
+             linetype = "dashed",
+             alpha = 0.6
+           ) +
+           scale_y_continuous(limits = c(0, 1)) +
+           theme_minimal() +
+           scale_color_viridis_c(option = "plasma")
+         
+         return(myplot)
+       })
+```
+
+

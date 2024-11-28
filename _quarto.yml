@@ -19,11 +19,12 @@ website:
           - D1_graph_centrality_tests.qmd
           - D2_congestion_tests.qmd
           - D3_WWD_joining.qmd
-          - D4_offences_joining.qmd
+          - D3_Offences_joining.qmd
       - text: "Data Pre-processing"
         menu:
           - A2_graph.qmd
           - A3_Congested_graph.qmd
+          - A4_Analysis.qmd
       - about.qmd
 format:
   html:

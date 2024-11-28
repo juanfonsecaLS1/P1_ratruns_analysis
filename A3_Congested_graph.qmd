@@ -83,7 +83,24 @@ graph_bogota <- weight_streetnet(sf_bogota_2019,
 
 bog_contracted <- graph_bogota |> 
   dodgr_contract_graph()
+```
 
+
+
+As the network might have several components, we can explore the size of the graph.
+
+```{r}
+# number of edges
+m_edges <- bog_contracted |>data.frame() |> count(component)
+# Number of nodes
+n_nodes <- bog_contracted |> dodgr_vertices() |> count(component)
+```
+
+
+
+```{r}
+sf_net <- graph_bogota |> 
+  dodgr_to_sf() 
 ```
 
 
@@ -94,14 +111,7 @@ bog_contracted$time_weighted <- 3.6*bog_contracted$d_weighted/as.numeric(str_ext
 ```
 
 
-Calculating the centrality
-
-```{r}
-bog_centrality <- bog_contracted |>
-      dodgr_centrality(column = "time_weighted",dist_threshold = 900)
-```
-
-
+## Using observed speed to adjust the weighting of the graph
 
 ```{r}
 sf_speed <- st_read("sf_network/sf_speed_network.gpkg") |> st_transform(3116)
@@ -110,11 +120,6 @@ sf_speed_clean <- sf_speed[sf_bogota_2019 |>
                              st_transform(3116) |>
                              st_union() |>
                              st_convex_hull(),]
-```
-
-```{r}
-sf_net <- graph_bogota |> 
-  dodgr_to_sf() 
 ```
 
 ```{r}
@@ -213,15 +218,29 @@ The following code loads the data
 speed_data <- read_csv("sf_network/summary_speeds.csv")
 ```
 
-We identify the hour that showed the lowest speeds in average
+We pick the morning peak and the control speed during the weekend
+
+```{r}
+#| label: pre-processing-speed1
+
+summary_speed_ratios <- speed_data |>
+  summarise(mean_norm_speed = mean(d_norm_speed),.by = c(year,day_type,hour)) 
+
+summary_speed_ratios |>
+  filter(year==2019,day_type == "weekday") |>
+  arrange(mean_norm_speed) |> 
+  head(5)
+```
 
 ```{r}
 #| label: pre-processing-speed
 
-min_speed_key <- speed_data |>
-  summarise(mean_norm_speed = mean(d_norm_speed),.by = c(year,day_type,hour)) |> 
-  slice_min(mean_norm_speed,by = c(year,day_type)) |> 
-  filter(year == 2019,day_type == "weekday") |> 
+min_speed_key <- summary_speed_ratios |>  
+  filter(year == 2019,day_type == "weekday",hour == 9) |> 
+  select(-mean_norm_speed)
+
+wkend_speed_key <- summary_speed_ratios |>  
+  filter(year == 2019,day_type == "weekend",hour == 9) |> 
   select(-mean_norm_speed)
 ```
 
@@ -234,6 +253,11 @@ speed_tbl <- speed_data |>
   semi_join(min_speed_key,
             by = join_by(year,day_type,hour)) |> 
   select(TID,d_mean_speed)
+
+speed_tbl_wkend <- speed_data |>
+  semi_join(wkend_speed_key,
+            by = join_by(year,day_type,hour)) |> 
+  select(TID,d_mean_speed)
 ```
 
 We join the speed data to the correspondence we produced before
@@ -243,6 +267,10 @@ We join the speed data to the correspondence we produced before
 
 obs_speeds_edges <- TID_to_edge_id |>
   left_join(speed_tbl,by = "TID") |> 
+  summarise(obs_speed = mean(d_mean_speed),.by = edge_id)
+
+wkend_speeds_edges <- TID_to_edge_id |>
+  left_join(speed_tbl_wkend,by = "TID") |> 
   summarise(obs_speed = mean(d_mean_speed),.by = edge_id)
 ```
 
@@ -258,49 +286,276 @@ bog_contr_adjusted$obs_speed <- tibble(edge_id = bog_contr_adjusted$edge_id) |>
   pull(obs_speed)
 dodgr::clear_dodgr_cache()
 bog_contr_adjusted$time_weighted[!is.na(bog_contr_adjusted$obs_speed)] <- (3.6*bog_contr_adjusted$d_weighted[!is.na(bog_contr_adjusted$obs_speed)])/bog_contr_adjusted$obs_speed[!is.na(bog_contr_adjusted$obs_speed)]
+
+
+bog_contr_wkend <- bog_contracted
+dodgr::clear_dodgr_cache()
+bog_contr_wkend$obs_speed <- tibble(edge_id = bog_contr_wkend$edge_id) |> 
+  left_join(obs_speeds_edges,by = "edge_id") |> 
+  pull(obs_speed)
+dodgr::clear_dodgr_cache()
+bog_contr_wkend$time_weighted[!is.na(bog_contr_wkend$obs_speed)] <- (3.6*bog_contr_wkend$d_weighted[!is.na(bog_contr_wkend$obs_speed)])/bog_contr_wkend$obs_speed[!is.na(bog_contr_wkend$obs_speed)]
 ```
 
-We calculate the centrality for the *congested* graph.
+## Centrality calculation
+
+We calculate the centrality for the *uncongested* and *congested* graphs.
 
 ```{r}
-#| label: centrality-congested
-congested_centrality <- bog_contr_adjusted |>
-      dodgr_centrality(column = "time_weighted",dist_threshold = 900)
-```
+#| label: grid-centrality
 
-#### Comparison
+t_thresholds = seq(2,24,3)*60
 
-We consolidate the values of free-flow network and congested network into a single dataset
-
-```{r}
-#| label: compare-congested-centrality
-
-cent_all <- tibble(
-  edge_id = bog_centrality$edge_id,
-  cent_bl = bog_centrality$centrality) |>
-  left_join(
-    tibble(edge_id = congested_centrality$edge_id,
-           cent_cong = congested_centrality$centrality),
-    by = "edge_id"
-  ) |>
-  mutate(diff = cent_cong - cent_bl,
-         reldiff = diff / (0.5 * (cent_bl + cent_cong)))
+grid_test <- expand_grid(v = seq(5, 20, 5),
+                         th = t_thresholds)
 ```
 
 
 ```{r}
-sf_net_cent <- sf_net |> 
-  left_join(cent_all,by = "edge_id")
+#| eval: false
+
+all_centrality_runs <- lapply(
+  1:nrow(grid_test),
+  # 1:2,
+  \(i) {
+    cat("Row number: ",i,"\n")
+    
+    bog_ff_test <- bog_contracted
+    bog_cong_test <-
+      bog_contr_adjusted
+    
+    dodgr::clear_dodgr_cache()
+    
+    bog_ff_test$time_weighted[bog_ff_test$highway == "road_10"] <-
+      (3.6 * bog_ff_test$d_weighted[bog_ff_test$highway == "road_10"]) / grid_test$v[i]
+    
+    bog_cong_test$time_weighted[bog_cong_test$highway == "road_10"] <-
+      (3.6 * bog_cong_test$d_weighted[bog_cong_test$highway == "road_10"]) / grid_test$v[i]
+    
+    
+    dodgr::clear_dodgr_cache()
+    
+    # Centrality calculations
+    
+    try({
+      test_centrality_ff <-
+        bog_ff_test |>
+        dodgr_centrality(column = "time_weighted",
+                         dist_threshold = grid_test$th[i])
+      
+      test_centrality <-
+        bog_cong_test |>
+        dodgr_centrality(column = "time_weighted",
+                         dist_threshold = grid_test$th[i])
+      
+      t <-
+        tibble(cent.ff = test_centrality_ff$centrality,
+               cent.cong = test_centrality$centrality)
+      
+      names(t) <-
+        paste(names(t), grid_test$v[i], grid_test$th[i], sep = "_")
+      
+      return(t)
+    })
+    })
+
+# all_centrality_runs$edge_id <- bog_contr_adjusted$edge_id
+save(all_centrality_runs,file = "sf_network/full_cent_runs.rdata")
+
+
+all_centrality_runs_wkend <- 
+  lapply(1:nrow(grid_test),
+         # lapply(1:2,
+         \(i) {
+           
+           bog_ff_test <-
+             bog_contracted
+           bog_cong_test <-
+             bog_contr_wkend
+           
+           dodgr::clear_dodgr_cache()
+           
+           bog_ff_test$time_weighted[bog_ff_test$highway == "road_10"] <-
+             (3.6 * bog_ff_test$d_weighted[bog_ff_test$highway == "road_10"]) / grid_test$v[i]
+           
+           bog_cong_test$time_weighted[bog_cong_test$highway == "road_10"] <-
+             (3.6 * bog_cong_test$d_weighted[bog_cong_test$highway == "road_10"]) / grid_test$v[i]
+           
+           dodgr::clear_dodgr_cache()
+           
+           # Centrality calculations
+           
+           try({
+             test_centrality_ff <-
+               
+               bog_ff_test |>
+               dodgr_centrality(column = "time_weighted",
+                                dist_threshold = grid_test$th[i])
+             
+             test_centrality <-
+               bog_cong_test |>
+               dodgr_centrality(column = "time_weighted",
+                                dist_threshold = grid_test$th[i])
+             
+             t <-
+               tibble(cent.ff = test_centrality_ff$centrality,
+                      cent.cong = test_centrality$centrality)
+             
+             names(t) <-
+               paste(names(t), grid_test$v[i], grid_test$th[i], sep = "_")
+             
+             return(t)
+           })
+           })
+                               
+
+# all_centrality_runs_wkend$edge_id <- bog_contr_wkend$edge_id
+save(all_centrality_runs_wkend,file = "sf_network/full_cent_runs_weekend.rdata")
+
 ```
 
-## Saving results for further analysis
+
+```{r}
+#| include: true
+load("sf_network/full_cent_runs.rdata")
+load("sf_network/full_cent_runs_weekend.rdata")
+ 
+all_cent_raw <- do.call(bind_cols,all_centrality_runs)
+all_cent_raw_wkend <- do.call(bind_cols,all_centrality_runs_wkend)
+
+all_cent_raw$edge_id <- bog_contr_adjusted$edge_id
+all_cent_raw_wkend$edge_id <- bog_contr_wkend$edge_id
+```
+
+### Consolidating the results
+
+```{r}
+tidy_centralities <- all_cent_raw |>
+  pivot_longer(-edge_id,
+               names_to = "test",
+               values_to = "cent",names_prefix = "cent.") |> 
+  separate_wider_delim(test,delim = "_",names = c("network","wwd.speed","dist.th")) |> 
+  pivot_wider(names_from = network,values_from = cent) |>
+  left_join(tibble(edge_id = bog_contracted$edge_id,
+       component = bog_contracted$component) |> 
+  left_join(n_nodes, by = join_by(component)),
+  by = join_by(edge_id)
+  ) |> 
+  mutate(diff = cong - ff,
+         logdiff = sign(diff)*log10(abs(diff)),
+         reldiff = diff/(0.5*(ff+cong)),
+         logreldiff.ff = sign(diff)*log10(abs(diff/(ff+n-1)))) |> 
+  mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 & (ff+cong > 0),0,x))) |> 
+  select(-n,-component)
+
+tidy_centralities_wkend <- all_cent_raw_wkend |>
+  pivot_longer(-edge_id,
+               names_to = "test",
+               values_to = "cent",names_prefix = "cent.") |> 
+  separate_wider_delim(test,delim = "_",names = c("network","wwd.speed","dist.th")) |> 
+  pivot_wider(names_from = network,values_from = cent) |>
+  left_join(tibble(edge_id = bog_contracted$edge_id,
+       component = bog_contracted$component) |> 
+  left_join(n_nodes, by = join_by(component)),
+  by = join_by(edge_id)
+  ) |> 
+  mutate(diff = cong - ff,
+         logdiff = sign(diff)*log10(abs(diff)),
+         reldiff = diff/(0.5*(ff+cong)),
+         logreldiff.ff = sign(diff)*log10(abs(diff/(ff+n-1)))) |> 
+  mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 & (ff+cong > 0),0,x))) |> 
+  select(-n,-component)
+```
+
+## Extracting Distance to the major network
+
+The distance from the major network might be related to the reports of traffic offences. For this purpose, we need the following code to obtain the average distance of each minor link to the major network.
+
+Identifying the junctions and classifying them based on the road hierarchy
+
+```{r}
+#| label: identifying-nodes-and-classifying
+
+low_hierarchy <- c("residential","unclassified")
+
+junction_class_to <- sf_net |> 
+  st_drop_geometry() |> 
+  mutate(road_type = if_else(roadclass %in% low_hierarchy,
+                             "minor",
+                             "major")) |>
+  summarise(count = n(),.by = c(to_id,road_type)) |>
+  pivot_wider(names_from = road_type,values_from = count)|> 
+  rename(id = to_id)
+
+junction_class_from <- sf_net |> 
+  st_drop_geometry() |> 
+  mutate(road_type = if_else(roadclass %in% low_hierarchy,
+                             "minor",
+                             "major")) |> 
+  summarise(count = n(),.by = c(from_id,road_type)) |>
+  pivot_wider(names_from = road_type,values_from = count) |>
+  rename(id = from_id)
+
+junctions_classed <- junction_class_to |> 
+  full_join(junction_class_from,by = "id",suffix = c(".to",".from")) |> 
+  mutate(jct_type = case_when(is.na(minor.to)&is.na(minor.from)~"major",
+                              is.na(major.to)&is.na(major.from)~"minor",
+                              (!is.na(minor.to)&!is.na(major.from))|
+                                (!is.na(minor.from)&!is.na(major.to))~"minmaj")) |> 
+  select(-starts_with("m"))
+  
+```
+
+Calculating the network distance for all nodes in the minor network to the major network 
+
+```{r}
+#| label: distance-to-major-network
+
+minmaj_ids <- junctions_classed |> filter(jct_type == "minmaj") |> pull(id)
+minor_from_ids <- junctions_classed |> filter(jct_type == "minor") |> pull(id)
+
+dist_matrix <- dodgr_dists(bog_contracted,
+                           from = minor_from_ids,
+                           to = minmaj_ids,
+                           shortest = T)
+```
+
+```{r}
+#| label: consolidate-distances
+
+fastest_all <- tibble(
+  id.jct = minor_from_ids,
+  dist.jct =
+    apply(dist_matrix, 1,\(x) min(x,na.rm = TRUE)
+      )
+  )
+
+rm(dist_matrix)
+```
+
+
+```{r}
+#| label: join-to-main-dataset
+
+sf_net_jct <- sf_net |>
+  left_join(fastest_all,
+            by = c("from_id"="id.jct"),
+            relationship = "many-to-one") |> 
+  mutate(dist.jct = case_when(is.na(dist.jct)&roadclass %in% low_hierarchy ~ 0,
+                              is.infinite(dist.jct)~NA,
+                              T~dist.jct))
+```
+
+
+
+## Saving Results
 
 ```{r}
 #| label: save-results
+write_csv(tidy_centralities, file = "sf_network/cent_resaults.csv")
+write_csv(tidy_centralities_wkend, file = "sf_network/cent_results_wkend.csv")
 
-st_write(sf_net_cent,"sf_network/full_sf_network_cent_results.gpkg",delete_dsn = T)
+st_write(sf_net_jct, "sf_network/full_sf_network.gpkg",delete_dsn = T)
 ```
-
-
 
 
