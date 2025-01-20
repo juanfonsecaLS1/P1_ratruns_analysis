@@ -1,0 +1,420 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+# Congested Network {#sec-congnet}
+
+
+```{r,message=FALSE}
+#| label: libraries
+#| message: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "zonebuilder",
+    "tmap"
+    # "dodgr" # Using the developer version of dodgr
+)
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+
+require(dodgr)
+packageVersion ("dodgr")
+```
+
+## Loading network
+
+```{r}
+#| label: read-sf
+ 
+sf_bogota_2019_raw <- st_read(file.path("sf_network","bogota_osm_network.gpkg"),
+                              layer = "network_2019") |>
+  mutate(way_speed = case_when(highway %in%
+                                 c("trunk_link","primary_link","primary","trunk")~"road_60",
+                               TRUE ~ "road_30")) |> 
+  rename(roadclass = highway) |>
+  # mutate(oneway.raw = oneway,
+  #        oneway = if_else(roadclass %in% c("residential","unclassified"),
+  #                         "no",
+  #                         oneway)) |> 
+  st_transform(4326)
+```
+
+Inspecting the values of the `oneway` tag in residential and unclassified roads
+
+```{r}
+sf_bogota_2019_raw |> filter(roadclass %in% c("residential","unclassified")) |> pull(oneway) |> unique()
+```
+
+We will reverse those links to allow the vehicles to `travel` in the wrong direction
+
+```{r}
+oneway_minor_rev <- sf_bogota_2019_raw |> 
+  filter(roadclass %in% c("residential","unclassified"),
+         str_detect(pattern = "yes",oneway)) |> 
+  st_reverse() |> 
+  mutate(osm_id = paste0(osm_id,"r"),
+         way_speed = "road_10")
+```
+
+```{r}
+sf_bogota_2019 <- bind_rows(sf_bogota_2019_raw,
+                                 oneway_minor_rev)
+```
+
+## Baseline graph building
+
+```{r}
+#| label: graph-building
+dodgr::clear_dodgr_cache()
+
+graph_bogota <- weight_streetnet(sf_bogota_2019,
+                                 left_side = F,
+                                 wt_profile_file = "custom_wp_speeds.json",
+                                 type_col = "way_speed",
+                                 wt_profile = "motorcar",
+                                 keep_cols =
+                                   c("way_speed","oneway","lanes","surface","maxspeed","roadclass"),
+                                 turn_penalty = F)
+
+bog_contracted <- graph_bogota |> 
+  dodgr_contract_graph()
+```
+
+
+
+As the network might have several components, we can explore the size of the graph.
+
+```{r}
+# number of edges
+m_edges <- bog_contracted |>data.frame() |> count(component)
+# Number of nodes
+n_nodes <- bog_contracted |> dodgr_vertices() |> count(component)
+```
+
+
+```{r}
+sf_net <- graph_bogota |> 
+  dodgr_to_sf() 
+```
+
+
+```{r}
+dodgr::clear_dodgr_cache()
+
+bog_contracted$time_weighted <- 3.6*bog_contracted$d_weighted/as.numeric(str_extract(bog_contracted$highway,"\\d{1,2}$"))
+
+dodgr::clear_dodgr_cache()
+
+bog_centrality_bl <- bog_contracted |>
+        dodgr_centrality(column = "time_weighted",
+                         dist_threshold = 1200)
+```
+
+
+## Using observed speed to adjust the weighting of the graph
+
+```{r}
+sf_speed <- st_read("sf_network/sf_speed_network.gpkg") |> st_transform(3116)
+
+sf_speed_clean <- sf_speed[sf_bogota_2019 |>
+                             st_transform(3116) |>
+                             st_union() |>
+                             st_convex_hull(),]
+```
+
+```{r}
+#| label: pre-process-network-2
+
+road_types <- rev(c(
+  "trunk"          ,
+  "trunk_link"     ,
+  "primary"      ,
+  "primary_link"   ,
+  "secondary"      ,
+  "secondary_link" ,
+  "tertiary"       ,
+  "tertiary_link"  ,
+  "unclassified"   ,
+  "residential"    
+))
+
+sf_bog_major <- sf_net |>
+  mutate(roadclass = factor(roadclass,
+                          levels = road_types,
+                          ordered = T)) |> 
+  filter(as.integer(roadclass)>2,str_detect(roadclass,"link",negate = T)) |> 
+  st_transform(3116)
+```
+
+Extracting bearings and creating a buffer to produce a correspondence
+```{r}
+#| label: load-speed-data
+
+sf_speed_clean$s.bearing <- stplanr::line_bearing(sf_speed_clean)
+
+speed_buffer <- sf_speed_clean  |>  st_buffer(100,endCapStyle = "FLAT") 
+```
+
+
+```{r}
+#| label: spatial-operation-corres
+
+speed_corresp <- st_intersects(speed_buffer,sf_bog_major)
+
+TID_to_edge_id <- do.call(bind_rows,
+        lapply(seq_along(speed_corresp),
+               \(i) {
+                 
+                 x <- speed_corresp[[i]]
+                 
+                 subset_net <- sf_bog_major[x, ]
+                 
+                 ref_bearing <- speed_buffer$s.bearing[[i]]
+                 ref_TID <- speed_buffer$TID[[i]]
+                 
+                 subset_net$bearing <- stplanr::line_bearing(subset_net)
+                 
+                 sf_ids <- subset_net |>
+                   mutate(bearing_check = round(abs(bearing - ref_bearing))<=15) |>
+                   filter(bearing_check) |>
+                   pull(edge_id)
+                 
+                 tibble(TID = ref_TID, edge_id = sf_ids)
+                 }
+               )
+        )
+```
+
+It is possible that some links in the road network are found to be linked to multiple links in the 
+speed network, so we will resolve such situation. First, we identify the overlaps
+
+```{r}
+#| label: pre-process-network
+overlap_buffer <- TID_to_edge_id |> 
+  unique() |> 
+  count(edge_id) |> 
+  arrange(-n) |> 
+  filter(n>1)
+```
+
+
+```{r}
+#| label: check-no-correspondence
+no_match_speed <- sf_speed_clean |>
+  anti_join(TID_to_edge_id |>
+              select(TID) |>
+              unique(),
+            by = "TID")
+
+nrow(no_match_speed)
+```
+
+
+The following code loads the data
+
+```{r}
+#| label: load-speed-summaries
+
+speed_data <- read_csv("sf_network/summary_speeds.csv")
+```
+
+
+
+```{r}
+speed_key <- speed_data |>
+  select(year, hour, day_type) |>
+  filter(day_type != "friday",year == 2019) |>
+  unique()
+```
+
+
+```{r}
+#| eval: false
+
+hourly_centrality <- do.call(bind_cols,lapply(
+  1:nrow(speed_key),
+  
+  \(i) {
+    speed_tbl <- speed_data |>
+      semi_join(speed_key[i, ],
+                by = join_by(year, day_type, hour)) |>
+      select(TID, d_mean_speed)
+    
+    
+    obs_speeds_edges <- TID_to_edge_id |>
+      left_join(speed_tbl, by = "TID") |>
+      summarise(obs_speed = mean(d_mean_speed), .by = edge_id)
+    
+    bog_contr_adjusted <- bog_contracted
+    
+    dodgr::clear_dodgr_cache()
+    
+    bog_contr_adjusted$obs_speed <-
+      tibble(edge_id = bog_contr_adjusted$edge_id) |>
+      left_join(obs_speeds_edges, by = "edge_id") |>
+      pull(obs_speed)
+    
+    dodgr::clear_dodgr_cache()
+    
+    bog_contr_adjusted$time_weighted[!is.na(bog_contr_adjusted$obs_speed)] <-
+      (3.6 * bog_contr_adjusted$d_weighted[!is.na(bog_contr_adjusted$obs_speed)]) /
+      bog_contr_adjusted$obs_speed[!is.na(bog_contr_adjusted$obs_speed)]
+    
+    try({
+      hourly_centrality <-
+        bog_contr_adjusted |>
+        dodgr_centrality(column = "time_weighted",
+                         dist_threshold = 1200)
+      
+      t <-
+        tibble(cent = hourly_centrality$centrality)
+      
+      names(t) <-
+        paste(names(t),
+              speed_key$year[i],
+              speed_key$hour[i],
+              speed_key$day_type[i],
+              sep = "_")
+      
+      return(t)
+    })
+    
+  }))
+
+
+hourly_centrality$edge_id <- bog_contracted$edge_id
+
+save(hourly_centrality,
+     file = "sf_network/hourly_centrality.rdata")
+
+```
+
+
+```{r}
+#| include: false
+
+load("sf_network/hourly_centrality.rdata")
+```
+
+
+```{r}
+hourly_centrality$cent_2019_bl <- bog_centrality_bl$centrality
+hourly_centrality$component <- bog_contracted$component
+```
+
+```{r}
+tidy_hourly_centrality <- hourly_centrality |> 
+  pivot_longer(cols = cent_2019_0_weekday:cent_2019_23_weekend,
+               names_to = "scenario",
+               values_to = "cent",
+               names_prefix = "cent_2019_") |> 
+  separate_wider_delim(scenario,
+                       delim = "_",
+                       names = c("hour","day_type")) |> 
+  left_join(n_nodes, by = join_by(component)) |> 
+  rename(cong = cent,
+         ff = cent_2019_bl) |> 
+  mutate(diff = cong - ff,
+         logdiff = sign(diff)*log10(abs(diff)),
+         reldiff = diff/(0.5*(ff+cong)),
+         logreldiff.ff = sign(diff)*log10(abs(diff/(ff+n-1)))) |> 
+  mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 & (ff+cong > 0),0,x))) |> 
+  select(-n,-component)
+```
+
+
+## Extracting Distance to the major network
+
+The distance from the major network might be related to the reports of traffic offences. For this purpose, we need the following code to obtain the average distance of each minor link to the major network.
+
+Identifying the junctions and classifying them based on the road hierarchy
+
+```{r}
+#| label: identifying-nodes-and-classifying
+
+low_hierarchy <- c("residential","unclassified")
+
+junction_class_to <- sf_net |> 
+  st_drop_geometry() |> 
+  mutate(road_type = if_else(roadclass %in% low_hierarchy,
+                             "minor",
+                             "major")) |>
+  summarise(count = n(),.by = c(to_id,road_type)) |>
+  pivot_wider(names_from = road_type,values_from = count)|> 
+  rename(id = to_id)
+
+junction_class_from <- sf_net |> 
+  st_drop_geometry() |> 
+  mutate(road_type = if_else(roadclass %in% low_hierarchy,
+                             "minor",
+                             "major")) |> 
+  summarise(count = n(),.by = c(from_id,road_type)) |>
+  pivot_wider(names_from = road_type,values_from = count) |>
+  rename(id = from_id)
+
+junctions_classed <- junction_class_to |> 
+  full_join(junction_class_from,by = "id",suffix = c(".to",".from")) |> 
+  mutate(jct_type = case_when(is.na(minor.to)&is.na(minor.from)~"major",
+                              is.na(major.to)&is.na(major.from)~"minor",
+                              (!is.na(minor.to)&!is.na(major.from))|
+                                (!is.na(minor.from)&!is.na(major.to))~"minmaj")) |> 
+  select(-starts_with("m"))
+  
+```
+
+Calculating the network distance for all nodes in the minor network to the major network 
+
+```{r}
+#| label: distance-to-major-network
+
+minmaj_ids <- junctions_classed |> filter(jct_type == "minmaj") |> pull(id)
+minor_from_ids <- junctions_classed |> filter(jct_type == "minor") |> pull(id)
+
+dist_matrix <- dodgr_dists(bog_contracted,
+                           from = minor_from_ids,
+                           to = minmaj_ids,
+                           shortest = T)
+```
+
+```{r}
+#| label: consolidate-distances
+
+fastest_all <- tibble(
+  id.jct = minor_from_ids,
+  dist.jct =
+    apply(dist_matrix, 1,\(x) min(x,na.rm = TRUE)
+      )
+  )
+
+rm(dist_matrix)
+```
+
+
+```{r}
+#| label: join-to-main-dataset
+
+sf_net_jct <- sf_net |>
+  left_join(fastest_all,
+            by = c("from_id"="id.jct"),
+            relationship = "many-to-one") |> 
+  mutate(dist.jct = case_when(is.na(dist.jct)&roadclass %in% low_hierarchy ~ 0,
+                              is.infinite(dist.jct)~NA,
+                              T~dist.jct))
+```
+
+
+## Saving Results
+
+```{r}
+#| label: save-results
+
+write_csv(tidy_hourly_centrality, file = "sf_network/hourly_cent_results.csv")
+st_write(sf_net_jct, "sf_network/full_sf_network.gpkg",delete_dsn = T)
+```
+
+

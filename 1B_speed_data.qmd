@@ -237,8 +237,8 @@ norm_summary_spd <- fread(file = "sf_network/summary_speeds.csv")
 ```{r}
 norm_summary_spd |> 
   ggplot(aes(x = hour,y = d_norm_speed))+
+  geom_jitter(alpha = 0.1, size = 0.05,col = "gray60")+
   geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
-  geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
   stat_summary(geom = "line",
                fun = "mean",
                aes(col = day_type),
@@ -247,7 +247,9 @@ norm_summary_spd |>
                show.legend = F)+
   facet_grid(day_type~.)+
   theme_minimal()+
-  labs(x = "Hour", y = "Norm speed (observed/94th percentile)")+
+  labs(x = "Hour",
+       y = bquote("Normalised speed *"),
+       caption = expression('*'~Observed~'/'~94^{'th'}~percentile))+
   scale_x_continuous(breaks = 0:23,
                      labels = sprintf("%02d:00",0:23))+
   theme(axis.text.x = element_text(angle = 90))+
@@ -255,12 +257,46 @@ norm_summary_spd |>
   
 ```
 
+```{r}
+norm_summary_spd |> 
+  mutate(day_type = str_to_title(day_type)) |> 
+  ggplot(aes(x = hour,y = d_norm_speed))+
+  # geom_jitter(alpha = 0.05, size = 0.05,col = "gray80",shape =1)+
+  # geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
+  stat_summary(aes(fill = day_type),
+               fun.data = median_hilow, fun.args = list(conf.int = 1), 
+                 geom = 'ribbon', alpha = 0.15, colour = NA)+
+  stat_summary(aes(fill = day_type),
+               fun.data = median_hilow, fun.args = list(conf.int = 0.5), 
+                 geom = 'ribbon', alpha = 0.4, colour = NA)+
+  stat_summary(geom = "line",
+               fun = "mean",
+               aes(col = day_type),
+               linewidth = 1,
+               alpha = 1,
+               show.legend = F)+
+  facet_grid(day_type~.)+
+  theme_minimal()+
+  labs(x = NULL,
+       y = bquote("Normalised speed *"),
+       caption = expression('*'~Observed~'/'~94^{'th'}~percentile))+
+  scale_x_continuous(breaks = 0:23,
+                     labels = sprintf("%02d:00",0:23))+
+  theme(axis.text.x = element_text(angle = 90),legend.position = "none",
+        panel.grid.minor.x = element_blank())+
+  scale_colour_manual(values = paletteer_d("ggsci::lanonc_lancet",n = 3))+
+  scale_fill_manual(values = paletteer_d("ggsci::lanonc_lancet",n = 3))+
+  scale_y_continuous(limits = c(0,1.5))
+```
+
+
+
 #### Absolute speed
 ```{r}
 norm_summary_spd |> 
   ggplot(aes(x = hour,y = d_median_speed))+
-  geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
   geom_jitter(alpha = 0.3, size = 0.3,col = "gray60")+
+  geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
   stat_summary(geom = "line",
                fun = "mean",
                aes(col = day_type),

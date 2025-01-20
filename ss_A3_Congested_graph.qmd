@@ -555,7 +555,7 @@ sf_net_jct <- sf_net |>
 write_csv(tidy_centralities, file = "sf_network/cent_resaults.csv")
 write_csv(tidy_centralities_wkend, file = "sf_network/cent_results_wkend.csv")
 
-st_write(sf_net_jct, "sf_network/full_sf_network.gpkg",delete_dsn = T)
+st_write(sf_net_jct, "sf_network/full_sf_network.gpkg", delete_dsn = T)
 ```
 
 

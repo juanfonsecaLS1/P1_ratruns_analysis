@@ -1,6 +1,0 @@
----
-editor: 
-  markdown: 
-    wrap: 72
----
-

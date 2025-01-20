@@ -11,20 +11,25 @@ website:
         text: Home
       - text: "Data Pre-processing"
         menu:
-          - A1_network.qmd
-          - B1_speed_data.qmd
-          - C1_infractions.qmd
+          - 1A_network.qmd
+          - 1B_speed_data.qmd
+          - 1C_infractions.qmd
+      - text: "Centrality changes in Standard Network"
+        menu:
+          - 2A_Congested_graph_std_network.qmd
+          - 2B_Analysis_std_network.qmd
+      - text: "Centrality of WWD-enabled network"
+        menu:
+          - 3A_Congested_graph_WWD_allowed.qmd
+          - 2B_Analysis_std_network.qmd
+          
+          
       - text: "Small Reproducible Test"
         menu:
           - D1_graph_centrality_tests.qmd
           - D2_congestion_tests.qmd
           - D3_WWD_joining.qmd
           - D3_Offences_joining.qmd
-      - text: "Data Pre-processing"
-        menu:
-          - A2_graph.qmd
-          - A3_Congested_graph.qmd
-          - A4_Analysis.qmd
       - about.qmd
 format:
   html:

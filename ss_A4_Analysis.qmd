@@ -453,6 +453,33 @@ mod_pred_0_rand |>
   scale_color_viridis_c(option = "plasma")
 ```
 
+#### Analysing p-values
+
+```{r}
+mod_coefs <- glm_models_0_rand |> 
+  mutate(coefs = map(model_rel,\(.x) {
+    broom::tidy(.x)
+  }
+  )
+  ) |>
+  select(wwd.speed,dist.th,coefs) |> 
+  unnest(coefs) |> 
+  # pivot_wider(names_from = term,values_from = estimate) |> 
+  mutate(term = term |> str_replace(pattern = "\\(Intercept\\)",replacement = "intercept"),
+         term = term |> str_replace(pattern = ".*_max",replacement = "slope"))
+```
+
+```{r}
+mod_coefs |> 
+  filter(term == "slope") |> 
+  ggplot(aes(x = p.value,y = estimate , size = factor(wwd.speed), col = factor(dist.th)))+
+    geom_point(alpha = 0.8)+
+  scale_x_log10()
+```
+
+**WWD.speed 10 and 1200 threshold will be used.**
+
+
 #### Calculating Risk-ratios
 
 ```{r}
