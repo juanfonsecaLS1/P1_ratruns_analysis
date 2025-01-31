@@ -22,8 +22,6 @@ website:
         menu:
           - 3A_Congested_graph_WWD_allowed.qmd
           - 2B_Analysis_std_network.qmd
-          
-          
       - text: "Small Reproducible Test"
         menu:
           - D1_graph_centrality_tests.qmd

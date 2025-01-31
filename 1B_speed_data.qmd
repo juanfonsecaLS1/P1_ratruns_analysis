@@ -227,14 +227,14 @@ norm_summary_spd <- fread(file = "sf_network/summary_speeds.csv")
 
 ```
 
-
-
 ## Some visualisations of speed distribution:
 
 ### Hourly distributions
 
 #### Normalised speed
 ```{r}
+#| label: plot-norm-all
+
 norm_summary_spd |> 
   ggplot(aes(x = hour,y = d_norm_speed))+
   geom_jitter(alpha = 0.1, size = 0.05,col = "gray60")+
@@ -245,7 +245,7 @@ norm_summary_spd |>
                linewidth = 1,
                alpha = 0.6,
                show.legend = F)+
-  facet_grid(day_type~.)+
+  facet_grid(day_type~year)+
   theme_minimal()+
   labs(x = "Hour",
        y = bquote("Normalised speed *"),
@@ -256,6 +256,8 @@ norm_summary_spd |>
   scale_colour_manual(values = paletteer_d("ggsci::lanonc_lancet",n = 3))
   
 ```
+
+
 
 ```{r}
 norm_summary_spd |> 
@@ -327,7 +329,7 @@ norm_summary_spd |>
                aes(col = day_type,
                    group = TID),
                linewidth = 0.01,
-               alpha = 0.04,
+               alpha = 0.1,
                # show.legend = F
                )+
   facet_grid(day_type~year)+
@@ -352,7 +354,7 @@ norm_summary_spd |>
                aes(col = day_type,
                    group = TID),
                linewidth = 0.01,
-               alpha = 0.04,
+               alpha = 0.1,
                # show.legend = F
                )+
   facet_grid(day_type~year)+
@@ -367,6 +369,42 @@ norm_summary_spd |>
   theme(axis.text.x = element_text(angle = 90),
         panel.grid.minor = element_blank(),
         legend.position = "none")
+```
+
+
+```{r}
+#| label: plot-abs-all-2019
+#| eval: false
+#| include: false
+
+daily_obs_speed <- norm_summary_spd |> 
+  filter(year==2019,day_type != "friday") |> 
+  mutate(day_type = str_to_sentence(day_type)) |> 
+  ggplot(aes(x = hour,y = d_median_speed))+
+  stat_summary(geom = "line",
+               fun = "median",
+               aes(col = day_type,
+                   group = TID),
+               linewidth = 0.075,
+               alpha = 0.1,
+               # show.legend = F
+               )+
+  facet_grid(day_type~.)+
+  geom_hline(yintercept = 60,col = "#EE4C97",linetype = "dashed",alpha = 0.6,linewidth = 1)+
+  annotate(geom = "text",x = 23,y = 63,label = "Speed Limit ",vjust = 0,hjust = 1,size = 3)+
+  theme_minimal()+
+  labs(x = "Hour", y = "Observed speed (km/h)")+
+  scale_x_continuous(breaks = 0:23,
+                     labels = sprintf("%02d:00",0:23))+
+  scale_y_continuous(limits = c(0,90),breaks = seq(0,90,20))+
+  scale_colour_manual(values = paletteer_d("ggsci::lanonc_lancet",n = 3))+
+  theme(axis.text.x = element_text(angle = 90),
+        panel.grid.minor = element_blank(),
+        legend.position = "none")
+
+
+ggsave(plot = daily_obs_speed,filename = "speed_profile_obs.png",units = "cm",dpi = "retina",width = 15,height = 12)
+
 ```
 
 Median overall speed profile 
@@ -391,6 +429,47 @@ norm_summary_spd |>
   theme(axis.text.x = element_text(angle = 90),
         panel.grid.minor = element_blank(),
         legend.position = "top")
+```
+
+```{r}
+#| label: plot-norm-all-2019
+#| eval: false
+#| include: false
+
+daily_speed_plot <- norm_summary_spd |> 
+  filter(year==2019,day_type != "friday") |> 
+  mutate(day_type = str_to_sentence(day_type)) |>
+  ggplot(aes(x = hour,
+             y = d_norm_speed))+
+  # geom_jitter(alpha = 0.1, size = 0.05,col = "gray60")+
+  # geom_boxplot(aes(group = hour), fill = NA,alpha = 0.3,outlier.shape = NA)+
+  geom_smooth(aes(fill = day_type,
+             col = day_type),
+              stat = 'summary',
+              alpha = 0.2,
+              fun.data = median_hilow,
+              fun.args = list(conf.int = 0.50))+
+  # stat_summary(geom = "line",
+  #              fun = "median",
+  #              aes(col = day_type),
+  #              linewidth = 1,
+  #              alpha = 0.8)+
+  # facet_grid(day_type~year)+
+  theme_minimal()+
+  labs(x = "Hour",
+       y = bquote("Normalised speed *"),
+       caption = expression('*'~Observed~'/'~94^{'th'}~percentile),
+       col = "",
+       fill = "")+
+  scale_x_continuous(breaks = 0:23,
+                     labels = sprintf("%02d:00",0:23))+
+  scale_y_continuous(limits = c(0,1))+
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = "top")+
+  scale_color_manual(values = paletteer_d("ggsci::lanonc_lancet",n = 3))+
+  scale_fill_manual(values = paletteer_d("ggsci::lanonc_lancet",n = 3))
+
+ggsave(plot = daily_speed_plot,filename = "speed_profile.png",units = "cm",dpi = "retina",width = 15,height = 12)
 ```
 
 

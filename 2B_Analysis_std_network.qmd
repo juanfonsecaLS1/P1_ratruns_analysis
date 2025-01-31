@@ -1,0 +1,482 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Joining the WWD reports
+
+```{r,message=FALSE}
+#| label: libraries
+#| message: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "tmap",
+    "ggridges",
+    "paletteer"
+)
+
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+```
+
+## Loading data
+
+```{r}
+urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |> st_transform(3116)
+```
+
+### Network
+
+```{r}
+sf_net_exp <- st_read("sf_network/full_sf_network_stdnet.gpkg") |> st_transform(3116)
+sf_net <- sf_net_exp[urban_perimeter,]
+```
+
+### Centrality results
+
+```{r}
+cent_results <- read_csv("sf_network/hourly_cent_results_stdnet.csv",
+                       lazy = F)
+```
+
+## Simplified network
+
+As we are interested in the residential roads, any bi-directional road is
+represented in the `sf` object as two `LINESTRING` objects. 
+
+
+```{r}
+subset_net <- sf_net |> 
+  filter(roadclass %in% c(
+    "residential",
+    "unclassified"
+    )) 
+```
+
+```{r}
+major_net <- sf_net |> 
+  filter(!roadclass %in% c(
+    "residential",
+    "unclassified"
+    )) 
+```
+
+From this subset, we first find the pairs of links with the
+`st_contains` function.
+
+```{r}
+simplifed_net_indexes <- lapply(st_contains(sf_net,sf_net),
+            \(x){
+              x[order(x)]
+}) |> unique()
+```
+
+Each pair is then assigned a unique id.
+
+```{r}
+simp_groups <- do.call(bind_rows,
+        lapply(seq_along(simplifed_net_indexes),
+               \(i){
+                 tibble(id = simplifed_net_indexes[[i]],
+                        pair_id = i)
+               })) |> 
+  arrange(id)
+
+
+# subset_net$pair_id <- simp_groups$pair_id
+sf_net$pair_id <- simp_groups$pair_id
+```
+
+Using the `pair_id` we extract the minimum, maximum and average change
+in centrality for each pair.
+
+```{r}
+summary_pairs <- cent_results |> 
+  right_join(sf_net |>
+               st_drop_geometry() |>
+               select(edge_id,way_id,pair_id),
+            by = "edge_id") |> 
+  # # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),.by = pair_id) |>
+  summarise(across(diff:logreldiff.ff,
+                   list(min=min, max=max, avg = mean)),
+            .by = c(pair_id,day_type,hour))
+```
+
+```{r}
+summary_pairs_dist.jct <- 
+  sf_net |>
+  st_drop_geometry() |>
+  summarise(across(dist.jct,\(x) mean(x) |> round()),
+            .by = c(pair_id))
+```
+
+A simplified version of the `sf` object is produced extracting the first
+element of each pair, we will discard columns with the centrality
+metrics from this object to avoid confusion
+
+```{r}
+# simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
+
+simpl_network_sf <- sf_net |>
+  # # Filtering only the links that were inverted during the network creation and standard links
+  filter(!any(str_detect(way_id,"r$"))|str_detect(way_id,"r$"),
+         .by = pair_id) |>
+  slice_head(n = 1,by = pair_id) |>
+  select(lanes:component,pair_id)
+```
+
+
+#### Summary
+
+Total length of road network
+
+```{r}
+simpl_network_sf |>
+  mutate(distance = st_length(geom, )) |>
+  pull(distance) |>
+  sum()
+```
+
+```{r}
+simpl_network_sf |>
+  mutate(distance = st_length(geom) |>
+           as.numeric()) |>
+  st_drop_geometry() |>
+  mutate(roadclass = str_remove(roadclass,"_link")) |> 
+  summarise(d_weighted = sum(distance)/1e3,
+            .by=c(roadclass)) |> 
+  mutate(d_weighted = round(d_weighted),
+         roadclass = factor(roadclass,
+                            levels = c("trunk",
+                                       "primary",
+                                       "secondary",
+                                       "tertiary",
+                                       "residential",
+                                       "unclassified"), 
+                            ordered = T)) |> 
+  arrange(roadclass) |> 
+  mutate(portion = round(d_weighted/sum(d_weighted)*100,1),
+         roadclass = str_to_sentence(roadclass)) |> 
+  kableExtra::kable()
+```
+
+
+Exploring the changes in BC during the evening peak with a the empirical cumulative
+distribution function by road class.
+
+```{r}
+## Unweighted version
+
+# ecdf_18_wk <- simpl_network_sf |>
+#   mutate(roadclass = str_remove(roadclass, "_link"),
+#          w = st_length(geom) |> as.numeric()) |>
+#   mutate(roadclass = str_to_sentence(roadclass)) |> 
+#   mutate(roadclass = factor(roadclass,
+#                             levels = c("Trunk",
+#                                        "Primary",
+#                                        "Secondary",
+#                                        "Tertiary",
+#                                        "Residential",
+#                                        "Unclassified"), 
+#                             ordered = T)) |>
+#   st_drop_geometry() |>
+#   # filter(roadclass %in% c("residential")) |>
+#   left_join(summary_pairs, by = "pair_id") |>
+#   filter(hour == 18, day_type == "weekday") |>
+#   ggplot(aes(x =  reldiff_max,
+#              col = roadclass)) +
+#   stat_ecdf(pad = F)+
+#   labs(x = "Mean relative change in BC",
+#        y = "Cumulative distribution",
+#        col = "Road class")+
+#   scale_x_continuous(labels = scales::label_percent(accuracy = 1))+
+#   theme_minimal()+
+#   theme(legend.position = "top")+
+#   scale_color_manual(values =  paletteer_d("ggsci::lanonc_lancet",n = 7))
+
+
+ecdf_18_wk <- simpl_network_sf |>
+  mutate(roadclass = str_remove(roadclass, "_link"),
+         w = st_length(geom) |> as.numeric()) |>
+  mutate(roadclass = str_to_sentence(roadclass)) |> 
+  mutate(roadclass = factor(roadclass,
+                            levels = c("Trunk",
+                                       "Primary",
+                                       "Secondary",
+                                       "Tertiary",
+                                       "Residential",
+                                       "Unclassified"), 
+                            ordered = T)) |>
+  st_drop_geometry() |>
+  # filter(roadclass %in% c("residential")) |>
+  left_join(summary_pairs, by = "pair_id") |>
+  filter(hour == 18, day_type == "weekday") |> 
+  mutate(bin = cut(reldiff_max,
+                   breaks = seq(
+                     min(reldiff_max,na.rm = T)-0.01,
+                     max(reldiff_max,na.rm = T),
+                     0.005),ordered_result = T)) |> 
+  arrange(roadclass,bin) |>
+  summarise(w = sum(w),.by = c(roadclass,bin)) |> 
+  drop_na(bin) |> 
+  mutate(w_perc = w/sum(w),.by = roadclass) |> 
+  mutate(w_cs = cumsum(w_perc),.by = roadclass) |> 
+  mutate(bin_n = str_extract(bin,",.*]") |> 
+           str_remove_all("(,|\\])") |> 
+           as.numeric()) |> 
+  ggplot(aes(x = bin_n,
+             y = w_cs,
+             col = roadclass,group = roadclass)) +
+  geom_line()+
+  labs(x = "Mean relative change in BC",
+       y = "Cumulative distribution",
+       col = "Road class")+
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1))+
+  theme_minimal()+
+  theme(legend.position = "top")+
+  scale_color_manual(values =  paletteer_d("ggsci::lanonc_lancet",n = 7))
+
+
+ecdf_18_wk
+```
+
+ecdf_18_wk_absdiff
+
+```{r}
+ecdf_18_wk_logdiff <- simpl_network_sf |>
+  mutate(roadclass = str_remove(roadclass, "_link"),
+         w = st_length(geom) |> as.numeric()) |>
+  mutate(roadclass = str_to_sentence(roadclass)) |> 
+  mutate(roadclass = factor(roadclass,
+                            levels = c("Trunk",
+                                       "Primary",
+                                       "Secondary",
+                                       "Tertiary",
+                                       "Residential",
+                                       "Unclassified"), 
+                            ordered = T)) |>
+  st_drop_geometry() |>
+  # filter(roadclass %in% c("residential")) |>
+  left_join(summary_pairs, by = "pair_id") |>
+  filter(hour == 18, day_type == "weekday") |> 
+  mutate(bin = cut(logdiff_max,
+                   breaks = seq(
+                     min(logdiff_max,na.rm = T)-0.1,
+                     max(logdiff_max,na.rm = T),
+                     0.1),ordered_result = T)) |> 
+  arrange(roadclass,bin) |>
+  summarise(w = sum(w),.by = c(roadclass,bin)) |> 
+  drop_na(bin) |> 
+  mutate(w_perc = w/sum(w),.by = roadclass) |> 
+  mutate(w_cs = cumsum(w_perc),.by = roadclass) |> 
+  mutate(bin_n = str_extract(bin,",.*]") |> 
+           str_remove_all("(,|\\])") |> 
+           as.numeric()) |> 
+  ggplot(aes(x = bin_n,
+             y = w_cs,
+             col = roadclass,group = roadclass)) +
+  geom_line()+
+  labs(x = "log BC change",
+       y = "Cumulative distribution",
+       col = "Road class")+
+  # scale_x_continuous(labels = scales::label_percent(accuracy = 1))+
+  theme_minimal()+
+  theme(legend.position = "top")+
+  scale_color_manual(values =  paletteer_d("ggsci::lanonc_lancet",n = 7))
+
+
+ecdf_18_wk_logdiff
+```
+
+
+
+```{r}
+#| eval: false
+#| include: false
+ggsave(plot = ecdf_18_wk,
+       filename = "ecdf_roadclass.png",
+       units = "cm",
+       dpi = 330,
+       width = 13,
+       height = 11)
+ggsave(plot = ecdf_18_wk_logdiff,
+       filename = "ecdf_roadclass_logdiff.png",
+       units = "cm",
+       dpi = 330,
+       width = 13,
+       height = 11)
+```
+
+
+Exploration of distributions for all hours
+
+```{r}
+simpl_network_sf |>
+  mutate(roadclass = str_remove(roadclass, "_link")) |>
+  mutate(roadclass = factor(roadclass,
+                            levels = c("trunk",
+                                       "primary",
+                                       "secondary",
+                                       "tertiary",
+                                       "residential",
+                                       "unclassified"), 
+                            ordered = T)) |>
+  st_drop_geometry() |>
+  # filter(roadclass %in% c("residential")) |>
+  left_join(summary_pairs, by = "pair_id") |>
+  filter(hour != 3) |>
+  ggplot(aes(x =  logdiff_max, y = factor(hour) |> fct_rev())) +
+  geom_density_ridges(stat = "binline", bins = 100) +
+  facet_grid(day_type ~ roadclass)
+
+```
+
+Relative change of BC across the network for the evening peak
+
+```{r}
+map_reldiff <- simpl_network_sf |>
+  left_join(summary_pairs,by = "pair_id") |> 
+  filter(hour == 18, day_type == "weekday") |> 
+ggplot(aes(col =  reldiff_max,linewidth = abs(reldiff_max)))+
+  geom_sf()+
+  scale_color_steps2(mid = "gray80",high = "dodgerblue2",low = "firebrick3",breaks = c(-2,-1,0,1,2),labels = scales::label_percent())+
+  scale_linewidth_continuous(transform = "exp",limits = c(0.01,3),range = c(0.01,1.5))+
+  # scale_color_steps(palette = "Spectral",direction = -1)+
+  theme_void()+
+  labs(col = "BC Relative change")+
+  guides(linewidth = "none")+
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.3,0.8))
+
+map_reldiff
+```
+
+with log difference
+
+```{r}
+map_logdiff <- simpl_network_sf |>
+  left_join(summary_pairs,by = "pair_id") |> 
+  filter(hour == 18, day_type == "weekday") |> 
+ggplot(aes(col =  logdiff_max,linewidth = abs(logdiff_max)))+
+  geom_sf()+
+  scale_color_steps2(mid = "gray80",high = "dodgerblue2",low = "firebrick3",
+                     breaks = c(-12,-8,-4,0,4,8,12),
+                     # labels = scales::label_percent()
+                     )+
+  scale_linewidth_continuous(limits = c(0.02,12),
+                             range = c(0.01,20),
+                             transform = "exp")+
+  # scale_color_steps(palette = "Spectral",direction = -1)+
+  theme_void()+
+  labs(col = "log BC difference")+
+  guides(linewidth = "none")+
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.3,0.8))
+
+map_logdiff
+```
+
+
+```{r}
+#| eval: false
+#| include: false
+
+ggsave(plot = map_reldiff,filename = "map_reldiff.png",units = "cm",dpi = 330,width = 10,height = 14)
+ggsave(plot = map_logdiff,filename = "map_logdiff.png",units = "cm",dpi = 330,width = 10,height = 14)
+
+```
+
+
+```{r}
+# tmap_mode("view")
+# tmap_mode("plot")
+
+simpl_network_sf |>
+  left_join(summary_pairs,by = "pair_id") |> 
+  filter(hour == 18, day_type == "weekday") |> 
+  tm_shape()+
+  tm_lines("reldiff_max",)
+```
+
+
+```{r}
+last_dec <- simpl_network_sf |>
+  left_join(summary_pairs,by = "pair_id") |> 
+  st_drop_geometry() |> 
+  summarise(across(logdiff_max,
+                   list(d10 = \(x) quantile(x, 0.90,na.rm = T))),.by=c(hour,day_type,roadclass)) |> 
+  filter(roadclass=="residential")
+```
+
+```{r}
+n_d10_logdiff_max <- simpl_network_sf |>
+  left_join(summary_pairs,by = "pair_id") |>  
+  mutate(d10_bool = logdiff_max >= quantile(logdiff_max, 0.90,na.rm = T),
+         .by=c(hour,day_type,roadclass)) |> 
+  st_drop_geometry() |> 
+  summarise(n_d10 = sum(d10_bool,na.rm = T),.by = c(pair_id,day_type)) |> 
+  pivot_wider(names_from = day_type,values_from = n_d10)
+```
+
+```{r}
+map_ratruns_wk <- simpl_network_sf |>
+  left_join(n_d10_logdiff_max,by = "pair_id") |>
+  mutate(across(weekday:weekend,\(x) if_else(roadclass == "residential",x,NA))) |> 
+  mutate(across(weekday:weekend,list(ld = \(x) if_else(roadclass != "residential",1,x)))) |> 
+ggplot(aes(col =  weekday,
+           linewidth = weekday_ld
+           ))+
+  geom_sf()+
+  scale_colour_viridis_b(na.value = "gray30",option = "plasma",direction = -1)+
+  scale_linewidth_continuous(limits = c(0,24),range = c(0.05,0.5),transform = "exp")+
+  theme_void()+
+  guides(linewidth = "none")+
+  labs(col = "Rat-run potential")+
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.2,0.7)
+        )
+
+map_ratruns_wk
+```
+
+```{r}
+#| eval: false
+#| include: false
+
+ggsave(plot = map_ratruns_wk,
+       filename = "map_ratruns_wk.png",
+       units = "cm",dpi = 330,width = 10,height = 14)
+```
+
+An analysis of the
+```{r}
+simpl_network_sf |>
+  left_join(n_d10_logdiff_max,by = "pair_id") |>
+  mutate(across(weekday:weekend,\(x) if_else(roadclass == "residential",x,NA))) |> 
+  mutate(across(weekday:weekend,list(ld = \(x) if_else(roadclass != "residential",1,x)))) |> 
+  mutate(w = st_length(geom) |> as.numeric()) |>
+  st_drop_geometry() |> 
+  filter(roadclass == "residential") |> 
+  arrange(weekday) |> 
+  mutate(weekday = factor(weekday,ordered = T)) |> 
+  summarise(w = sum(w),.by = weekday) |> 
+  mutate(perc = w /sum(w)) |> 
+  mutate(cumsum(perc))
+
+```
+
+
+
+
+
+
+
+
+
+

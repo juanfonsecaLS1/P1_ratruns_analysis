@@ -110,9 +110,9 @@ bog_contracted$time_weighted <- 3.6*bog_contracted$d_weighted/as.numeric(str_ext
 
 dodgr::clear_dodgr_cache()
 
-bog_centrality_bl <- bog_contracted |>
-        dodgr_centrality(column = "time_weighted",
-                         dist_threshold = 1200)
+# bog_centrality_bl <- bog_contracted |>
+#         dodgr_centrality(column = "time_weighted",
+#                          dist_threshold = 1200)
 ```
 
 
@@ -301,11 +301,40 @@ save(hourly_centrality,
 load("sf_network/hourly_centrality.rdata")
 ```
 
+Posted speed limit is not the actual travel speed for all links, even during 
+non-congested hours. So we are going to use the hour of the day with the highest
+average speed as baseline.
 
 ```{r}
-hourly_centrality$cent_2019_bl <- bog_centrality_bl$centrality
+summary_speed_ratios <- speed_data |>
+  summarise(mean_norm_speed = mean(d_norm_speed),.by = c(year,day_type,hour))
+
+summary_speed_ratios |>
+  filter(year==2019,day_type == "weekday") |>
+  arrange(-mean_norm_speed) |> 
+  head(5)
+```
+
+```{r}
+bl_id <- summary_speed_ratios |>
+  filter(year==2019,day_type == "weekday") |> 
+  slice_max(mean_norm_speed) |> 
+  mutate(id=paste("cent",year,hour,day_type,sep = "_")) |> 
+  pull(id)
+```
+
+Adding a column with the centrality results of the baseline hour
+
+```{r}
+hourly_centrality$cent_2019_bl <- hourly_centrality |> pull(bl_id)
+```
+
+Adding the component id to the dataset
+
+```{r}
 hourly_centrality$component <- bog_contracted$component
 ```
+
 
 ```{r}
 tidy_hourly_centrality <- hourly_centrality |> 

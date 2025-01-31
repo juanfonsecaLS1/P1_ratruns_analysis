@@ -48,7 +48,7 @@ sf_bogota_2019_raw <- st_read(file.path("sf_network","bogota_osm_network.gpkg"),
 sf_bogota_2019 <- sf_bogota_2019_raw
 ```
 
-## Baseline graph building
+## Graph building
 
 ```{r}
 #| label: graph-building
@@ -133,7 +133,8 @@ Extracting bearings and creating a buffer to produce a correspondence
 
 sf_speed_clean$s.bearing <- stplanr::line_bearing(sf_speed_clean)
 
-speed_buffer <- sf_speed_clean  |>  st_buffer(100,endCapStyle = "FLAT") 
+speed_buffer <- sf_speed_clean  |>
+  st_buffer(100,endCapStyle = "FLAT") 
 ```
 
 
@@ -178,6 +179,18 @@ overlap_buffer <- TID_to_edge_id |>
   filter(n>1)
 ```
 
+Exploring the extension of the network that has speed data
+
+```{r}
+sf_bog_major |> 
+  mutate(speedbool = edge_id %in% TID_to_edge_id$edge_id) |> 
+  st_drop_geometry() |> 
+  summarise(total_length = sum(d_weighted),.by=c(roadclass,speedbool)) |> 
+  mutate(portion = total_length/sum(total_length),.by=c(roadclass)) |> 
+  kableExtra::kable()
+```
+
+
 
 ```{r}
 #| label: check-no-correspondence
@@ -211,55 +224,57 @@ speed_key <- speed_data |>
 ```{r}
 #| eval: false
 
-hourly_centrality <- do.call(bind_cols,lapply(
-  1:nrow(speed_key),
-  
-  \(i) {
-    speed_tbl <- speed_data |>
-      semi_join(speed_key[i, ],
-                by = join_by(year, day_type, hour)) |>
-      select(TID, d_mean_speed)
-    
-    
-    obs_speeds_edges <- TID_to_edge_id |>
-      left_join(speed_tbl, by = "TID") |>
-      summarise(obs_speed = mean(d_mean_speed), .by = edge_id)
-    
-    bog_contr_adjusted <- bog_contracted
-    
-    dodgr::clear_dodgr_cache()
-    
-    bog_contr_adjusted$obs_speed <-
-      tibble(edge_id = bog_contr_adjusted$edge_id) |>
-      left_join(obs_speeds_edges, by = "edge_id") |>
-      pull(obs_speed)
-    
-    dodgr::clear_dodgr_cache()
-    
-    bog_contr_adjusted$time_weighted[!is.na(bog_contr_adjusted$obs_speed)] <-
-      (3.6 * bog_contr_adjusted$d_weighted[!is.na(bog_contr_adjusted$obs_speed)]) /
-      bog_contr_adjusted$obs_speed[!is.na(bog_contr_adjusted$obs_speed)]
-    
-    try({
-      hourly_centrality <-
-        bog_contr_adjusted |>
-        dodgr_centrality(column = "time_weighted",
-                         dist_threshold = 1200)
-      
-      t <-
-        tibble(cent = hourly_centrality$centrality)
-      
-      names(t) <-
-        paste(names(t),
-              speed_key$year[i],
-              speed_key$hour[i],
-              speed_key$day_type[i],
-              sep = "_")
-      
-      return(t)
-    })
-    
-  }))
+hourly_centrality <- 
+  do.call(bind_cols,
+          lapply(
+            1:nrow(speed_key),
+            \(i) {
+              
+              speed_tbl <- speed_data |>
+                semi_join(speed_key[i,],
+                          by = join_by(year, day_type, hour)) |>
+                select(TID, d_mean_speed)
+              
+              
+              obs_speeds_edges <- TID_to_edge_id |>
+                left_join(speed_tbl, by = "TID") |>
+                summarise(obs_speed = mean(d_mean_speed), .by = edge_id)
+              
+              bog_contr_adjusted <- bog_contracted
+              
+              dodgr::clear_dodgr_cache()
+              
+              bog_contr_adjusted$obs_speed <-
+                tibble(edge_id = bog_contr_adjusted$edge_id) |>
+                left_join(obs_speeds_edges, by = "edge_id") |>
+                pull(obs_speed)
+              
+              dodgr::clear_dodgr_cache()
+              
+              bog_contr_adjusted$time_weighted[!is.na(bog_contr_adjusted$obs_speed)] <-
+                (3.6 * bog_contr_adjusted$d_weighted[!is.na(bog_contr_adjusted$obs_speed)]) /
+                bog_contr_adjusted$obs_speed[!is.na(bog_contr_adjusted$obs_speed)]
+              
+              try({
+                hourly_centrality <-
+                  bog_contr_adjusted |>
+                  dodgr_centrality(column = "time_weighted",
+                                   dist_threshold = 1200)
+                
+                t <-
+                  tibble(cent = hourly_centrality$centrality)
+                
+                names(t) <-
+                  paste(names(t),
+                        speed_key$year[i],
+                        speed_key$hour[i],
+                        speed_key$day_type[i],
+                        sep = "_")
+                
+                return(t)
+              })
+              
+            }))
 
 
 hourly_centrality$edge_id <- bog_contracted$edge_id

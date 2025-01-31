@@ -15,7 +15,8 @@ pkgs = c(
     "sf",
     "tidyverse",
     "osmextract",
-    "rvest"
+    "rvest",
+    "paletteer"
 )
 remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
@@ -87,18 +88,22 @@ files_table <- (rvest::read_html(u) |> html_table())[[1]]
 available_versions <- files_table$Name[grep(paste0(id_files,"\\d{6}\\.osm\\.pbf$"),
                                             files_table$Name)]
 
+
+net_match_19 <- grep("200101",available_versions)
+net_match_20 <- grep("210101",available_versions)
+
 net_options <- osmextract:::load_options_driving(NA_character_)
 
 net_options$extra_tags <- c("oneway","lanes","surface","maxspeed",net_options$extra_tags)
 
 net_old_200101 <- do.call(oe_read,
-                          c(file_path = paste0(u,"/",available_versions[7]),
+                          c(file_path = paste0(u,"/",available_versions[net_match_19]),
                             net_options[2:4]
                      )
                    )
 
 net_old_210101 <- do.call(oe_read,
-                          c(file_path = paste0(u,"/",available_versions[8]),
+                          c(file_path = paste0(u,"/",available_versions[net_match_20]),
                             net_options[2:4]
                      )
                    )
@@ -136,6 +141,46 @@ osm_bogota_210101 <- net_old_210101[bbox_bogota,] |>
 
 rm(net_old_200101,net_old_210101)
 ```
+
+## A quick Visualisation of the network
+
+```{r}
+net_2019_map <- osm_bogota_200101[urban_perimeter,] |> 
+  mutate(highway = str_remove(highway, "_link") |> str_to_sentence()) |>
+  mutate(highway = factor(highway,
+                          levels = c("Trunk",
+                                     "Primary",
+                                     "Secondary",
+                                     "Tertiary",
+                                     "Residential",
+                                     "Unclassified"),
+                          ordered = T)) |>
+  ggplot(
+     aes(linewidth = highway)
+    )+
+  geom_sf(aes(col = highway))+
+  # scale_color_viridis_c(direction = -1)+
+  scale_linewidth_manual(values = c(1.7,1.5,1.4,1.2,0.7,0.7)/5)+
+  # scale_linewidth_continuous(range = c(0.05,0.3),transform = scales::transform_boxcox(p = 2))+
+  scale_color_manual(values =  paletteer_d("ggsci::lanonc_lancet",n = 7))+
+  theme_void()+
+  guides(linewidth = "none",)+
+  labs(col = "Road Class")+
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.0,0.8),
+        text = element_text(family = "Roboto Condensed"),
+        legend.key.width = unit(3, "mm"))
+
+net_2019_map  
+```
+
+```{r}
+#| eval: false
+#| include: false
+
+ggsave(plot = net_2019_map,units = "cm",dpi = 330,width = 10,height = 12,filename = "network_map.png")
+```
+
 
 ## Save network in `sf` format
 
