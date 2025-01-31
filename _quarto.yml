@@ -3,6 +3,7 @@ project:
   output-dir: _site
   render:
     - "*.qmd"
+    - "!ss/"
 website:
   title: "P1_ratruns_analysis"
   navbar:
