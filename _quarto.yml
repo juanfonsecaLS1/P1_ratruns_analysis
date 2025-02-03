@@ -4,6 +4,9 @@ project:
   render:
     - "*.qmd"
     - "!ss/"
+execute:
+  warning: false
+  error: false
 website:
   title: "P1_ratruns_analysis"
   navbar:
