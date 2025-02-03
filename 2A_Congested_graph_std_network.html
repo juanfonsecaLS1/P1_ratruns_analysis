@@ -518,91 +518,81 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <p>The following code loads the data</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>speed_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"sf_network/summary_speeds.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 110880 Columns: 12
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr  (1): day_type
-dbl (11): TID, year, hour, d_min_speed, d_q1_speed, d_median_speed, d_mean_s...
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>speed_key <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, hour, day_type) <span class="sc">|&gt;</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">!=</span> <span class="st">"friday"</span>,year <span class="sc">==</span> <span class="dv">2019</span>) <span class="sc">|&gt;</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>speed_key <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, hour, day_type) <span class="sc">|&gt;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">!=</span> <span class="st">"friday"</span>,year <span class="sc">==</span> <span class="dv">2019</span>) <span class="sc">|&gt;</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>hourly_centrality <span class="ot">&lt;-</span> </span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do.call</span>(bind_cols,</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>          <span class="fu">lapply</span>(</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>            <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(speed_key),</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>            \(i) {</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>              speed_tbl <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>                <span class="fu">semi_join</span>(speed_key[i,],</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>                          <span class="at">by =</span> <span class="fu">join_by</span>(year, day_type, hour)) <span class="sc">|&gt;</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">select</span>(TID, d_mean_speed)</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>              obs_speeds_edges <span class="ot">&lt;-</span> TID_to_edge_id <span class="sc">|&gt;</span></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>                <span class="fu">left_join</span>(speed_tbl, <span class="at">by =</span> <span class="st">"TID"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>                <span class="fu">summarise</span>(<span class="at">obs_speed =</span> <span class="fu">mean</span>(d_mean_speed), <span class="at">.by =</span> edge_id)</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>              bog_contr_adjusted <span class="ot">&lt;-</span> bog_contracted</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>              dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>              bog_contr_adjusted<span class="sc">$</span>obs_speed <span class="ot">&lt;-</span></span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>                <span class="fu">tibble</span>(<span class="at">edge_id =</span> bog_contr_adjusted<span class="sc">$</span>edge_id) <span class="sc">|&gt;</span></span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>                <span class="fu">left_join</span>(obs_speeds_edges, <span class="at">by =</span> <span class="st">"edge_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>                <span class="fu">pull</span>(obs_speed)</span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>              dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
-<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>              bog_contr_adjusted<span class="sc">$</span>time_weighted[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)] <span class="ot">&lt;-</span></span>
-<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>                (<span class="fl">3.6</span> <span class="sc">*</span> bog_contr_adjusted<span class="sc">$</span>d_weighted[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)]) <span class="sc">/</span></span>
-<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>                bog_contr_adjusted<span class="sc">$</span>obs_speed[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)]</span>
-<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>              <span class="fu">try</span>({</span>
-<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>                hourly_centrality <span class="ot">&lt;-</span></span>
-<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>                  bog_contr_adjusted <span class="sc">|&gt;</span></span>
-<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>,</span>
-<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">dist_threshold =</span> <span class="dv">1200</span>)</span>
-<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>                t <span class="ot">&lt;-</span></span>
-<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">tibble</span>(<span class="at">cent =</span> hourly_centrality<span class="sc">$</span>centrality)</span>
-<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>                <span class="fu">names</span>(t) <span class="ot">&lt;-</span></span>
-<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">paste</span>(<span class="fu">names</span>(t),</span>
-<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>                        speed_key<span class="sc">$</span>year[i],</span>
-<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>                        speed_key<span class="sc">$</span>hour[i],</span>
-<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>                        speed_key<span class="sc">$</span>day_type[i],</span>
-<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>                        <span class="at">sep =</span> <span class="st">"_"</span>)</span>
-<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>                <span class="fu">return</span>(t)</span>
-<span id="cb25-49"><a href="#cb25-49" aria-hidden="true" tabindex="-1"></a>              })</span>
-<span id="cb25-50"><a href="#cb25-50" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb25-51"><a href="#cb25-51" aria-hidden="true" tabindex="-1"></a>            }))</span>
-<span id="cb25-52"><a href="#cb25-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-53"><a href="#cb25-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-54"><a href="#cb25-54" aria-hidden="true" tabindex="-1"></a>hourly_centrality<span class="sc">$</span>edge_id <span class="ot">&lt;-</span> bog_contracted<span class="sc">$</span>edge_id</span>
-<span id="cb25-55"><a href="#cb25-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-56"><a href="#cb25-56" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(hourly_centrality,</span>
-<span id="cb25-57"><a href="#cb25-57" aria-hidden="true" tabindex="-1"></a>     <span class="at">file =</span> <span class="st">"sf_network/hourly_centrality_stdnet.rdata"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>hourly_centrality <span class="ot">&lt;-</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do.call</span>(bind_cols,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>          <span class="fu">lapply</span>(</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>            <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(speed_key),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>            \(i) {</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>              speed_tbl <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                <span class="fu">semi_join</span>(speed_key[i,],</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                          <span class="at">by =</span> <span class="fu">join_by</span>(year, day_type, hour)) <span class="sc">|&gt;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">select</span>(TID, d_mean_speed)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>              obs_speeds_edges <span class="ot">&lt;-</span> TID_to_edge_id <span class="sc">|&gt;</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>                <span class="fu">left_join</span>(speed_tbl, <span class="at">by =</span> <span class="st">"TID"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>                <span class="fu">summarise</span>(<span class="at">obs_speed =</span> <span class="fu">mean</span>(d_mean_speed), <span class="at">.by =</span> edge_id)</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>              bog_contr_adjusted <span class="ot">&lt;-</span> bog_contracted</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>              dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>              bog_contr_adjusted<span class="sc">$</span>obs_speed <span class="ot">&lt;-</span></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>                <span class="fu">tibble</span>(<span class="at">edge_id =</span> bog_contr_adjusted<span class="sc">$</span>edge_id) <span class="sc">|&gt;</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>                <span class="fu">left_join</span>(obs_speeds_edges, <span class="at">by =</span> <span class="st">"edge_id"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>                <span class="fu">pull</span>(obs_speed)</span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>              dodgr<span class="sc">::</span><span class="fu">clear_dodgr_cache</span>()</span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>              bog_contr_adjusted<span class="sc">$</span>time_weighted[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)] <span class="ot">&lt;-</span></span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>                (<span class="fl">3.6</span> <span class="sc">*</span> bog_contr_adjusted<span class="sc">$</span>d_weighted[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)]) <span class="sc">/</span></span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>                bog_contr_adjusted<span class="sc">$</span>obs_speed[<span class="sc">!</span><span class="fu">is.na</span>(bog_contr_adjusted<span class="sc">$</span>obs_speed)]</span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>              <span class="fu">try</span>({</span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>                hourly_centrality <span class="ot">&lt;-</span></span>
+<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>                  bog_contr_adjusted <span class="sc">|&gt;</span></span>
+<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">dodgr_centrality</span>(<span class="at">column =</span> <span class="st">"time_weighted"</span>,</span>
+<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">dist_threshold =</span> <span class="dv">1200</span>)</span>
+<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a>                t <span class="ot">&lt;-</span></span>
+<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">tibble</span>(<span class="at">cent =</span> hourly_centrality<span class="sc">$</span>centrality)</span>
+<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a>                <span class="fu">names</span>(t) <span class="ot">&lt;-</span></span>
+<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">paste</span>(<span class="fu">names</span>(t),</span>
+<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>                        speed_key<span class="sc">$</span>year[i],</span>
+<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>                        speed_key<span class="sc">$</span>hour[i],</span>
+<span id="cb24-45"><a href="#cb24-45" aria-hidden="true" tabindex="-1"></a>                        speed_key<span class="sc">$</span>day_type[i],</span>
+<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a>                        <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a>                <span class="fu">return</span>(t)</span>
+<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a>              })</span>
+<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a>              </span>
+<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a>            }))</span>
+<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a>hourly_centrality<span class="sc">$</span>edge_id <span class="ot">&lt;-</span> bog_contracted<span class="sc">$</span>edge_id</span>
+<span id="cb24-55"><a href="#cb24-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-56"><a href="#cb24-56" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(hourly_centrality,</span>
+<span id="cb24-57"><a href="#cb24-57" aria-hidden="true" tabindex="-1"></a>     <span class="at">file =</span> <span class="st">"sf_network/hourly_centrality_stdnet.rdata"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Posted speed limit is not the actual travel speed for all links, even during non-congested hours. So we are going to use the hour of the day with the highest average speed as baseline.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>summary_speed_ratios <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_norm_speed =</span> <span class="fu">mean</span>(d_norm_speed),<span class="at">.by =</span> <span class="fu">c</span>(year,day_type,hour))</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>summary_speed_ratios <span class="sc">|&gt;</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2019</span>,day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>mean_norm_speed) <span class="sc">|&gt;</span> </span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>summary_speed_ratios <span class="ot">&lt;-</span> speed_data <span class="sc">|&gt;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_norm_speed =</span> <span class="fu">mean</span>(d_norm_speed),<span class="at">.by =</span> <span class="fu">c</span>(year,day_type,hour))</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>summary_speed_ratios <span class="sc">|&gt;</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2019</span>,day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>mean_norm_speed) <span class="sc">|&gt;</span> </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 4
    year day_type  hour mean_norm_speed
@@ -615,39 +605,39 @@ dbl (11): TID, year, hour, d_min_speed, d_q1_speed, d_median_speed, d_mean_s...
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>bl_id <span class="ot">&lt;-</span> summary_speed_ratios <span class="sc">|&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2019</span>,day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(mean_norm_speed) <span class="sc">|&gt;</span> </span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id=</span><span class="fu">paste</span>(<span class="st">"cent"</span>,year,hour,day_type,<span class="at">sep =</span> <span class="st">"_"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>bl_id <span class="ot">&lt;-</span> summary_speed_ratios <span class="sc">|&gt;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2019</span>,day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(mean_norm_speed) <span class="sc">|&gt;</span> </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id=</span><span class="fu">paste</span>(<span class="st">"cent"</span>,year,hour,day_type,<span class="at">sep =</span> <span class="st">"_"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Adding a column with the centrality results of the baseline hour</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>hourly_centrality<span class="sc">$</span>cent_2019_bl <span class="ot">&lt;-</span> hourly_centrality <span class="sc">|&gt;</span> <span class="fu">pull</span>(bl_id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>hourly_centrality<span class="sc">$</span>cent_2019_bl <span class="ot">&lt;-</span> hourly_centrality <span class="sc">|&gt;</span> <span class="fu">pull</span>(bl_id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Adding the component id to the dataset</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>hourly_centrality<span class="sc">$</span>component <span class="ot">&lt;-</span> bog_contracted<span class="sc">$</span>component</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>hourly_centrality<span class="sc">$</span>component <span class="ot">&lt;-</span> bog_contracted<span class="sc">$</span>component</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Preparing a tidy data frame with all the centrality results. Relative difference in centrality are adjusted by <span class="math inline">\(n - 1\)</span>, where <span class="math inline">\(n\)</span> is the number of nodes in the component. This is done because BC is the number of shortest paths from/to anytother nodes in the network, however, in our case, we are also interested in the paths from/to that particular link.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>tidy_hourly_centrality <span class="ot">&lt;-</span> hourly_centrality <span class="sc">|&gt;</span> </span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> cent_2019_0_weekday<span class="sc">:</span>cent_2019_23_weekend,</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"scenario"</span>,</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"cent"</span>,</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_prefix =</span> <span class="st">"cent_2019_"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_wider_delim</span>(scenario,</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">delim =</span> <span class="st">"_"</span>,</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">names =</span> <span class="fu">c</span>(<span class="st">"hour"</span>,<span class="st">"day_type"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_nodes, <span class="at">by =</span> <span class="fu">join_by</span>(component)) <span class="sc">|&gt;</span> </span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">cong =</span> cent,</span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">ff =</span> cent_2019_bl) <span class="sc">|&gt;</span> </span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> cong <span class="sc">-</span> ff,</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">logdiff =</span> <span class="fu">sign</span>(diff)<span class="sc">*</span><span class="fu">log10</span>(<span class="fu">abs</span>(diff)),</span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">reldiff =</span> diff<span class="sc">/</span>(<span class="fl">0.5</span><span class="sc">*</span>(ff<span class="sc">+</span>cong)),</span>
-<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">logreldiff.ff =</span> <span class="fu">sign</span>(diff)<span class="sc">*</span><span class="fu">log10</span>(<span class="fu">abs</span>(diff<span class="sc">/</span>(ff<span class="sc">+</span>n<span class="dv">-1</span>)))) <span class="sc">|&gt;</span> </span>
-<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(logdiff,logreldiff.ff),\(x) <span class="fu">if_else</span>(diff <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> (ff<span class="sc">+</span>cong <span class="sc">&gt;</span> <span class="dv">0</span>),<span class="dv">0</span>,x))) <span class="sc">|&gt;</span> </span>
-<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n,<span class="sc">-</span>component)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>tidy_hourly_centrality <span class="ot">&lt;-</span> hourly_centrality <span class="sc">|&gt;</span> </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> cent_2019_0_weekday<span class="sc">:</span>cent_2019_23_weekend,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"scenario"</span>,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"cent"</span>,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_prefix =</span> <span class="st">"cent_2019_"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_wider_delim</span>(scenario,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">delim =</span> <span class="st">"_"</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">names =</span> <span class="fu">c</span>(<span class="st">"hour"</span>,<span class="st">"day_type"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_nodes, <span class="at">by =</span> <span class="fu">join_by</span>(component)) <span class="sc">|&gt;</span> </span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">cong =</span> cent,</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">ff =</span> cent_2019_bl) <span class="sc">|&gt;</span> </span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diff =</span> cong <span class="sc">-</span> ff,</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">logdiff =</span> <span class="fu">sign</span>(diff)<span class="sc">*</span><span class="fu">log10</span>(<span class="fu">abs</span>(diff)),</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">reldiff =</span> diff<span class="sc">/</span>(<span class="fl">0.5</span><span class="sc">*</span>(ff<span class="sc">+</span>cong)),</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">logreldiff.ff =</span> <span class="fu">sign</span>(diff)<span class="sc">*</span><span class="fu">log10</span>(<span class="fu">abs</span>(diff<span class="sc">/</span>(ff<span class="sc">+</span>n<span class="dv">-1</span>)))) <span class="sc">|&gt;</span> </span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(logdiff,logreldiff.ff),\(x) <span class="fu">if_else</span>(diff <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> (ff<span class="sc">+</span>cong <span class="sc">&gt;</span> <span class="dv">0</span>),<span class="dv">0</span>,x))) <span class="sc">|&gt;</span> </span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n,<span class="sc">-</span>component)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="extracting-distance-to-the-major-network" class="level2">
@@ -655,794 +645,69 @@ dbl (11): TID, year, hour, d_min_speed, d_q1_speed, d_median_speed, d_mean_s...
 <p>The distance from the major network might be related to the reports of traffic offences. For this purpose, we need the following code to obtain the average distance of each minor link to the major network.</p>
 <p>Identifying the junctions and classifying them based on the road hierarchy</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>low_hierarchy <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"residential"</span>,<span class="st">"unclassified"</span>)</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>junction_class_to <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">road_type =</span> <span class="fu">if_else</span>(roadclass <span class="sc">%in%</span> low_hierarchy,</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"minor"</span>,</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"major"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(to_id,road_type)) <span class="sc">|&gt;</span></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> road_type,<span class="at">values_from =</span> count)<span class="sc">|&gt;</span> </span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> to_id)</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>junction_class_from <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">road_type =</span> <span class="fu">if_else</span>(roadclass <span class="sc">%in%</span> low_hierarchy,</span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"minor"</span>,</span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"major"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(from_id,road_type)) <span class="sc">|&gt;</span></span>
-<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> road_type,<span class="at">values_from =</span> count) <span class="sc">|&gt;</span></span>
-<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> from_id)</span>
-<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>junctions_classed <span class="ot">&lt;-</span> junction_class_to <span class="sc">|&gt;</span> </span>
-<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(junction_class_from,<span class="at">by =</span> <span class="st">"id"</span>,<span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">".to"</span>,<span class="st">".from"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">jct_type =</span> <span class="fu">case_when</span>(<span class="fu">is.na</span>(minor.to)<span class="sc">&amp;</span><span class="fu">is.na</span>(minor.from)<span class="sc">~</span><span class="st">"major"</span>,</span>
-<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">is.na</span>(major.to)<span class="sc">&amp;</span><span class="fu">is.na</span>(major.from)<span class="sc">~</span><span class="st">"minor"</span>,</span>
-<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>                              (<span class="sc">!</span><span class="fu">is.na</span>(minor.to)<span class="sc">&amp;!</span><span class="fu">is.na</span>(major.from))<span class="sc">|</span></span>
-<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>                                (<span class="sc">!</span><span class="fu">is.na</span>(minor.from)<span class="sc">&amp;!</span><span class="fu">is.na</span>(major.to))<span class="sc">~</span><span class="st">"minmaj"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">starts_with</span>(<span class="st">"m"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>low_hierarchy <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"residential"</span>,<span class="st">"unclassified"</span>)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>junction_class_to <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">road_type =</span> <span class="fu">if_else</span>(roadclass <span class="sc">%in%</span> low_hierarchy,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"minor"</span>,</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"major"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(to_id,road_type)) <span class="sc">|&gt;</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> road_type,<span class="at">values_from =</span> count)<span class="sc">|&gt;</span> </span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> to_id)</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>junction_class_from <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">road_type =</span> <span class="fu">if_else</span>(roadclass <span class="sc">%in%</span> low_hierarchy,</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"minor"</span>,</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"major"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(from_id,road_type)) <span class="sc">|&gt;</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> road_type,<span class="at">values_from =</span> count) <span class="sc">|&gt;</span></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> from_id)</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>junctions_classed <span class="ot">&lt;-</span> junction_class_to <span class="sc">|&gt;</span> </span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(junction_class_from,<span class="at">by =</span> <span class="st">"id"</span>,<span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">".to"</span>,<span class="st">".from"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">jct_type =</span> <span class="fu">case_when</span>(<span class="fu">is.na</span>(minor.to)<span class="sc">&amp;</span><span class="fu">is.na</span>(minor.from)<span class="sc">~</span><span class="st">"major"</span>,</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">is.na</span>(major.to)<span class="sc">&amp;</span><span class="fu">is.na</span>(major.from)<span class="sc">~</span><span class="st">"minor"</span>,</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>                              (<span class="sc">!</span><span class="fu">is.na</span>(minor.to)<span class="sc">&amp;!</span><span class="fu">is.na</span>(major.from))<span class="sc">|</span></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>                                (<span class="sc">!</span><span class="fu">is.na</span>(minor.from)<span class="sc">&amp;!</span><span class="fu">is.na</span>(major.to))<span class="sc">~</span><span class="st">"minmaj"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">starts_with</span>(<span class="st">"m"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Calculating the network distance for all nodes in the minor network to the major network</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>minmaj_ids <span class="ot">&lt;-</span> junctions_classed <span class="sc">|&gt;</span> <span class="fu">filter</span>(jct_type <span class="sc">==</span> <span class="st">"minmaj"</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(id)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>minor_from_ids <span class="ot">&lt;-</span> junctions_classed <span class="sc">|&gt;</span> <span class="fu">filter</span>(jct_type <span class="sc">==</span> <span class="st">"minor"</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(id)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="fu">dodgr_dists</span>(bog_contracted,</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">from =</span> minor_from_ids,</span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">to =</span> minmaj_ids,</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">shortest =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>minmaj_ids <span class="ot">&lt;-</span> junctions_classed <span class="sc">|&gt;</span> <span class="fu">filter</span>(jct_type <span class="sc">==</span> <span class="st">"minmaj"</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(id)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>minor_from_ids <span class="ot">&lt;-</span> junctions_classed <span class="sc">|&gt;</span> <span class="fu">filter</span>(jct_type <span class="sc">==</span> <span class="st">"minor"</span>) <span class="sc">|&gt;</span> <span class="fu">pull</span>(id)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="fu">dodgr_dists</span>(bog_contracted,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">from =</span> minor_from_ids,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">to =</span> minmaj_ids,</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">shortest =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>fastest_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">id.jct =</span> minor_from_ids,</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dist.jct =</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">apply</span>(dist_matrix, <span class="dv">1</span>,\(x) <span class="fu">min</span>(x,<span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf
-Warning in min(x, na.rm = TRUE): no non-missing arguments to min; returning Inf</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dist_matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>fastest_all <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">id.jct =</span> minor_from_ids,</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dist.jct =</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">apply</span>(dist_matrix, <span class="dv">1</span>,\(x) <span class="fu">min</span>(x,<span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dist_matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>sf_net_jct <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fastest_all,</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from_id"</span><span class="ot">=</span><span class="st">"id.jct"</span>),</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">relationship =</span> <span class="st">"many-to-one"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dist.jct =</span> <span class="fu">case_when</span>(<span class="fu">is.na</span>(dist.jct)<span class="sc">&amp;</span>roadclass <span class="sc">%in%</span> low_hierarchy <span class="sc">~</span> <span class="dv">0</span>,</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">is.infinite</span>(dist.jct)<span class="sc">~</span><span class="cn">NA</span>,</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>                              T<span class="sc">~</span>dist.jct))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>sf_net_jct <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fastest_all,</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from_id"</span><span class="ot">=</span><span class="st">"id.jct"</span>),</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">relationship =</span> <span class="st">"many-to-one"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dist.jct =</span> <span class="fu">case_when</span>(<span class="fu">is.na</span>(dist.jct)<span class="sc">&amp;</span>roadclass <span class="sc">%in%</span> low_hierarchy <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">is.infinite</span>(dist.jct)<span class="sc">~</span><span class="cn">NA</span>,</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>                              T<span class="sc">~</span>dist.jct))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="saving-results" class="level2">
 <h2 class="anchored" data-anchor-id="saving-results">Saving Results</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(tidy_hourly_centrality, <span class="at">file =</span> <span class="st">"sf_network/hourly_cent_results_stdnet.csv"</span>)</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(sf_net_jct, <span class="st">"sf_network/full_sf_network_stdnet.gpkg"</span>,<span class="at">delete_dsn =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(tidy_hourly_centrality, <span class="at">file =</span> <span class="st">"sf_network/hourly_cent_results_stdnet.csv"</span>)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_write</span>(sf_net_jct, <span class="st">"sf_network/full_sf_network_stdnet.gpkg"</span>,<span class="at">delete_dsn =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Deleting source `sf_network/full_sf_network_stdnet.gpkg' using driver `GPKG'
 Writing layer `full_sf_network_stdnet' to data source 
