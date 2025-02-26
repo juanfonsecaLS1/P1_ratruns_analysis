@@ -4,7 +4,7 @@ editor:
     wrap: 72
 ---
 
-# Joining the WWD reports
+# Results
 
 ```{r,message=FALSE}
 #| label: libraries
@@ -16,7 +16,9 @@ pkgs = c(
     "sf",
     "tidyverse",
     "tmap",
-    "apng"
+    "apng",
+    "gganimate",
+    "kableExtra"
 )
 
 remotes::install_cran(pkgs)
@@ -33,14 +35,17 @@ urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |>
 ```
 
 ```{r}
-off_sf_all <- (st_read("sf_network/wwd_clean_sf.gpkg") |>
-                 st_transform(3116))[urban_perimeter,]
+off_sf_all <- (st_read("sf_network/manualtickets_clean_sf.gpkg") |>
+                 st_transform(3116))[urban_perimeter,] |> filter(year == 2019,day_type != "friday")
+# off_sf_all <- (st_read("sf_network/wwd_clean_sf.gpkg") |>
+#                  st_transform(3116))[urban_perimeter,] |> filter(year == 2019,day_type != "friday")
 ```
 
 ### Network
 
 ```{r}
-sf_net_exp <- st_read("sf_network/full_sf_network.gpkg") |> st_transform(3116)
+sf_net_exp <- st_read("sf_network/full_sf_network.gpkg") |>
+  st_transform(3116)
 sf_net <- sf_net_exp[urban_perimeter,]
 ```
 
@@ -61,27 +66,7 @@ we will need to simplify the spatial object. Our target variable is the
 betweenness centrality, so we are going to keep the two centrality
 values for each bi-directional element.
 
-First, we will create a subset of the `residential` and `unclassified`
-roads, and another with all other roads
-
-```{r}
-subset_net <- sf_net |> 
-  filter(roadclass %in% c(
-    "residential",
-    "unclassified"
-    )) 
-```
-
-```{r}
-major_net <- sf_net |> 
-  filter(!roadclass %in% c(
-    "residential",
-    "unclassified"
-    )) 
-```
-
-From this subset, we first find the pairs of links with the
-`st_contains` function.
+First, we find the pairs of links with the `st_contains` function.
 
 ```{r}
 simplifed_net_indexes <- lapply(st_contains(sf_net,sf_net),
@@ -103,6 +88,25 @@ simp_groups <- do.call(bind_rows,
 
 
 sf_net$pair_id <- simp_groups$pair_id
+```
+
+We will create a subset of the `residential` and `unclassified` roads,
+and another with all other roads
+
+```{r}
+subset_net <- sf_net |> 
+  filter(roadclass %in% c(
+    "residential",
+    "unclassified"
+    )) 
+```
+
+```{r}
+major_net <- sf_net |> 
+  filter(!roadclass %in% c(
+    "residential",
+    "unclassified"
+    )) 
 ```
 
 Using the `pair_id` we extract the minimum, maximum and average change
@@ -191,7 +195,7 @@ tm_shape(major_net)+
   tm_shape(subset_buffer)+
   tm_fill("blue",fill_alpha = 0.6)+
   tm_shape(off_sf_all|>
-                 filter(abs(hour - 9)<=2,
+                 filter(abs(hour - 9)<=1,
                         year == 2019,
                         day_type == "weekday"))+
   tm_dots("yellow")+
@@ -293,7 +297,8 @@ time_slots <- summary_pairs |> select(day_type,hour) |> unique()
 
 offences_bool <- plyr::join_all(
   lapply(1:nrow(time_slots),
-       \(j,h_threshold = 1){
+       \(j,
+         h_threshold = 1){
          summary_pairs |>
            select(pair_id) |> 
            unique() |> 
@@ -309,19 +314,28 @@ offences_bool <- plyr::join_all(
   pivot_longer(-pair_id,values_to = "offence_bool") |>
   separate_wider_delim(name, delim = "_",names = c("day_type","hour")) |> 
   mutate(across(hour,as.numeric))
-  
-  
+```
+
+```{r}
+offences_bool |>  
+  filter(offence_bool) |> 
+  count(day_type,hour) |> 
+  ggplot(aes(hour,n,col = day_type,group = day_type))+
+  geom_line()+
+  theme_minimal()
 ```
 
 ```{r}
 model_data <- (summary_pairs |>
-  semi_join(simpl_network_sf,
+  inner_join(simpl_subset_sf |>
+               st_drop_geometry() |>
+               select(pair_id,way_id,oneway),
             by = "pair_id")) |> 
   left_join(summary_pairs_dist.jct,by = join_by(pair_id)) |> 
   left_join(offences_bool,by = join_by(pair_id,hour,day_type))
 ```
 
-#### Fitting logisting regressions
+#### Fitting global logisting regressions
 
 ```{r}
 glm_models_0 <- model_data |> 
@@ -370,210 +384,489 @@ mod_pred_0 |>
   scale_color_viridis_c(option = "plasma")
 ```
 
-### Reducing the bias of pseudo-negatives by random sampling
+### Expanding the reports to adjacent links
 
 ```{r}
-model_reports <- model_data |>
-  filter(offence_bool)
+#| eval: false
 
-reports_pair_ids <- model_reports$pair_id |> unique()
-
-reports_pair_ids_rand <- sample(model_data$pair_id[!(model_data$pair_id %in% reports_pair_ids)],
-                                size = 2*length(reports_pair_ids))
-
-set.seed(123)
-rand_absences_data <- bind_rows(
-  model_reports,
-  model_data |>
-    filter(!offence_bool) |> 
-    # filter(pair_id %in% reports_pair_ids|pair_id %in% reports_pair_ids_rand))
-    filter(pair_id %in% reports_pair_ids))
-```
-
-```{r}
-rand_absences_data |> 
-  ggplot(aes(x= hour,fill = offence_bool))+
-  geom_bar()+
-  facet_grid(day_type~.)
-```
-
-```{r}
-glm_models_0_rand <- rand_absences_data |> 
-  nest(data = c(pair_id,
-                diff_min:offence_bool)) |> 
-  mutate(
-    model_rel = map(data,
-                \(.x) {
-                 glm(offence_bool ~ logdiff_max,
-                     data = .x,
-                     family = binomial(link = "logit"))
-                }
-                )
-                )
+grid_fill_p <- expand_grid(day_type = c("weekday","weekend"),
+            hour = unique(minor_offences$hour)) |>
+  arrange(day_type,hour)
 
 
-mod_pred_0_rand <- glm_models_0_rand |> 
-  mutate(predicted = map2(model_rel, data ,\(.x,.y) {
-    tibble(logdiff_max = .y$logdiff_max,
-           offence_bool = predict(.x,
-                                  newdata = .y,
-                                  type = "response"))
-    })) |> 
-  select(-data,-model_rel) |> 
-  unnest(cols = predicted) |> 
-  unite("id",day_type:hour,remove = F) |>
-  unique()
+exp_probs <-
+  do.call(bind_rows, lapply(
+    1:nrow(grid_fill_p),
+    # 4:5,
+    \(i) {
+      ## Extracting the pair ids that have WWD reports at the day type-hour
+      t_pair_ids <- minor_offences |>
+        st_drop_geometry() |>
+        filter(hour == grid_fill_p$hour[i], day_type == grid_fill_p$day_type[i]) |>
+        pull(pair_id)
+      
+      
+      if (length(t_pair_ids) == 0) {
+        t_full_exp <- data.frame(
+          from_id = NA_character_,
+          to_id = NA_character_,
+          p = NA_real_,
+          hour = grid_fill_p$hour[i],
+          day_type = grid_fill_p$day_type[i]
+        )
+      } else {
+        subset_net_offence <- subset_net |>
+          mutate(offence_bool = pair_id %in% t_pair_ids)
+        
+        
+        
+        
+        fill_probs <- function(edges_df, direction = c("1", "-1")) {
+          direction = match.arg(direction)
+          
+          if (direction == "1") {
+            do.call(bind_rows, lapply(1:nrow(edges_df), \(j) {
+              subset_net_offence |>
+                st_drop_geometry() |>
+                select(from_id, to_id) |>
+                filter(to_id == edges_df$from_id[j],
+                       from_id != edges_df$to_id[j]) |>
+                mutate(p = edges_df$p[j] / n())
+            }))
+          } else {
+            do.call(bind_rows, lapply(1:nrow(edges_df), \(j) {
+              subset_net_offence |>
+                st_drop_geometry() |>
+                select(from_id, to_id) |>
+                filter(from_id == edges_df$to_id[j],
+                       to_id != edges_df$from_id[j]) |>
+                mutate(p = edges_df$p[j] / n())
+            }))
+            
+          }
+        }
+        
+        
+        expand_reports <- function(df, max_degree = 3) {
+          check0 <- df |>
+            st_drop_geometry() |>
+            select(from_id, to_id) |>
+            mutate(p = 1)
+          
+          check <- list()
+          check[[1]] <- fill_probs(check0)
+          for (i in 2:max_degree) {
+            if (nrow(check[[i - 1]]) < 1)
+              break
+            check[[i]] <- fill_probs(check[[i - 1]])
+          }
+          
+          checkr <- list()
+          checkr[[1]] <- fill_probs(check0, direction = "-1")
+          for (i in 2:max_degree) {
+            if (nrow(checkr[[i - 1]]) < 1)
+              break
+            checkr[[i]] <- fill_probs(checkr[[i - 1]], direction = "-1")
+          }
+          
+          ckeck_df <- bind_rows(check0,
+                                do.call(bind_rows, check),
+                                do.call(bind_rows, checkr)) |>
+            summarise(across(p, max), .by = c(from_id, to_id))
+          return(ckeck_df)
+        }
+        
+        t_full_exp <- subset_net_offence |>
+          filter(offence_bool) |>
+          expand_reports() |>
+          mutate(hour = grid_fill_p$hour[i], day_type = grid_fill_p$day_type[i])
+      }
+      
+      return(t_full_exp)
+    }
+  ))
 
-mod_coefs <- glm_models_0_rand |> 
-  mutate(coefs = map(model_rel,\(.x) {
-    broom::tidy(.x)
-  }
-  )
-  ) |>
-  select(day_type,hour,coefs) |> 
-  unnest(coefs) |> 
-  # pivot_wider(names_from = term,values_from = estimate) |> 
-  mutate(term = term |> str_replace(pattern = "\\(Intercept\\)",replacement = "intercept"),
-         term = term |> str_replace(pattern = ".*_max",replacement = "slope"))
-
-
-```
-
-```{r}
-mod_pred_0_rand |> 
-  ggplot(aes(x = logdiff_max,
-             y = offence_bool,
-             group = id,
-             col = hour,linetype = day_type))+
-  geom_line(alpha = 0.5)+
-  scale_y_continuous(limits = c(0,1))+
-  theme_minimal()+
-  scale_color_viridis_c(option = "plasma")
-```
-
-```{r}
-mod_coefs |> 
-  mutate(stars = cut( p.value,
-                      breaks = c(0,0.01,0.05,0.1,1))) |> 
-  filter(term == "slope") |> 
-  ggplot(aes(x = hour,
-             y = estimate,
-             col = stars))+
-    geom_point()+
-  facet_grid(.~day_type)+
-  theme(legend.position = "top")
-  
-```
-
-## Analysis by segments
-
-```{r}
-{grid_bog <- urban_perimeter |> 
-  # st_transform(3116) |> 
-  st_make_grid(square = F,cellsize = 10e3,offset = c(-500,-500)) |> 
-  st_as_sf() 
-
-minor_reports_grid <- st_intersects(grid_bog,minor_offences) |> vapply(length,numeric(1))
-
-grid_bog <- grid_bog[minor_reports_grid>50,] |> 
-  rowid_to_column("cell_id")
-
-tm_shape(grid_bog)+
-  tm_fill(col = "cell_id")+
-  tm_shape(major_net)+
-  tm_lines("gray80")
-  # tm_lines("gray80")+
-  # tm_shape(minor_offences)+
-  # tm_dots("blue")
-}
-```
-
-Spatial Join
-
-```{r}
-grid_off <- st_intersects(grid_bog,simpl_network_sf)
 ```
 
 ```{r}
 #| eval: false
 
-lapply(grid_off,
-       \(x) {
-         grid_reports <-
-           rand_absences_data |>
-           filter(pair_id %in% simpl_network_sf$pair_id[x])
-              
-         glm_models_1_rand <- grid_reports |> 
-           nest(data = c(pair_id,
-                         diff_min:offence_bool)) |>
-           
-           mutate(model_rel = map(data,
-                                  \(.x) {
-                                    glm(offence_bool ~ logdiff_max,
-                                        data = .x,
-                                        family = binomial(link = "logit"))
-                                  }))
-         
-         
-         mod_pred_1_rand <- glm_models_1_rand |>
-           mutate(predicted = map2(model_rel, data , \(.x, .y) {
-             tibble(
-               logdiff_max = .y$logdiff_max,
-               offence_bool = predict(.x,
-                                      newdata = .y,
-                                      type = "response")
-             )
-           })) |>
-           select(-data, -model_rel) |>
-           unnest(cols = predicted) |>
-           unite("id", day_type:hour, remove = F)
-         
-         mod_coefs_1 <- glm_models_1_rand |>
-           mutate(coefs = map(model_rel, \(.x) {
-             broom::tidy(.x)
-           })) |>
-           select(day_type, hour, coefs) |>
-           unnest(coefs) |>
-           # pivot_wider(names_from = term,values_from = estimate) |>
-           mutate(
-             term = term |> str_replace(pattern = "\\(Intercept\\)", replacement = "intercept"),
-             term = term |> str_replace(pattern = ".*_max", replacement = "slope")
-           )
-         
-         
-         # my_plot <- mod_pred_1_rand |>
-         #   ggplot(aes(
-         #     x = logdiff_max,
-         #     y = offence_bool,
-         #     group = id,
-         #     col = hour,
-         #     linetype = day_type
-         #     )) +
-         #   geom_line(alpha = 0.5) +
-         #   scale_y_continuous(limits = c(0, 1)) +
-         #   theme_minimal() +
-         #   scale_color_viridis_c(option = "plasma")
-         
-         my_plot <- mod_coefs_1 |>
-           mutate(stars = cut(p.value,
-                              breaks = c(0, 0.01, 0.05, 0.1, 1))) |>
-           filter(term == "slope") |>
-           ggplot(aes(
-             x = hour,
-             y = estimate,
-             col = stars,
-             shape = day_type
-           )) +
-           geom_point()
-         
-         return(my_plot)
-       })
+clean_probs <- exp_probs |>
+  drop_na(from_id, to_id) |>
+  summarise(p = max(p),
+            .by = c(day_type, hour, from_id, to_id)) |> 
+  tibble()
 ```
 
-Add here plots and tables with changes in centrality
+```{r}
+#| eval: false
+#| include: false
 
-animation with changes in centrality by the hour(
+save(clean_probs,file = "sf_network/clean_probs_alloff.Rdata")
+```
 
-)
+```{r}
+#| include: false
+load(file = "sf_network/clean_probs_alloff.Rdata")
+```
 
-animation with changes in model
+```{r}
+clean_probs_ids <- subset_net |>
+  st_drop_geometry() |>
+  select(from_id, to_id,pair_id) |> 
+  inner_join(clean_probs,
+            by = join_by(from_id, to_id)) |> 
+  summarise(across(p,\(x) max(x,na.rm = T)),
+            .by = c(day_type,hour,pair_id))
+```
+
+A visual check
+
+```{r}
+simpl_network_sf |> 
+  left_join(clean_probs_ids |> 
+              filter(day_type=="weekday",
+                     hour == 18),
+            by = "pair_id") |> 
+  tm_shape()+
+  tm_lines("p")
+```
+
+```{r}
+model_data_p <- model_data |> 
+  left_join(clean_probs_ids,
+  by = join_by(pair_id,hour,day_type)) |> 
+  mutate(p = if_else(is.na(p),0,p))
+```
+
+### Analysis by sectors
+
+We will use classification of Local Planning Units as analysis units.
+For that purpose, we load the `gkpg` file which has been extracted from
+the Reference map (available
+[here](https://www.ideca.gov.co/recursos/mapas/mapa-de-referencia-para-bogota-dc)).
+
+```{r}
+#| label: get-LPU-boundaries
+
+dir.create("raw_data",showWarnings = F)
+
+if(!file.exists(file.path("raw_data", "UPL_Bogota.zip"))) {
+  u <-
+    "https://github.com/juanfonsecaLS1/P1_ratruns_analysis/releases/download/v0/UPL_Bogota.zip"
+  download.file(u, file.path("raw_data", basename(u)), mode = "wb")
+  unzip(zipfile = file.path("raw_data", basename(u)), exdir = "raw_data")
+}
+
+lpu_boundaries <- st_read("raw_data/MR_VR0924_UPL.gpkg")
+```
+
+LPU have been classified according to official sources (see this). North and Northwest sectors have been merged.
+Only urban sectors are considered.
+
+```{r}
+lpu_sector <- read_csv("raw_data/UPL_sectors.csv",
+                       col_types = cols(
+                         CODIGO_UPL = col_character(),
+                         Sector = col_character()
+                         ))
+
+sector_boundaries <- lpu_boundaries |> 
+  left_join(lpu_sector,
+            by = "CODIGO_UPL") |> 
+  mutate(Sector = str_remove(Sector,"(?<=North)west")) |> 
+  group_by(Sector) |> 
+  summarise(geom = st_union(geom)) |> 
+  filter(Sector != "Rural") |> 
+  st_transform(st_crs(simpl_network_sf))
+```
+
+This shows 
+
+```{r}
+tm_shape(sector_boundaries) +
+  tm_fill("Sector",
+          fill.scale = tm_scale_categorical(values = "brewer.set3"),
+          fill_alpha = 0.7) +
+  tm_shape(major_net) +
+  tm_lines("gray60",col_alpha = .6)
+```
+
+Spatial Join
+
+```{r}
+sector_boundaries$n_reports <- st_intersects(sector_boundaries,minor_offences) |> vapply(length,numeric(1))
+sector_boundaries
+```
+
+```{r}
+grid_off <- st_intersects(sector_boundaries,simpl_network_sf)
+```
+
+```{r}
+minor_offences$sector <- st_intersects(minor_offences,sector_boundaries) |> vapply(\(x) (x),numeric(1))
+
+simpl_subset_sf$sector <- 
+  simpl_subset_sf |>
+  st_centroid() |>
+  st_intersects(sector_boundaries) |>
+  vapply(\(x) {
+    if (length(x) == 0) {
+      NA
+    } else{
+      x
+    }
+  }, numeric(1)) 
+
+pair_2_sector <- simpl_subset_sf |> 
+  st_drop_geometry() |> 
+  select(pair_id,sector)
+```
+
+```{r}
+summary_sector_off <- minor_offences |> 
+  st_drop_geometry() |> 
+  summarise(n = n(),.by = c(day_type,hour,sector)) |> 
+  arrange(day_type,hour)
+```
+
+```{r}
+ggplot(summary_sector_off,
+       aes(x = hour, y = n,col = factor(sector)))+
+  geom_line()+
+  facet_grid(day_type~.)+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  theme_minimal()
+  
+```
+
+```{r}
+model_data_p_sec <- model_data_p |> 
+  left_join(pair_2_sector, by = join_by(pair_id)) |> 
+  drop_na(sector)
+```
+
+### Creating pseudo-absences
+
+Under the assumption that the transport police have the same number of
+officers allocated along the day. We can assume that the sample size
+(the number of monitored roads) is the same.
+
+In this case we will assume that 10% of the roads are constantly
+monitored. Also, it is assumed that the allocation of officers is
+proportional to the size of the network.
+
+```{r}
+sample_size <-  0.1
+```
+
+Calculating the actual sample size for each sector.
+
+```{r}
+sample_size_sector <- model_data_p_sec |>
+  count(day_type,hour,sector,
+        name = "n_links") |> 
+  select(sector,n_links) |> 
+  unique() |> 
+  mutate(sample_size = round(sample_size*n_links,-1),.keep = "none",.by = sector)
+sample_size_sector |> kable()
+```
+
+Based on these sample sizes, we will randomly sample different roads
+within the sector as pseudo-absences. Pseudo-absences are used in
+ecology when working with presence-only data and no actual absences are
+recorded, for example, recording presence of exotic species.
+
+```{r}
+model_data_sampled <- model_data_p_sec |>  
+  nest(.by = c(day_type,hour,sector)) |> 
+  left_join(sample_size_sector,by="sector") |>
+  mutate(
+    n_true = map_dbl(data,\(.x) {
+      .x |> filter(offence_bool) |> nrow()
+      }),
+    obs = map(data,\(.x) {
+      .x |> filter(offence_bool) 
+      }),
+  pseudoabs = map2(.x = data,
+                       .y = sample_size-n_true,
+                       .f = \(.x,.y) {
+                         .x |>
+                           filter(p==0) |>
+                           slice_sample(n = .y)
+                         }
+                       ),
+  model_data = map2(.x = obs,
+                    .y = pseudoabs,
+                    .f = \(.x,.y){
+                      bind_rows(.x,.y)
+                    })
+         ) |> 
+  select(day_type:sector,n_true,model_data)
+```
+
+We will fit logistic models with this data.
+
+```{r}
+glm_sec_sampled <- model_data_sampled |> 
+  mutate(model_rel = map(model_data, \(.x) {
+    glm(offence_bool ~ logdiff_max,
+        data = .x,
+        family = binomial(link = "logit"))
+  }))
+```
+
+Using the models to predict probabilities
+
+```{r}
+pred_sec_sampled <- glm_sec_sampled |>
+  mutate(predicted = map2(model_rel, model_data , \(.x, .y) {
+    tibble(
+      logdiff_max = .y$logdiff_max,
+      offence_bool = predict(.x, newdata = .y, type = "response")
+    )
+  })) |>
+  select(-model_data, -model_rel) |>
+  unnest(cols = predicted) |>
+  unite("id", day_type:hour, remove = F)
+```
+
+Extracting the coefficients from the models
+
+```{r}
+coefs_sec_sampled <- glm_sec_sampled |>
+  mutate(coefs = map(model_rel, \(.x) {
+    broom::tidy(.x)
+  })) |>
+  select(day_type, hour, sector, coefs) |>
+  unnest(coefs) |>
+  # pivot_wider(names_from = term,values_from = estimate) |>
+  mutate(
+    term = term |> str_replace(pattern = "\\(Intercept\\)", replacement = "intercept"),
+    term = term |> str_replace(pattern = ".*_max", replacement = "slope")
+  )
+```
+
+Plotting the predicted probabilities 
+
+```{r}
+pred_sec_sampled |>
+  filter(day_type == "weekday") |> 
+  ggplot(aes(x = logdiff_max,
+             y = offence_bool,
+             group = id,
+             col = hour,
+             # linetype = day_type
+             ))+
+  geom_line(alpha = 0.5)+
+  scale_y_continuous(limits = c(0,1))+
+  theme_minimal()+
+  scale_color_viridis_c(option = "turbo")+
+  facet_wrap(sector~.)
+```
+
+Plotting the coefficients 
+
+
+
+
+
+
+```{r}
+#| label: anim-scurve
+#| eval: false
+#| include: false
+
+
+p <- mod_pred_0_rand |> 
+  ggplot(aes(x = logdiff_max,
+             y = offence_bool,
+             group = id,
+             col = hour,linetype = day_type))+
+  geom_line(alpha = 0.9)+
+  scale_y_continuous(limits = c(0,1))+
+  theme_minimal()+
+  guides(col = "none")+
+  theme(legend.position = "inside",legend.position.inside = c(0.7,0.8))+
+  scale_color_viridis_c(option = "plasma")+
+  labs(title = 'Hour: {closest_state}',linetype = "Day type") +
+  transition_states(hour, transition_length = 2, state_length = 1) +
+  enter_appear()
+
+```
+
+```{r}
+coefs_sec_sampled |> 
+  filter(day_type == "weekday") |> 
+  mutate(stars = cut( p.value,
+                      breaks = c(0,0.01,0.05,0.1,1))) |> 
+  filter(term == "slope",between(hour,5,20)) |> 
+  ggplot(aes(x = hour,
+             y = estimate
+             ))+
+  geom_line(aes(col = factor(sector)))+
+    geom_point(aes(size = stars,col = factor(sector)),alpha = 0.6)+
+  # facet_grid(.~sector)+
+  theme(legend.position = "top")+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)
+  
+  
+```
+
+## Daily potential
+
+```{r}
+n_d10_logdiff_max <- simpl_network_sf |>
+  left_join(summary_pairs,by = "pair_id") |>  
+  mutate(d10_bool = logdiff_max >= quantile(logdiff_max, 0.90,na.rm = T),
+         .by=c(hour,day_type,roadclass)) |> 
+  st_drop_geometry() |> 
+  summarise(n_d10 = sum(d10_bool,na.rm = T),.by = c(pair_id,day_type)) |> 
+  pivot_wider(names_from = day_type,values_from = n_d10)
+```
+
+```{r}
+map_ratruns_wk <- simpl_network_sf |>
+  left_join(n_d10_logdiff_max, by = "pair_id") |>
+  mutate(across(weekday:weekend, \(x) {
+    if_else(roadclass == "residential", x, NA)
+    })) |>
+  mutate(across(weekday:weekend, list(
+    ld = \(x) {
+      if_else(roadclass != "residential", 1, x)
+      }))) |>
+  ggplot(aes(col =  weekday,
+             linewidth = weekday_ld)) +
+  geom_sf() +
+  scale_colour_viridis_b(na.value = "gray30",
+                         option = "plasma",
+                         direction = -1) +
+  scale_linewidth_continuous(
+    limits = c(0, 24),
+    range = c(0.05, 0.5),
+    transform = "exp"
+  ) +
+  theme_void() +
+  guides(linewidth = "none") +
+  labs(col = "Rat-run potential") +
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.2, 0.7))
+
+map_ratruns_wk
+```
+
+```{r}
+simpl_network_sf |>
+  left_join(n_d10_logdiff_max, by = "pair_id") |>
+  mutate(across(weekday:weekend, \(x) {
+    if_else(roadclass == "residential", x, NA)
+    })) |>
+  mutate(across(weekday:weekend, list(
+    ld = \(x) {
+      if_else(roadclass != "residential", 1, x)
+      })))
+```
+

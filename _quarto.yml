@@ -7,6 +7,8 @@ project:
 execute:
   warning: false
   error: false
+  message: false
+  freeze: auto
 website:
   title: "P1_ratruns_analysis"
   navbar:
@@ -25,7 +27,7 @@ website:
       - text: "Centrality of WWD-enabled network"
         menu:
           - 3A_Congested_graph_WWD_allowed.qmd
-          - 2B_Analysis_std_network.qmd
+          - 3B_Analysis_WWD_allowed.qmd
       - text: "Small Reproducible Test"
         menu:
           - D1_graph_centrality_tests.qmd

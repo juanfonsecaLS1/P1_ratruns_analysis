@@ -352,7 +352,8 @@ tidy_hourly_centrality <- hourly_centrality |>
          logdiff = sign(diff)*log10(abs(diff)),
          reldiff = diff/(0.5*(ff+cong)),
          logreldiff.ff = sign(diff)*log10(abs(diff/(ff+n-1)))) |> 
-  mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 & (ff+cong > 0),0,x))) |> 
+  # mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 & (ff+cong > 0),0,x))) |> 
+  mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 ,0,x))) |>
   select(-n,-component)
 ```
 
