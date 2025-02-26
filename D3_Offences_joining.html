@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -170,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Congested Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+    <a class="dropdown-item" href="./3B_Analysis_WWD_allowed.html">
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -279,7 +279,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Reading layer `manualtickets_clean_sf' from data source 
   `/home/juan/P1_ratruns_analysis/sf_network/manualtickets_clean_sf.gpkg' 
   using driver `GPKG'
-Simple feature collection with 449632 features and 9 fields
+Simple feature collection with 396988 features and 9 fields
 Geometry type: POINT
 Dimension:     XY
 Bounding box:  xmin: -74.21482 ymin: 4.469726 xmax: -74.01338 ymax: 4.822895
@@ -807,8 +807,8 @@ Geodetic CRS:  WGS 84</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Parameter   | Risk Ratio |       95% CI
 ---------------------------------------
-(Intercept) |       0.07 |             
-logdiff max |       0.73 | [0.59, 0.90]</code></pre>
+(Intercept) |       0.02 |             
+logdiff max |       0.46 | [0.27, 0.82]</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>RR_summary <span class="ot">&lt;-</span>mod_0_coefs <span class="sc">|&gt;</span> </span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"slope"</span>) <span class="sc">|&gt;</span></span>

@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -170,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Congested Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+    <a class="dropdown-item" href="./3B_Analysis_WWD_allowed.html">
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -807,8 +807,8 @@ Geodetic CRS:  WGS 84</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Parameter   | Risk Ratio |       95% CI
 ---------------------------------------
-(Intercept) |   2.00e-03 |             
-logdiff max |       0.68 | [0.21, 2.30]</code></pre>
+(Intercept) |   1.35e-03 |             
+logdiff max |       0.13 | [0.03, 0.42]</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>RR_summary <span class="ot">&lt;-</span>mod_0_coefs <span class="sc">|&gt;</span> </span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"slope"</span>) <span class="sc">|&gt;</span></span>

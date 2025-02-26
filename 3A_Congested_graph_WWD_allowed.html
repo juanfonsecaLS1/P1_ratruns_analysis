@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -170,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Congested Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+    <a class="dropdown-item" href="./3B_Analysis_WWD_allowed.html">
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -256,7 +256,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(dodgr)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">packageVersion</span> (<span class="st">"dodgr"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] '0.4.1.37'</code></pre>
+<pre><code>[1] '0.4.1.44'</code></pre>
 </div>
 </div>
 <section id="loading-network" class="level2">
@@ -556,8 +556,9 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">logdiff =</span> <span class="fu">sign</span>(diff)<span class="sc">*</span><span class="fu">log10</span>(<span class="fu">abs</span>(diff)),</span>
 <span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">reldiff =</span> diff<span class="sc">/</span>(<span class="fl">0.5</span><span class="sc">*</span>(ff<span class="sc">+</span>cong)),</span>
 <span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">logreldiff.ff =</span> <span class="fu">sign</span>(diff)<span class="sc">*</span><span class="fu">log10</span>(<span class="fu">abs</span>(diff<span class="sc">/</span>(ff<span class="sc">+</span>n<span class="dv">-1</span>)))) <span class="sc">|&gt;</span> </span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(logdiff,logreldiff.ff),\(x) <span class="fu">if_else</span>(diff <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> (ff<span class="sc">+</span>cong <span class="sc">&gt;</span> <span class="dv">0</span>),<span class="dv">0</span>,x))) <span class="sc">|&gt;</span> </span>
-<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n,<span class="sc">-</span>component)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(across(c(logdiff,logreldiff.ff),\(x) if_else(diff == 0 &amp; (ff+cong &gt; 0),0,x))) |&gt; </span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(logdiff,logreldiff.ff),\(x) <span class="fu">if_else</span>(diff <span class="sc">==</span> <span class="dv">0</span> ,<span class="dv">0</span>,x))) <span class="sc">|&gt;</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>n,<span class="sc">-</span>component)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="extracting-distance-to-the-major-network" class="level2">

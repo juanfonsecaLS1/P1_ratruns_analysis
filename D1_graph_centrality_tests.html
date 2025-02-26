@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -170,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Congested Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+    <a class="dropdown-item" href="./3B_Analysis_WWD_allowed.html">
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -378,7 +378,7 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 </div>
 </div>
 <p>An initial check on the four alternatives reveal some inconsistencies in the <code>time_weighted</code> column.</p>
-<p>There are 32 links in the contracted graph with differences in the weighted distance and the distance. The location of these edges will be inspected after calculating the centrality in <a href="#sec-bc-comp" class="quarto-xref">Section&nbsp;1.3.3</a>.</p>
+<p>There are 49 links in the contracted graph with differences in the weighted distance and the distance. The location of these edges will be inspected after calculating the centrality in <a href="#sec-bc-comp" class="quarto-xref">Section&nbsp;1.3.3</a>.</p>
 <p>When multiple paths are available between two nodes in the contracted version of the graph, <code>dodgr</code> takes only the shortest weighted distance, which creates the difference. However, the resulting weighted time is not corrected and in some cases a <code>0</code> is returned.</p>
 <p>Given this, we will recalculate the weighted time based on the weighted distance.</p>
 <div class="cell">
@@ -427,18 +427,18 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code> cent_d_weighted       cent_d        cent_time_weighted   cent_time      
  Min.   :      0   Min.   :      0   Min.   :      0    Min.   :      0  
- 1st Qu.:   4331   1st Qu.:   4330   1st Qu.:   4329    1st Qu.:   4329  
- Median :  16606   Median :  16482   Median :  14694    Median :  14569  
- Mean   :  79033   Mean   :  78951   Mean   :  80780    Mean   :  80660  
- 3rd Qu.:  71441   3rd Qu.:  70966   3rd Qu.:  53128    3rd Qu.:  52827  
- Max.   :1405281   Max.   :1408773   Max.   :2075299    Max.   :2069854  
+ 1st Qu.:   4526   1st Qu.:   4526   1st Qu.:   4479    1st Qu.:   4479  
+ Median :  15900   Median :  15670   Median :  13560    Median :  13465  
+ Mean   : 108354   Mean   : 108428   Mean   : 107514    Mean   : 107668  
+ 3rd Qu.:  75756   3rd Qu.:  74517   3rd Qu.:  56990    3rd Qu.:  56265  
+ Max.   :2606261   Max.   :2608137   Max.   :2679102    Max.   :2684680  
    cent_ig_d       cent_ig_d_weighted  cent_ig_time     cent_ig_time_weighted
  Min.   :      0   Min.   :      0    Min.   :      0   Min.   :      0      
- 1st Qu.:   4330   1st Qu.:   4331    1st Qu.:   4329   1st Qu.:   4329      
- Median :  16482   Median :  16606    Median :  14569   Median :  14694      
- Mean   :  78951   Mean   :  79033    Mean   :  80660   Mean   :  80780      
- 3rd Qu.:  70966   3rd Qu.:  71441    3rd Qu.:  52827   3rd Qu.:  53128      
- Max.   :1408773   Max.   :1405281    Max.   :2069854   Max.   :2075299      </code></pre>
+ 1st Qu.:   4526   1st Qu.:   4526    1st Qu.:   4479   1st Qu.:   4479      
+ Median :  15670   Median :  15900    Median :  13465   Median :  13560      
+ Mean   : 108428   Mean   : 108354    Mean   : 107668   Mean   : 107514      
+ 3rd Qu.:  74517   3rd Qu.:  75756    3rd Qu.:  56265   3rd Qu.:  56990      
+ Max.   :2608137   Max.   :2606261    Max.   :2684680   Max.   :2679102      </code></pre>
 </div>
 </div>
 <p>Check if <code>igraph</code> results are identical to the ones obtained with <code>dodgr</code></p>

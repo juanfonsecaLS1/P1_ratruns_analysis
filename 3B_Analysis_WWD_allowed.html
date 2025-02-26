@@ -156,7 +156,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -170,8 +170,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Congested Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./2B_Analysis_std_network.html">
- <span class="dropdown-text">Joining the WWD reports</span></a>
+    <a class="dropdown-item" href="./3B_Analysis_WWD_allowed.html">
+ <span class="dropdown-text">Results</span></a>
   </li>  
     </ul>
   </li>
@@ -218,7 +218,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#joining-the-wwd-reports" id="toc-joining-the-wwd-reports" class="nav-link active" data-scroll-target="#joining-the-wwd-reports">Joining the WWD reports</a>
+  <li><a href="#results" id="toc-results" class="nav-link active" data-scroll-target="#results">Results</a>
   <ul class="collapse">
   <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data">Loading data</a>
   <ul class="collapse">
@@ -233,9 +233,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#exploring-bc-changes-in-the-network-with-wwd-allowed" id="toc-exploring-bc-changes-in-the-network-with-wwd-allowed" class="nav-link" data-scroll-target="#exploring-bc-changes-in-the-network-with-wwd-allowed">Exploring BC changes in the network with WWD allowed</a></li>
   <li><a href="#modelling" id="toc-modelling" class="nav-link" data-scroll-target="#modelling">Modelling</a>
   <ul class="collapse">
-  <li><a href="#reducing-the-bias-of-pseudo-negatives-by-random-sampling" id="toc-reducing-the-bias-of-pseudo-negatives-by-random-sampling" class="nav-link" data-scroll-target="#reducing-the-bias-of-pseudo-negatives-by-random-sampling">Reducing the bias of pseudo-negatives by random sampling</a></li>
+  <li><a href="#expanding-the-reports-to-adjacent-links" id="toc-expanding-the-reports-to-adjacent-links" class="nav-link" data-scroll-target="#expanding-the-reports-to-adjacent-links">Expanding the reports to adjacent links</a></li>
+  <li><a href="#analysis-by-sectors" id="toc-analysis-by-sectors" class="nav-link" data-scroll-target="#analysis-by-sectors">Analysis by sectors</a></li>
+  <li><a href="#creating-pseudo-absences" id="toc-creating-pseudo-absences" class="nav-link" data-scroll-target="#creating-pseudo-absences">Creating pseudo-absences</a></li>
   </ul></li>
-  <li><a href="#analysis-by-segments" id="toc-analysis-by-segments" class="nav-link" data-scroll-target="#analysis-by-segments">Analysis by segments</a></li>
+  <li><a href="#daily-potential" id="toc-daily-potential" class="nav-link" data-scroll-target="#daily-potential">Daily potential</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -246,8 +248,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="joining-the-wwd-reports" class="level1">
-<h1>Joining the WWD reports</h1>
+<section id="results" class="level1">
+<h1>Results</h1>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repos =</span> <span class="fu">c</span>(<span class="at">CRAN =</span> <span class="st">"https://cloud.r-project.org"</span>))</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"remotes"</span>)) <span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
@@ -255,14 +257,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"sf"</span>,</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tidyverse"</span>,</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tmap"</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"apng"</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_cran</span>(pkgs)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(pkgs, require, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"apng"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gganimate"</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"kableExtra"</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_cran</span>(pkgs)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(pkgs, require, <span class="at">character.only =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       sf tidyverse      tmap      apng 
-     TRUE      TRUE      TRUE      TRUE </code></pre>
+<pre><code>        sf  tidyverse       tmap       apng  gganimate kableExtra 
+      TRUE       TRUE       TRUE       TRUE       TRUE       TRUE </code></pre>
 </div>
 </div>
 <section id="loading-data" class="level2">
@@ -284,24 +288,27 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>off_sf_all <span class="ot">&lt;-</span> (<span class="fu">st_read</span>(<span class="st">"sf_network/wwd_clean_sf.gpkg"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">st_transform</span>(<span class="dv">3116</span>))[urban_perimeter,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>off_sf_all <span class="ot">&lt;-</span> (<span class="fu">st_read</span>(<span class="st">"sf_network/manualtickets_clean_sf.gpkg"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">st_transform</span>(<span class="dv">3116</span>))[urban_perimeter,] <span class="sc">|&gt;</span> <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2019</span>,day_type <span class="sc">!=</span> <span class="st">"friday"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `wwd_clean_sf' from data source 
-  `/home/juan/P1_ratruns_analysis/sf_network/wwd_clean_sf.gpkg' 
+<pre><code>Reading layer `manualtickets_clean_sf' from data source 
+  `/home/juan/P1_ratruns_analysis/sf_network/manualtickets_clean_sf.gpkg' 
   using driver `GPKG'
-Simple feature collection with 6869 features and 8 fields
+Simple feature collection with 396988 features and 9 fields
 Geometry type: POINT
 Dimension:     XY
-Bounding box:  xmin: -74.20585 ymin: 4.476179 xmax: -74.02131 ymax: 4.819386
+Bounding box:  xmin: -74.21482 ymin: 4.469726 xmax: -74.01338 ymax: 4.822895
 Geodetic CRS:  WGS 84</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># off_sf_all &lt;- (st_read("sf_network/wwd_clean_sf.gpkg") |&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                  st_transform(3116))[urban_perimeter,] |&gt; filter(year == 2019,day_type != "friday")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="network" class="level3">
 <h3 class="anchored" data-anchor-id="network">Network</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sf_net_exp <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"sf_network/full_sf_network.gpkg"</span>) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(<span class="dv">3116</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sf_net_exp <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"sf_network/full_sf_network.gpkg"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">3116</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `full_sf_network' from data source 
   `/home/juan/P1_ratruns_analysis/sf_network/full_sf_network.gpkg' 
@@ -312,125 +319,125 @@ Dimension:     XY
 Bounding box:  xmin: -74.441 ymin: 4.236862 xmax: -73.72583 ymax: 5.042826
 Geodetic CRS:  WGS 84</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="ot">&lt;-</span> sf_net_exp[urban_perimeter,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="ot">&lt;-</span> sf_net_exp[urban_perimeter,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="centrality-results" class="level3">
 <h3 class="anchored" data-anchor-id="centrality-results">Centrality results</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cent_results <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"sf_network/hourly_cent_results.csv"</span>,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">lazy =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cent_results <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"sf_network/hourly_cent_results.csv"</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">lazy =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
 <section id="assigning-reports-to-the-network" class="level2">
 <h2 class="anchored" data-anchor-id="assigning-reports-to-the-network">Assigning reports to the network</h2>
 <p>We need to assign the reports to the network. As we are interested in the residential roads, any bi-directional road is represented in the <code>sf</code> object as two <code>LINESTRING</code> objects. Since we do not have information to know which specific direction the reports correspond to, we will need to simplify the spatial object. Our target variable is the betweenness centrality, so we are going to keep the two centrality values for each bi-directional element.</p>
-<p>First, we will create a subset of the <code>residential</code> and <code>unclassified</code> roads, and another with all other roads</p>
+<p>First, we find the pairs of links with the <code>st_contains</code> function.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>subset_net <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(roadclass <span class="sc">%in%</span> <span class="fu">c</span>(</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"residential"</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"unclassified"</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    )) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>major_net <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>roadclass <span class="sc">%in%</span> <span class="fu">c</span>(</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"residential"</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"unclassified"</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    )) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>From this subset, we first find the pairs of links with the <code>st_contains</code> function.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>simplifed_net_indexes <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">st_contains</span>(sf_net,sf_net),</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>            \(x){</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>              x[<span class="fu">order</span>(x)]</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>simplifed_net_indexes <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">st_contains</span>(sf_net,sf_net),</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>            \(x){</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>              x[<span class="fu">order</span>(x)]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Each pair is then assigned a unique id.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>simp_groups <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">lapply</span>(<span class="fu">seq_along</span>(simplifed_net_indexes),</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>               \(i){</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">tibble</span>(<span class="at">id =</span> simplifed_net_indexes[[i]],</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">pair_id =</span> i)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>               })) <span class="sc">|&gt;</span> </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(id)</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>sf_net<span class="sc">$</span>pair_id <span class="ot">&lt;-</span> simp_groups<span class="sc">$</span>pair_id</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>simp_groups <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">lapply</span>(<span class="fu">seq_along</span>(simplifed_net_indexes),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>               \(i){</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">tibble</span>(<span class="at">id =</span> simplifed_net_indexes[[i]],</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">pair_id =</span> i)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>               })) <span class="sc">|&gt;</span> </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(id)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>sf_net<span class="sc">$</span>pair_id <span class="ot">&lt;-</span> simp_groups<span class="sc">$</span>pair_id</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will create a subset of the <code>residential</code> and <code>unclassified</code> roads, and another with all other roads</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>subset_net <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(roadclass <span class="sc">%in%</span> <span class="fu">c</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"residential"</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"unclassified"</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    )) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>major_net <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>roadclass <span class="sc">%in%</span> <span class="fu">c</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"residential"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"unclassified"</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    )) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Using the <code>pair_id</code> we extract the minimum, maximum and average change in centrality for each pair.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>summary_pairs <span class="ot">&lt;-</span> cent_results <span class="sc">|&gt;</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(sf_net <span class="sc">|&gt;</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>               <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>               <span class="fu">select</span>(edge_id,way_id,pair_id),</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"edge_id"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># # Filtering only the links that were inverted during the network creation and standard links</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">any</span>(<span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>))<span class="sc">|</span><span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>),<span class="at">.by =</span> pair_id) <span class="sc">|&gt;</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(diff<span class="sc">:</span>logreldiff.ff,</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">list</span>(<span class="at">min=</span>min, <span class="at">max=</span>max, <span class="at">avg =</span> mean)),</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">.by =</span> <span class="fu">c</span>(pair_id,day_type,hour))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>summary_pairs <span class="ot">&lt;-</span> cent_results <span class="sc">|&gt;</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(sf_net <span class="sc">|&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>               <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>               <span class="fu">select</span>(edge_id,way_id,pair_id),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"edge_id"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># # Filtering only the links that were inverted during the network creation and standard links</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">any</span>(<span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>))<span class="sc">|</span><span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>),<span class="at">.by =</span> pair_id) <span class="sc">|&gt;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(diff<span class="sc">:</span>logreldiff.ff,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">list</span>(<span class="at">min=</span>min, <span class="at">max=</span>max, <span class="at">avg =</span> mean)),</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">.by =</span> <span class="fu">c</span>(pair_id,day_type,hour))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>summary_pairs_dist.jct <span class="ot">&lt;-</span> </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  sf_net <span class="sc">|&gt;</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(dist.jct,\(x) <span class="fu">mean</span>(x) <span class="sc">|&gt;</span> <span class="fu">round</span>()),</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">.by =</span> <span class="fu">c</span>(pair_id))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>summary_pairs_dist.jct <span class="ot">&lt;-</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  sf_net <span class="sc">|&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(dist.jct,\(x) <span class="fu">mean</span>(x) <span class="sc">|&gt;</span> <span class="fu">round</span>()),</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">.by =</span> <span class="fu">c</span>(pair_id))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>A simplified version of the <code>sf</code> object is produced extracting the first element of each pair, we will discard columns with the centrality metrics from this object to avoid confusion</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simpl_network_sf &lt;- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |&gt; select(lanes:component,pair_id)</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># # Filtering only the links that were inverted during the network creation and standard links</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">any</span>(<span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>))<span class="sc">|</span><span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>),</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">.by =</span> pair_id) <span class="sc">|&gt;</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">1</span>,<span class="at">by =</span> pair_id) <span class="sc">|&gt;</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(lanes<span class="sc">:</span>component,pair_id)</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>simpl_subset_sf <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span> </span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(roadclass <span class="sc">%in%</span> <span class="fu">c</span>(</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"residential"</span>,</span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"unclassified"</span></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># simpl_network_sf &lt;- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |&gt; select(lanes:component,pair_id)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="ot">&lt;-</span> sf_net <span class="sc">|&gt;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># # Filtering only the links that were inverted during the network creation and standard links</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">any</span>(<span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>))<span class="sc">|</span><span class="fu">str_detect</span>(way_id,<span class="st">"r$"</span>),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">.by =</span> pair_id) <span class="sc">|&gt;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">1</span>,<span class="at">by =</span> pair_id) <span class="sc">|&gt;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(lanes<span class="sc">:</span>component,pair_id)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>simpl_subset_sf <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span> </span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(roadclass <span class="sc">%in%</span> <span class="fu">c</span>(</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"residential"</span>,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"unclassified"</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We are interested in the reports on residential and unclassified streets. For this, we will create two buffers from the subsets created before. It is uncertain how the coordinates of each report are recorded, there might be some error associated with the use of GPS devices, and also, some uncertainty in the way the officers do it.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>anti_buffer <span class="ot">&lt;-</span> major_net <span class="sc">|&gt;</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_buffer</span>(<span class="dv">10</span>,<span class="at">endCapStyle =</span> <span class="st">"FLAT"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>anti_buffer <span class="ot">&lt;-</span> major_net <span class="sc">|&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_buffer</span>(<span class="dv">10</span>,<span class="at">endCapStyle =</span> <span class="st">"FLAT"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>subset_buffer <span class="ot">&lt;-</span> subset_net <span class="sc">|&gt;</span> </span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>()  <span class="sc">|&gt;</span> </span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_buffer</span>(<span class="dv">20</span>,<span class="at">endCapStyle =</span> <span class="st">"FLAT"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>subset_buffer <span class="ot">&lt;-</span> subset_net <span class="sc">|&gt;</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>()  <span class="sc">|&gt;</span> </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_buffer</span>(<span class="dv">20</span>,<span class="at">endCapStyle =</span> <span class="st">"FLAT"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>As some reports might be associated to the major network, we will first filter reports within 10 meters from a major road, so these do not get wrongly assigned to a minor road.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>off_sf <span class="ot">&lt;-</span> off_sf_all[anti_buffer,,op <span class="ot">=</span> st_disjoint]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>off_sf <span class="ot">&lt;-</span> off_sf_all[anti_buffer,,op <span class="ot">=</span> st_disjoint]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The offences that are assumed to happen in the minor offences are assumed to be within 20 meters.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>minor_offences <span class="ot">&lt;-</span> off_sf[subset_buffer,,op <span class="ot">=</span> st_intersects]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>minor_offences <span class="ot">&lt;-</span> off_sf[subset_buffer,,op <span class="ot">=</span> st_intersects]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tmap_mode("view")</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(major_net)<span class="sc">+</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_lines</span>(<span class="st">"gray60"</span>,<span class="at">col_alpha =</span> <span class="fl">0.6</span>)<span class="sc">+</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(subset_buffer)<span class="sc">+</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"blue"</span>,<span class="at">fill_alpha =</span> <span class="fl">0.6</span>)<span class="sc">+</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(off_sf_all<span class="sc">|&gt;</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">filter</span>(<span class="fu">abs</span>(hour <span class="sc">-</span> <span class="dv">9</span>)<span class="sc">&lt;=</span><span class="dv">2</span>,</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>                        year <span class="sc">==</span> <span class="dv">2019</span>,</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>                        day_type <span class="sc">==</span> <span class="st">"weekday"</span>))<span class="sc">+</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="st">"yellow"</span>)<span class="sc">+</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(minor_offences)<span class="sc">+</span></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="st">"red"</span>)<span class="sc">+</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">bg.color =</span> <span class="st">"grey10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tmap_mode("view")</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(major_net)<span class="sc">+</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_lines</span>(<span class="st">"gray60"</span>,<span class="at">col_alpha =</span> <span class="fl">0.6</span>)<span class="sc">+</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(subset_buffer)<span class="sc">+</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"blue"</span>,<span class="at">fill_alpha =</span> <span class="fl">0.6</span>)<span class="sc">+</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(off_sf_all<span class="sc">|&gt;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">filter</span>(<span class="fu">abs</span>(hour <span class="sc">-</span> <span class="dv">9</span>)<span class="sc">&lt;=</span><span class="dv">1</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>                        year <span class="sc">==</span> <span class="dv">2019</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                        day_type <span class="sc">==</span> <span class="st">"weekday"</span>))<span class="sc">+</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="st">"yellow"</span>)<span class="sc">+</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(minor_offences)<span class="sc">+</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="st">"red"</span>)<span class="sc">+</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">bg.color =</span> <span class="st">"grey10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -443,23 +450,23 @@ Geodetic CRS:  WGS 84</code></pre>
 <h4 class="anchored" data-anchor-id="summary">Summary</h4>
 <p>Total length of road network</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">distance =</span> <span class="fu">st_length</span>(geom,)) <span class="sc">|&gt;</span> <span class="fu">pull</span>(distance) <span class="sc">|&gt;</span> <span class="fu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">distance =</span> <span class="fu">st_length</span>(geom,)) <span class="sc">|&gt;</span> <span class="fu">pull</span>(distance) <span class="sc">|&gt;</span> <span class="fu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>6589386 [m]</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="sc">|&gt;</span> <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(<span class="at">pattern =</span> <span class="st">"r"</span>,way_id)) <span class="sc">|&gt;</span> </span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">roadclass =</span> <span class="fu">str_remove</span>(roadclass,<span class="st">"_link"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">d_weighted =</span> <span class="fu">sum</span>(d_weighted)<span class="sc">/</span><span class="fl">1e3</span>,<span class="at">.by=</span><span class="fu">c</span>(roadclass)) <span class="sc">|&gt;</span> </span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d_weighted =</span> <span class="fu">round</span>(d_weighted),</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">roadclass =</span> <span class="fu">factor</span>(roadclass,</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"trunk"</span>,<span class="st">"primary"</span>,<span class="st">"secondary"</span>,<span class="st">"tertiary"</span>,<span class="st">"residential"</span>,<span class="st">"unclassified"</span>),</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">ordered =</span> T)) <span class="sc">|&gt;</span> </span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(roadclass) <span class="sc">|&gt;</span> </span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">portion =</span> <span class="fu">round</span>(d_weighted<span class="sc">/</span><span class="fu">sum</span>(d_weighted)<span class="sc">*</span><span class="dv">100</span>,<span class="dv">1</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>sf_net <span class="sc">|&gt;</span> <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(<span class="at">pattern =</span> <span class="st">"r"</span>,way_id)) <span class="sc">|&gt;</span> </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">roadclass =</span> <span class="fu">str_remove</span>(roadclass,<span class="st">"_link"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">d_weighted =</span> <span class="fu">sum</span>(d_weighted)<span class="sc">/</span><span class="fl">1e3</span>,<span class="at">.by=</span><span class="fu">c</span>(roadclass)) <span class="sc">|&gt;</span> </span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d_weighted =</span> <span class="fu">round</span>(d_weighted),</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">roadclass =</span> <span class="fu">factor</span>(roadclass,</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"trunk"</span>,<span class="st">"primary"</span>,<span class="st">"secondary"</span>,<span class="st">"tertiary"</span>,<span class="st">"residential"</span>,<span class="st">"unclassified"</span>),</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">ordered =</span> T)) <span class="sc">|&gt;</span> </span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(roadclass) <span class="sc">|&gt;</span> </span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">portion =</span> <span class="fu">round</span>(d_weighted<span class="sc">/</span><span class="fu">sum</span>(d_weighted)<span class="sc">*</span><span class="dv">100</span>,<span class="dv">1</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -508,349 +515,677 @@ Geodetic CRS:  WGS 84</code></pre>
 <section id="finding-the-closest-element-of-the-network" class="level3">
 <h3 class="anchored" data-anchor-id="finding-the-closest-element-of-the-network">Finding the closest element of the network</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>minor_offences<span class="sc">$</span>near_index <span class="ot">&lt;-</span> <span class="fu">st_nearest_feature</span>(minor_offences,simpl_subset_sf)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>minor_offences<span class="sc">$</span>pair_id <span class="ot">&lt;-</span> simpl_subset_sf<span class="sc">$</span>pair_id[minor_offences<span class="sc">$</span>near_index]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>minor_offences<span class="sc">$</span>near_index <span class="ot">&lt;-</span> <span class="fu">st_nearest_feature</span>(minor_offences,simpl_subset_sf)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>minor_offences<span class="sc">$</span>pair_id <span class="ot">&lt;-</span> simpl_subset_sf<span class="sc">$</span>pair_id[minor_offences<span class="sc">$</span>near_index]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
 <section id="exploring-bc-changes-in-the-network-with-wwd-allowed" class="level2">
 <h2 class="anchored" data-anchor-id="exploring-bc-changes-in-the-network-with-wwd-allowed">Exploring BC changes in the network with WWD allowed</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>map_logdiff <span class="ot">&lt;-</span> <span class="fu">lapply</span>(</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="dv">0</span><span class="sc">:</span><span class="dv">23</span>,</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  \(h){</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    simpl_network_sf <span class="sc">|&gt;</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">left_join</span>(summary_pairs,<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>      <span class="co"># filter(hour!=3) |&gt;</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>, hour <span class="sc">==</span> h) <span class="sc">|&gt;</span> </span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">logdiff_max =</span> <span class="fu">if_else</span>(logdiff_max <span class="sc">==</span> <span class="dv">0</span>,<span class="dv">1</span>,logdiff_max)) <span class="sc">|&gt;</span> </span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span>  logdiff_max, <span class="at">linewidth =</span> <span class="fu">abs</span>(logdiff_max)))<span class="sc">+</span></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_steps2</span>(<span class="at">mid =</span> <span class="st">"gray80"</span>,<span class="at">high =</span> <span class="st">"dodgerblue2"</span>,<span class="at">low =</span> <span class="st">"firebrick3"</span>,</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>                         <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">12</span>,<span class="sc">-</span><span class="dv">8</span>,<span class="sc">-</span><span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">4</span>,<span class="dv">8</span>,<span class="dv">12</span>),</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>                         <span class="at">limits=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">8</span>)</span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>      )<span class="sc">+</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_linewidth_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="fl">0.00</span>,<span class="dv">12</span>), <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.01</span>,<span class="dv">20</span>),<span class="at">trans =</span> <span class="st">"exp"</span>)<span class="sc">+</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_void</span>()<span class="sc">+</span></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"BC Changes"</span>,</span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>           <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">'Hour: '</span>,h),</span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>           <span class="at">col =</span> <span class="st">"log "</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>      )<span class="sc">+</span></span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">guides</span>(<span class="at">linewidth =</span> <span class="st">"none"</span>)<span class="sc">+</span></span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>,</span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.8</span>)</span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>            )</span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>map_logdiff <span class="ot">&lt;-</span> <span class="fu">lapply</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="dv">0</span><span class="sc">:</span><span class="dv">23</span>,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  \(h){</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    simpl_network_sf <span class="sc">|&gt;</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">left_join</span>(summary_pairs,<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>      <span class="co"># filter(hour!=3) |&gt;</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>, hour <span class="sc">==</span> h) <span class="sc">|&gt;</span> </span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">logdiff_max =</span> <span class="fu">if_else</span>(logdiff_max <span class="sc">==</span> <span class="dv">0</span>,<span class="dv">1</span>,logdiff_max)) <span class="sc">|&gt;</span> </span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span>  logdiff_max, <span class="at">linewidth =</span> <span class="fu">abs</span>(logdiff_max)))<span class="sc">+</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>()<span class="sc">+</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_steps2</span>(<span class="at">mid =</span> <span class="st">"gray80"</span>,<span class="at">high =</span> <span class="st">"dodgerblue2"</span>,<span class="at">low =</span> <span class="st">"firebrick3"</span>,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>                         <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">12</span>,<span class="sc">-</span><span class="dv">8</span>,<span class="sc">-</span><span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">4</span>,<span class="dv">8</span>,<span class="dv">12</span>),</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>                         <span class="at">limits=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">8</span>,<span class="dv">8</span>)</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>      )<span class="sc">+</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_linewidth_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="fl">0.00</span>,<span class="dv">12</span>), <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.01</span>,<span class="dv">20</span>),<span class="at">trans =</span> <span class="st">"exp"</span>)<span class="sc">+</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme_void</span>()<span class="sc">+</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"BC Changes"</span>,</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>           <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">'Hour: '</span>,h),</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>           <span class="at">col =</span> <span class="st">"log "</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>      )<span class="sc">+</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">guides</span>(<span class="at">linewidth =</span> <span class="st">"none"</span>)<span class="sc">+</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>,</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.1</span>,<span class="fl">0.8</span>)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><img src="sf_network/anim_map_logdiff.png" class="img-fluid"></p>
 </section>
 <section id="modelling" class="level2">
 <h2 class="anchored" data-anchor-id="modelling">Modelling</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>time_slots <span class="ot">&lt;-</span> summary_pairs <span class="sc">|&gt;</span> <span class="fu">select</span>(day_type,hour) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>offences_bool <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">join_all</span>(</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(time_slots),</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>       \(j,<span class="at">h_threshold =</span> <span class="dv">1</span>){</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>         summary_pairs <span class="sc">|&gt;</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">select</span>(pair_id) <span class="sc">|&gt;</span> </span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>           <span class="fu">unique</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>           <span class="fu">left_join</span>(minor_offences <span class="sc">|&gt;</span></span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>           <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">filter</span>(day_type <span class="sc">==</span> time_slots<span class="sc">$</span>day_type[j],</span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">abs</span>(hour <span class="sc">-</span> time_slots<span class="sc">$</span>hour[j])<span class="sc">&lt;=</span>h_threshold) <span class="sc">|&gt;</span> </span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>           <span class="fu">count</span>(pair_id),</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>           <span class="at">by =</span> <span class="fu">join_by</span>(pair_id)) <span class="sc">|&gt;</span> </span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">rename_with</span>(<span class="at">.fn =</span>\(x) {<span class="fu">paste</span>(time_slots<span class="sc">$</span>day_type[j],time_slots<span class="sc">$</span>hour[j],<span class="at">sep =</span> <span class="st">"_"</span>)},<span class="at">.cols =</span> <span class="st">"n"</span>)</span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>       }),<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>pair_id,\(x){<span class="sc">!</span><span class="fu">is.na</span>(x)})) <span class="sc">|&gt;</span></span>
-<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>pair_id,<span class="at">values_to =</span> <span class="st">"offence_bool"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_wider_delim</span>(name, <span class="at">delim =</span> <span class="st">"_"</span>,<span class="at">names =</span> <span class="fu">c</span>(<span class="st">"day_type"</span>,<span class="st">"hour"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(hour,as.numeric))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>time_slots <span class="ot">&lt;-</span> summary_pairs <span class="sc">|&gt;</span> <span class="fu">select</span>(day_type,hour) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>offences_bool <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">join_all</span>(</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(time_slots),</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>       \(j,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">h_threshold =</span> <span class="dv">1</span>){</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>         summary_pairs <span class="sc">|&gt;</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>           <span class="fu">select</span>(pair_id) <span class="sc">|&gt;</span> </span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>           <span class="fu">unique</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>           <span class="fu">left_join</span>(minor_offences <span class="sc">|&gt;</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>           <span class="fu">filter</span>(day_type <span class="sc">==</span> time_slots<span class="sc">$</span>day_type[j],</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">abs</span>(hour <span class="sc">-</span> time_slots<span class="sc">$</span>hour[j])<span class="sc">&lt;=</span>h_threshold) <span class="sc">|&gt;</span> </span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>           <span class="fu">count</span>(pair_id),</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">by =</span> <span class="fu">join_by</span>(pair_id)) <span class="sc">|&gt;</span> </span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>           <span class="fu">rename_with</span>(<span class="at">.fn =</span>\(x) {<span class="fu">paste</span>(time_slots<span class="sc">$</span>day_type[j],time_slots<span class="sc">$</span>hour[j],<span class="at">sep =</span> <span class="st">"_"</span>)},<span class="at">.cols =</span> <span class="st">"n"</span>)</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>       }),<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>pair_id,\(x){<span class="sc">!</span><span class="fu">is.na</span>(x)})) <span class="sc">|&gt;</span></span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>pair_id,<span class="at">values_to =</span> <span class="st">"offence_bool"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate_wider_delim</span>(name, <span class="at">delim =</span> <span class="st">"_"</span>,<span class="at">names =</span> <span class="fu">c</span>(<span class="st">"day_type"</span>,<span class="st">"hour"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(hour,as.numeric))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>model_data <span class="ot">&lt;-</span> (summary_pairs <span class="sc">|&gt;</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(simpl_network_sf,</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"pair_id"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(summary_pairs_dist.jct,<span class="at">by =</span> <span class="fu">join_by</span>(pair_id)) <span class="sc">|&gt;</span> </span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(offences_bool,<span class="at">by =</span> <span class="fu">join_by</span>(pair_id,hour,day_type))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>offences_bool <span class="sc">|&gt;</span>  </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(offence_bool) <span class="sc">|&gt;</span> </span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(day_type,hour) <span class="sc">|&gt;</span> </span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(hour,n,<span class="at">col =</span> day_type,<span class="at">group =</span> day_type))<span class="sc">+</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
-<section id="fitting-logisting-regressions" class="level4">
-<h4 class="anchored" data-anchor-id="fitting-logisting-regressions">Fitting logisting regressions</h4>
+</div>
+</div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>glm_models_0 <span class="ot">&lt;-</span> model_data <span class="sc">|&gt;</span> </span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">data =</span> <span class="fu">c</span>(pair_id,</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                diff_min<span class="sc">:</span>offence_bool)) <span class="sc">|&gt;</span> </span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_rel =</span> <span class="fu">map</span>(data,</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>                \(.x) {</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">glm</span>(offence_bool <span class="sc">~</span> logdiff_max,</span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> .x,</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>                <span class="co"># },</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>                <span class="co"># model_abs = map(data,</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>                <span class="co"># \(.x) {</span></span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>                <span class="co">#  glm(p ~ logdiff_max,</span></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>                <span class="co">#      data = .x,</span></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>                <span class="co">#      family = binomial(link = "logit"))</span></span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>                }</span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>                )</span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>                )</span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>mod_pred_0 <span class="ot">&lt;-</span> glm_models_0 <span class="sc">|&gt;</span> </span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">predicted =</span> <span class="fu">map2</span>(model_rel, data ,\(.x,.y) {</span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">logdiff_max =</span> .y<span class="sc">$</span>logdiff_max,</span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">offence_bool =</span> <span class="fu">predict</span>(.x,</span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">newdata =</span> .y,</span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span> </span>
-<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>data,<span class="sc">-</span>model_rel) <span class="sc">|&gt;</span> </span>
-<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> predicted) <span class="sc">|&gt;</span> </span>
-<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"id"</span>,day_type<span class="sc">:</span>hour,<span class="at">remove =</span> F) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>model_data <span class="ot">&lt;-</span> (summary_pairs <span class="sc">|&gt;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(simpl_subset_sf <span class="sc">|&gt;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>               <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>               <span class="fu">select</span>(pair_id,way_id,oneway),</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"pair_id"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(summary_pairs_dist.jct,<span class="at">by =</span> <span class="fu">join_by</span>(pair_id)) <span class="sc">|&gt;</span> </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(offences_bool,<span class="at">by =</span> <span class="fu">join_by</span>(pair_id,hour,day_type))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="fitting-global-logisting-regressions" class="level4">
+<h4 class="anchored" data-anchor-id="fitting-global-logisting-regressions">Fitting global logisting regressions</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>glm_models_0 <span class="ot">&lt;-</span> model_data <span class="sc">|&gt;</span> </span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">data =</span> <span class="fu">c</span>(pair_id,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>                diff_min<span class="sc">:</span>offence_bool)) <span class="sc">|&gt;</span> </span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_rel =</span> <span class="fu">map</span>(data,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>                \(.x) {</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">glm</span>(offence_bool <span class="sc">~</span> logdiff_max,</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> .x,</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>                <span class="co"># },</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>                <span class="co"># model_abs = map(data,</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>                <span class="co"># \(.x) {</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>                <span class="co">#  glm(p ~ logdiff_max,</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>                <span class="co">#      data = .x,</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>                <span class="co">#      family = binomial(link = "logit"))</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>                }</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>mod_pred_0 <span class="ot">&lt;-</span> glm_models_0 <span class="sc">|&gt;</span> </span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">predicted =</span> <span class="fu">map2</span>(model_rel, data ,\(.x,.y) {</span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">logdiff_max =</span> .y<span class="sc">$</span>logdiff_max,</span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">offence_bool =</span> <span class="fu">predict</span>(.x,</span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">newdata =</span> .y,</span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">type =</span> <span class="st">"response"</span>))</span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span> </span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>data,<span class="sc">-</span>model_rel) <span class="sc">|&gt;</span> </span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> predicted) <span class="sc">|&gt;</span> </span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"id"</span>,day_type<span class="sc">:</span>hour,<span class="at">remove =</span> F) <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>A visual of the fitted lines</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>mod_pred_0 <span class="sc">|&gt;</span> </span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> logdiff_max,</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> offence_bool,</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">group =</span> id,</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">col =</span> hour,<span class="at">linetype =</span> day_type))<span class="sc">+</span></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.1</span>)<span class="sc">+</span></span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))<span class="sc">+</span></span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"plasma"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>mod_pred_0 <span class="sc">|&gt;</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> logdiff_max,</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> offence_bool,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">group =</span> id,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">col =</span> hour,<span class="at">linetype =</span> day_type))<span class="sc">+</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.1</span>)<span class="sc">+</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"plasma"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="reducing-the-bias-of-pseudo-negatives-by-random-sampling" class="level3">
-<h3 class="anchored" data-anchor-id="reducing-the-bias-of-pseudo-negatives-by-random-sampling">Reducing the bias of pseudo-negatives by random sampling</h3>
+<section id="expanding-the-reports-to-adjacent-links" class="level3">
+<h3 class="anchored" data-anchor-id="expanding-the-reports-to-adjacent-links">Expanding the reports to adjacent links</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>model_reports <span class="ot">&lt;-</span> model_data <span class="sc">|&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(offence_bool)</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>reports_pair_ids <span class="ot">&lt;-</span> model_reports<span class="sc">$</span>pair_id <span class="sc">|&gt;</span> <span class="fu">unique</span>()</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>reports_pair_ids_rand <span class="ot">&lt;-</span> <span class="fu">sample</span>(model_data<span class="sc">$</span>pair_id[<span class="sc">!</span>(model_data<span class="sc">$</span>pair_id <span class="sc">%in%</span> reports_pair_ids)],</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">size =</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">length</span>(reports_pair_ids))</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>rand_absences_data <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  model_reports,</span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  model_data <span class="sc">|&gt;</span></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span>offence_bool) <span class="sc">|&gt;</span> </span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># filter(pair_id %in% reports_pair_ids|pair_id %in% reports_pair_ids_rand))</span></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pair_id <span class="sc">%in%</span> reports_pair_ids))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>grid_fill_p <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">day_type =</span> <span class="fu">c</span>(<span class="st">"weekday"</span>,<span class="st">"weekend"</span>),</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">hour =</span> <span class="fu">unique</span>(minor_offences<span class="sc">$</span>hour)) <span class="sc">|&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(day_type,hour)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>exp_probs <span class="ot">&lt;-</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do.call</span>(bind_rows, <span class="fu">lapply</span>(</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(grid_fill_p),</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4:5,</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    \(i) {</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>      <span class="do">## Extracting the pair ids that have WWD reports at the day type-hour</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>      t_pair_ids <span class="ot">&lt;-</span> minor_offences <span class="sc">|&gt;</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(hour <span class="sc">==</span> grid_fill_p<span class="sc">$</span>hour[i], day_type <span class="sc">==</span> grid_fill_p<span class="sc">$</span>day_type[i]) <span class="sc">|&gt;</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pull</span>(pair_id)</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(t_pair_ids) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>        t_full_exp <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>          <span class="at">from_id =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>          <span class="at">to_id =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">p =</span> <span class="cn">NA_real_</span>,</span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>          <span class="at">hour =</span> grid_fill_p<span class="sc">$</span>hour[i],</span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>          <span class="at">day_type =</span> grid_fill_p<span class="sc">$</span>day_type[i]</span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>        subset_net_offence <span class="ot">&lt;-</span> subset_net <span class="sc">|&gt;</span></span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>          <span class="fu">mutate</span>(<span class="at">offence_bool =</span> pair_id <span class="sc">%in%</span> t_pair_ids)</span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>        fill_probs <span class="ot">&lt;-</span> <span class="cf">function</span>(edges_df, <span class="at">direction =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"-1"</span>)) {</span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a>          direction <span class="ot">=</span> <span class="fu">match.arg</span>(direction)</span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> (direction <span class="sc">==</span> <span class="st">"1"</span>) {</span>
+<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a>            <span class="fu">do.call</span>(bind_rows, <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(edges_df), \(j) {</span>
+<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a>              subset_net_offence <span class="sc">|&gt;</span></span>
+<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a>                <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a>                <span class="fu">select</span>(from_id, to_id) <span class="sc">|&gt;</span></span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a>                <span class="fu">filter</span>(to_id <span class="sc">==</span> edges_df<span class="sc">$</span>from_id[j],</span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a>                       from_id <span class="sc">!=</span> edges_df<span class="sc">$</span>to_id[j]) <span class="sc">|&gt;</span></span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a>                <span class="fu">mutate</span>(<span class="at">p =</span> edges_df<span class="sc">$</span>p[j] <span class="sc">/</span> <span class="fu">n</span>())</span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a>            }))</span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a>          } <span class="cf">else</span> {</span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a>            <span class="fu">do.call</span>(bind_rows, <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(edges_df), \(j) {</span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a>              subset_net_offence <span class="sc">|&gt;</span></span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a>                <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-49"><a href="#cb34-49" aria-hidden="true" tabindex="-1"></a>                <span class="fu">select</span>(from_id, to_id) <span class="sc">|&gt;</span></span>
+<span id="cb34-50"><a href="#cb34-50" aria-hidden="true" tabindex="-1"></a>                <span class="fu">filter</span>(from_id <span class="sc">==</span> edges_df<span class="sc">$</span>to_id[j],</span>
+<span id="cb34-51"><a href="#cb34-51" aria-hidden="true" tabindex="-1"></a>                       to_id <span class="sc">!=</span> edges_df<span class="sc">$</span>from_id[j]) <span class="sc">|&gt;</span></span>
+<span id="cb34-52"><a href="#cb34-52" aria-hidden="true" tabindex="-1"></a>                <span class="fu">mutate</span>(<span class="at">p =</span> edges_df<span class="sc">$</span>p[j] <span class="sc">/</span> <span class="fu">n</span>())</span>
+<span id="cb34-53"><a href="#cb34-53" aria-hidden="true" tabindex="-1"></a>            }))</span>
+<span id="cb34-54"><a href="#cb34-54" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb34-55"><a href="#cb34-55" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb34-56"><a href="#cb34-56" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb34-57"><a href="#cb34-57" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a>        expand_reports <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">max_degree =</span> <span class="dv">3</span>) {</span>
+<span id="cb34-60"><a href="#cb34-60" aria-hidden="true" tabindex="-1"></a>          check0 <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb34-61"><a href="#cb34-61" aria-hidden="true" tabindex="-1"></a>            <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-62"><a href="#cb34-62" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(from_id, to_id) <span class="sc">|&gt;</span></span>
+<span id="cb34-63"><a href="#cb34-63" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">p =</span> <span class="dv">1</span>)</span>
+<span id="cb34-64"><a href="#cb34-64" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb34-65"><a href="#cb34-65" aria-hidden="true" tabindex="-1"></a>          check <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb34-66"><a href="#cb34-66" aria-hidden="true" tabindex="-1"></a>          check[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="fu">fill_probs</span>(check0)</span>
+<span id="cb34-67"><a href="#cb34-67" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>max_degree) {</span>
+<span id="cb34-68"><a href="#cb34-68" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> (<span class="fu">nrow</span>(check[[i <span class="sc">-</span> <span class="dv">1</span>]]) <span class="sc">&lt;</span> <span class="dv">1</span>)</span>
+<span id="cb34-69"><a href="#cb34-69" aria-hidden="true" tabindex="-1"></a>              <span class="cf">break</span></span>
+<span id="cb34-70"><a href="#cb34-70" aria-hidden="true" tabindex="-1"></a>            check[[i]] <span class="ot">&lt;-</span> <span class="fu">fill_probs</span>(check[[i <span class="sc">-</span> <span class="dv">1</span>]])</span>
+<span id="cb34-71"><a href="#cb34-71" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb34-72"><a href="#cb34-72" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb34-73"><a href="#cb34-73" aria-hidden="true" tabindex="-1"></a>          checkr <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb34-74"><a href="#cb34-74" aria-hidden="true" tabindex="-1"></a>          checkr[[<span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="fu">fill_probs</span>(check0, <span class="at">direction =</span> <span class="st">"-1"</span>)</span>
+<span id="cb34-75"><a href="#cb34-75" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>max_degree) {</span>
+<span id="cb34-76"><a href="#cb34-76" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> (<span class="fu">nrow</span>(checkr[[i <span class="sc">-</span> <span class="dv">1</span>]]) <span class="sc">&lt;</span> <span class="dv">1</span>)</span>
+<span id="cb34-77"><a href="#cb34-77" aria-hidden="true" tabindex="-1"></a>              <span class="cf">break</span></span>
+<span id="cb34-78"><a href="#cb34-78" aria-hidden="true" tabindex="-1"></a>            checkr[[i]] <span class="ot">&lt;-</span> <span class="fu">fill_probs</span>(checkr[[i <span class="sc">-</span> <span class="dv">1</span>]], <span class="at">direction =</span> <span class="st">"-1"</span>)</span>
+<span id="cb34-79"><a href="#cb34-79" aria-hidden="true" tabindex="-1"></a>          }</span>
+<span id="cb34-80"><a href="#cb34-80" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb34-81"><a href="#cb34-81" aria-hidden="true" tabindex="-1"></a>          ckeck_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(check0,</span>
+<span id="cb34-82"><a href="#cb34-82" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">do.call</span>(bind_rows, check),</span>
+<span id="cb34-83"><a href="#cb34-83" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">do.call</span>(bind_rows, checkr)) <span class="sc">|&gt;</span></span>
+<span id="cb34-84"><a href="#cb34-84" aria-hidden="true" tabindex="-1"></a>            <span class="fu">summarise</span>(<span class="fu">across</span>(p, max), <span class="at">.by =</span> <span class="fu">c</span>(from_id, to_id))</span>
+<span id="cb34-85"><a href="#cb34-85" aria-hidden="true" tabindex="-1"></a>          <span class="fu">return</span>(ckeck_df)</span>
+<span id="cb34-86"><a href="#cb34-86" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb34-87"><a href="#cb34-87" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb34-88"><a href="#cb34-88" aria-hidden="true" tabindex="-1"></a>        t_full_exp <span class="ot">&lt;-</span> subset_net_offence <span class="sc">|&gt;</span></span>
+<span id="cb34-89"><a href="#cb34-89" aria-hidden="true" tabindex="-1"></a>          <span class="fu">filter</span>(offence_bool) <span class="sc">|&gt;</span></span>
+<span id="cb34-90"><a href="#cb34-90" aria-hidden="true" tabindex="-1"></a>          <span class="fu">expand_reports</span>() <span class="sc">|&gt;</span></span>
+<span id="cb34-91"><a href="#cb34-91" aria-hidden="true" tabindex="-1"></a>          <span class="fu">mutate</span>(<span class="at">hour =</span> grid_fill_p<span class="sc">$</span>hour[i], <span class="at">day_type =</span> grid_fill_p<span class="sc">$</span>day_type[i])</span>
+<span id="cb34-92"><a href="#cb34-92" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb34-93"><a href="#cb34-93" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb34-94"><a href="#cb34-94" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(t_full_exp)</span>
+<span id="cb34-95"><a href="#cb34-95" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb34-96"><a href="#cb34-96" aria-hidden="true" tabindex="-1"></a>  ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>rand_absences_data <span class="sc">|&gt;</span> </span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span> hour,<span class="at">fill =</span> offence_bool))<span class="sc">+</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>()<span class="sc">+</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(day_type<span class="sc">~</span>.)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>clean_probs <span class="ot">&lt;-</span> exp_probs <span class="sc">|&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(from_id, to_id) <span class="sc">|&gt;</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">p =</span> <span class="fu">max</span>(p),</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">.by =</span> <span class="fu">c</span>(day_type, hour, from_id, to_id)) <span class="sc">|&gt;</span> </span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>clean_probs_ids <span class="ot">&lt;-</span> subset_net <span class="sc">|&gt;</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(from_id, to_id,pair_id) <span class="sc">|&gt;</span> </span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(clean_probs,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">join_by</span>(from_id, to_id)) <span class="sc">|&gt;</span> </span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(p,\(x) <span class="fu">max</span>(x,<span class="at">na.rm =</span> T)),</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">.by =</span> <span class="fu">c</span>(day_type,hour,pair_id))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A visual check</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span> </span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(clean_probs_ids <span class="sc">|&gt;</span> </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(day_type<span class="sc">==</span><span class="st">"weekday"</span>,</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                     hour <span class="sc">==</span> <span class="dv">18</span>),</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>()<span class="sc">+</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_lines</span>(<span class="st">"p"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>glm_models_0_rand <span class="ot">&lt;-</span> rand_absences_data <span class="sc">|&gt;</span> </span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">data =</span> <span class="fu">c</span>(pair_id,</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>                diff_min<span class="sc">:</span>offence_bool)) <span class="sc">|&gt;</span> </span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_rel =</span> <span class="fu">map</span>(data,</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>                \(.x) {</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">glm</span>(offence_bool <span class="sc">~</span> logdiff_max,</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> .x,</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>                }</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>                )</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>                )</span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>mod_pred_0_rand <span class="ot">&lt;-</span> glm_models_0_rand <span class="sc">|&gt;</span> </span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">predicted =</span> <span class="fu">map2</span>(model_rel, data ,\(.x,.y) {</span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">logdiff_max =</span> .y<span class="sc">$</span>logdiff_max,</span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>           <span class="at">offence_bool =</span> <span class="fu">predict</span>(.x,</span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">newdata =</span> .y,</span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">type =</span> <span class="st">"response"</span>))</span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span> </span>
-<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>data,<span class="sc">-</span>model_rel) <span class="sc">|&gt;</span> </span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> predicted) <span class="sc">|&gt;</span> </span>
-<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"id"</span>,day_type<span class="sc">:</span>hour,<span class="at">remove =</span> F) <span class="sc">|&gt;</span></span>
-<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>mod_coefs <span class="ot">&lt;-</span> glm_models_0_rand <span class="sc">|&gt;</span> </span>
-<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">coefs =</span> <span class="fu">map</span>(model_rel,\(.x) {</span>
-<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>    broom<span class="sc">::</span><span class="fu">tidy</span>(.x)</span>
-<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(day_type,hour,coefs) <span class="sc">|&gt;</span> </span>
-<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(coefs) <span class="sc">|&gt;</span> </span>
-<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># pivot_wider(names_from = term,values_from = estimate) |&gt; </span></span>
-<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">term =</span> term <span class="sc">|&gt;</span> <span class="fu">str_replace</span>(<span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">(Intercept</span><span class="sc">\\</span><span class="st">)"</span>,<span class="at">replacement =</span> <span class="st">"intercept"</span>),</span>
-<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a>         <span class="at">term =</span> term <span class="sc">|&gt;</span> <span class="fu">str_replace</span>(<span class="at">pattern =</span> <span class="st">".*_max"</span>,<span class="at">replacement =</span> <span class="st">"slope"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>mod_pred_0_rand <span class="sc">|&gt;</span> </span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> logdiff_max,</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> offence_bool,</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">group =</span> id,</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">col =</span> hour,<span class="at">linetype =</span> day_type))<span class="sc">+</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)<span class="sc">+</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))<span class="sc">+</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"plasma"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>mod_coefs <span class="sc">|&gt;</span> </span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stars =</span> <span class="fu">cut</span>( p.value,</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.01</span>,<span class="fl">0.05</span>,<span class="fl">0.1</span>,<span class="dv">1</span>))) <span class="sc">|&gt;</span> </span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"slope"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> hour,</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> estimate,</span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">col =</span> stars))<span class="sc">+</span></span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>()<span class="sc">+</span></span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(.<span class="sc">~</span>day_type)<span class="sc">+</span></span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>model_data_p <span class="ot">&lt;-</span> model_data <span class="sc">|&gt;</span> </span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(clean_probs_ids,</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">by =</span> <span class="fu">join_by</span>(pair_id,hour,day_type)) <span class="sc">|&gt;</span> </span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">p =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(p),<span class="dv">0</span>,p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-</section>
-<section id="analysis-by-segments" class="level2">
-<h2 class="anchored" data-anchor-id="analysis-by-segments">Analysis by segments</h2>
+<section id="analysis-by-sectors" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-by-sectors">Analysis by sectors</h3>
+<p>We will use classification of Local Planning Units as analysis units. For that purpose, we load the <code>gkpg</code> file which has been extracted from the Reference map (available <a href="https://www.ideca.gov.co/recursos/mapas/mapa-de-referencia-para-bogota-dc">here</a>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>{grid_bog <span class="ot">&lt;-</span> urban_perimeter <span class="sc">|&gt;</span> </span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># st_transform(3116) |&gt; </span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_make_grid</span>(<span class="at">square =</span> F,<span class="at">cellsize =</span> <span class="fl">10e3</span>,<span class="at">offset =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">500</span>,<span class="sc">-</span><span class="dv">500</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>() </span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>minor_reports_grid <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(grid_bog,minor_offences) <span class="sc">|&gt;</span> <span class="fu">vapply</span>(length,<span class="fu">numeric</span>(<span class="dv">1</span>))</span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>grid_bog <span class="ot">&lt;-</span> grid_bog[minor_reports_grid<span class="sc">&gt;</span><span class="dv">50</span>,] <span class="sc">|&gt;</span> </span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowid_to_column</span>(<span class="st">"cell_id"</span>)</span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(grid_bog)<span class="sc">+</span></span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"cell_id"</span>)<span class="sc">+</span></span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(major_net)<span class="sc">+</span></span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_lines</span>(<span class="st">"gray80"</span>)</span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># tm_lines("gray80")+</span></span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># tm_shape(minor_offences)+</span></span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># tm_dots("blue")</span></span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"raw_data"</span>,<span class="at">showWarnings =</span> F)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="st">"UPL_Bogota.zip"</span>))) {</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  u <span class="ot">&lt;-</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://github.com/juanfonsecaLS1/P1_ratruns_analysis/releases/download/v0/UPL_Bogota.zip"</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(u, <span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="fu">basename</span>(u)), <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unzip</span>(<span class="at">zipfile =</span> <span class="fu">file.path</span>(<span class="st">"raw_data"</span>, <span class="fu">basename</span>(u)), <span class="at">exdir =</span> <span class="st">"raw_data"</span>)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>lpu_boundaries <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="st">"raw_data/MR_VR0924_UPL.gpkg"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `mr_v0924_upl' from data source 
+  `/home/juan/P1_ratruns_analysis/raw_data/MR_VR0924_UPL.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 33 features and 11 fields
+Geometry type: POLYGON
+Dimension:     XY
+Bounding box:  xmin: -74.44978 ymin: 3.73103 xmax: -73.98653 ymax: 4.836779
+Geodetic CRS:  MAGNA-SIRGAS</code></pre>
+</div>
+</div>
+<p>LPU have been classified according to official sources (see this). North and Northwest sectors have been merged. Only urban sectors are considered.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>lpu_sector <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"raw_data/UPL_sectors.csv"</span>,</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">col_types =</span> <span class="fu">cols</span>(</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">CODIGO_UPL =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">Sector =</span> <span class="fu">col_character</span>()</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>                         ))</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>sector_boundaries <span class="ot">&lt;-</span> lpu_boundaries <span class="sc">|&gt;</span> </span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(lpu_sector,</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">"CODIGO_UPL"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Sector =</span> <span class="fu">str_remove</span>(Sector,<span class="st">"(?&lt;=North)west"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Sector) <span class="sc">|&gt;</span> </span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">geom =</span> <span class="fu">st_union</span>(geom)) <span class="sc">|&gt;</span> </span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Sector <span class="sc">!=</span> <span class="st">"Rural"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(simpl_network_sf))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This shows</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(sector_boundaries) <span class="sc">+</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"Sector"</span>,</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">fill.scale =</span> <span class="fu">tm_scale_categorical</span>(<span class="at">values =</span> <span class="st">"brewer.set3"</span>),</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">fill_alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(major_net) <span class="sc">+</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_lines</span>(<span class="st">"gray60"</span>,<span class="at">col_alpha =</span> .<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>Spatial Join</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>grid_off <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(grid_bog,simpl_network_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>sector_boundaries<span class="sc">$</span>n_reports <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(sector_boundaries,minor_offences) <span class="sc">|&gt;</span> <span class="fu">vapply</span>(length,<span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>sector_boundaries</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 5 features and 2 fields
+Geometry type: POLYGON
+Dimension:     XY
+Bounding box:  xmin: 983791.8 ymin: 985462.7 xmax: 1007261 ymax: 1026604
+Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
+# A tibble: 5 × 3
+  Sector                                                          geom n_reports
+* &lt;chr&gt;                                                  &lt;POLYGON [m]&gt;     &lt;dbl&gt;
+1 Extended Centre ((999176.2 999239, 999181.3 999235.8, 999309.9 9991…      9345
+2 North           ((1000188 1026603, 1000167 1026603, 1000145 1026601…      1810
+3 South           ((999531.2 992666, 999531.2 992666.6, 999531.5 9926…      1655
+4 Southwest       ((987874.4 1006112, 987821.7 1006129, 987792.1 1006…      2326
+5 West            ((997587.8 1013425, 997573.7 1013436, 997551.7 1013…      2541</code></pre>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lapply</span>(grid_off,</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>       \(x) {</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>         grid_reports <span class="ot">&lt;-</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>           rand_absences_data <span class="sc">|&gt;</span></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>           <span class="fu">filter</span>(pair_id <span class="sc">%in%</span> simpl_network_sf<span class="sc">$</span>pair_id[x])</span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>              </span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>         glm_models_1_rand <span class="ot">&lt;-</span> grid_reports <span class="sc">|&gt;</span> </span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>           <span class="fu">nest</span>(<span class="at">data =</span> <span class="fu">c</span>(pair_id,</span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>                         diff_min<span class="sc">:</span>offence_bool)) <span class="sc">|&gt;</span></span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>           </span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">mutate</span>(<span class="at">model_rel =</span> <span class="fu">map</span>(data,</span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>                                  \(.x) {</span>
-<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>                                    <span class="fu">glm</span>(offence_bool <span class="sc">~</span> logdiff_max,</span>
-<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">data =</span> .x,</span>
-<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
-<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>                                  }))</span>
-<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>         mod_pred_1_rand <span class="ot">&lt;-</span> glm_models_1_rand <span class="sc">|&gt;</span></span>
-<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>           <span class="fu">mutate</span>(<span class="at">predicted =</span> <span class="fu">map2</span>(model_rel, data , \(.x, .y) {</span>
-<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>             <span class="fu">tibble</span>(</span>
-<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>               <span class="at">logdiff_max =</span> .y<span class="sc">$</span>logdiff_max,</span>
-<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>               <span class="at">offence_bool =</span> <span class="fu">predict</span>(.x,</span>
-<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">newdata =</span> .y,</span>
-<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>             )</span>
-<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>           })) <span class="sc">|&gt;</span></span>
-<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>           <span class="fu">select</span>(<span class="sc">-</span>data, <span class="sc">-</span>model_rel) <span class="sc">|&gt;</span></span>
-<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a>           <span class="fu">unnest</span>(<span class="at">cols =</span> predicted) <span class="sc">|&gt;</span></span>
-<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a>           <span class="fu">unite</span>(<span class="st">"id"</span>, day_type<span class="sc">:</span>hour, <span class="at">remove =</span> F)</span>
-<span id="cb39-31"><a href="#cb39-31" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-32"><a href="#cb39-32" aria-hidden="true" tabindex="-1"></a>         mod_coefs_1 <span class="ot">&lt;-</span> glm_models_1_rand <span class="sc">|&gt;</span></span>
-<span id="cb39-33"><a href="#cb39-33" aria-hidden="true" tabindex="-1"></a>           <span class="fu">mutate</span>(<span class="at">coefs =</span> <span class="fu">map</span>(model_rel, \(.x) {</span>
-<span id="cb39-34"><a href="#cb39-34" aria-hidden="true" tabindex="-1"></a>             broom<span class="sc">::</span><span class="fu">tidy</span>(.x)</span>
-<span id="cb39-35"><a href="#cb39-35" aria-hidden="true" tabindex="-1"></a>           })) <span class="sc">|&gt;</span></span>
-<span id="cb39-36"><a href="#cb39-36" aria-hidden="true" tabindex="-1"></a>           <span class="fu">select</span>(day_type, hour, coefs) <span class="sc">|&gt;</span></span>
-<span id="cb39-37"><a href="#cb39-37" aria-hidden="true" tabindex="-1"></a>           <span class="fu">unnest</span>(coefs) <span class="sc">|&gt;</span></span>
-<span id="cb39-38"><a href="#cb39-38" aria-hidden="true" tabindex="-1"></a>           <span class="co"># pivot_wider(names_from = term,values_from = estimate) |&gt;</span></span>
-<span id="cb39-39"><a href="#cb39-39" aria-hidden="true" tabindex="-1"></a>           <span class="fu">mutate</span>(</span>
-<span id="cb39-40"><a href="#cb39-40" aria-hidden="true" tabindex="-1"></a>             <span class="at">term =</span> term <span class="sc">|&gt;</span> <span class="fu">str_replace</span>(<span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">(Intercept</span><span class="sc">\\</span><span class="st">)"</span>, <span class="at">replacement =</span> <span class="st">"intercept"</span>),</span>
-<span id="cb39-41"><a href="#cb39-41" aria-hidden="true" tabindex="-1"></a>             <span class="at">term =</span> term <span class="sc">|&gt;</span> <span class="fu">str_replace</span>(<span class="at">pattern =</span> <span class="st">".*_max"</span>, <span class="at">replacement =</span> <span class="st">"slope"</span>)</span>
-<span id="cb39-42"><a href="#cb39-42" aria-hidden="true" tabindex="-1"></a>           )</span>
-<span id="cb39-43"><a href="#cb39-43" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-44"><a href="#cb39-44" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-45"><a href="#cb39-45" aria-hidden="true" tabindex="-1"></a>         <span class="co"># my_plot &lt;- mod_pred_1_rand |&gt;</span></span>
-<span id="cb39-46"><a href="#cb39-46" aria-hidden="true" tabindex="-1"></a>         <span class="co">#   ggplot(aes(</span></span>
-<span id="cb39-47"><a href="#cb39-47" aria-hidden="true" tabindex="-1"></a>         <span class="co">#     x = logdiff_max,</span></span>
-<span id="cb39-48"><a href="#cb39-48" aria-hidden="true" tabindex="-1"></a>         <span class="co">#     y = offence_bool,</span></span>
-<span id="cb39-49"><a href="#cb39-49" aria-hidden="true" tabindex="-1"></a>         <span class="co">#     group = id,</span></span>
-<span id="cb39-50"><a href="#cb39-50" aria-hidden="true" tabindex="-1"></a>         <span class="co">#     col = hour,</span></span>
-<span id="cb39-51"><a href="#cb39-51" aria-hidden="true" tabindex="-1"></a>         <span class="co">#     linetype = day_type</span></span>
-<span id="cb39-52"><a href="#cb39-52" aria-hidden="true" tabindex="-1"></a>         <span class="co">#     )) +</span></span>
-<span id="cb39-53"><a href="#cb39-53" aria-hidden="true" tabindex="-1"></a>         <span class="co">#   geom_line(alpha = 0.5) +</span></span>
-<span id="cb39-54"><a href="#cb39-54" aria-hidden="true" tabindex="-1"></a>         <span class="co">#   scale_y_continuous(limits = c(0, 1)) +</span></span>
-<span id="cb39-55"><a href="#cb39-55" aria-hidden="true" tabindex="-1"></a>         <span class="co">#   theme_minimal() +</span></span>
-<span id="cb39-56"><a href="#cb39-56" aria-hidden="true" tabindex="-1"></a>         <span class="co">#   scale_color_viridis_c(option = "plasma")</span></span>
-<span id="cb39-57"><a href="#cb39-57" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-58"><a href="#cb39-58" aria-hidden="true" tabindex="-1"></a>         my_plot <span class="ot">&lt;-</span> mod_coefs_1 <span class="sc">|&gt;</span></span>
-<span id="cb39-59"><a href="#cb39-59" aria-hidden="true" tabindex="-1"></a>           <span class="fu">mutate</span>(<span class="at">stars =</span> <span class="fu">cut</span>(p.value,</span>
-<span id="cb39-60"><a href="#cb39-60" aria-hidden="true" tabindex="-1"></a>                              <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="dv">1</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb39-61"><a href="#cb39-61" aria-hidden="true" tabindex="-1"></a>           <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"slope"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb39-62"><a href="#cb39-62" aria-hidden="true" tabindex="-1"></a>           <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
-<span id="cb39-63"><a href="#cb39-63" aria-hidden="true" tabindex="-1"></a>             <span class="at">x =</span> hour,</span>
-<span id="cb39-64"><a href="#cb39-64" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> estimate,</span>
-<span id="cb39-65"><a href="#cb39-65" aria-hidden="true" tabindex="-1"></a>             <span class="at">col =</span> stars,</span>
-<span id="cb39-66"><a href="#cb39-66" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> day_type</span>
-<span id="cb39-67"><a href="#cb39-67" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
-<span id="cb39-68"><a href="#cb39-68" aria-hidden="true" tabindex="-1"></a>           <span class="fu">geom_point</span>()</span>
-<span id="cb39-69"><a href="#cb39-69" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb39-70"><a href="#cb39-70" aria-hidden="true" tabindex="-1"></a>         <span class="fu">return</span>(my_plot)</span>
-<span id="cb39-71"><a href="#cb39-71" aria-hidden="true" tabindex="-1"></a>       })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>grid_off <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(sector_boundaries,simpl_network_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Add here plots and tables with changes in centrality</p>
-<p>animation with changes in centrality by the hour(</p>
-<p>)</p>
-<p>animation with changes in model</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>minor_offences<span class="sc">$</span>sector <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(minor_offences,sector_boundaries) <span class="sc">|&gt;</span> <span class="fu">vapply</span>(\(x) (x),<span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>simpl_subset_sf<span class="sc">$</span>sector <span class="ot">&lt;-</span> </span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  simpl_subset_sf <span class="sc">|&gt;</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_centroid</span>() <span class="sc">|&gt;</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_intersects</span>(sector_boundaries) <span class="sc">|&gt;</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">vapply</span>(\(x) {</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(x) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>      <span class="cn">NA</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span>{</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>      x</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  }, <span class="fu">numeric</span>(<span class="dv">1</span>)) </span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>pair_2_sector <span class="ot">&lt;-</span> simpl_subset_sf <span class="sc">|&gt;</span> </span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(pair_id,sector)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>summary_sector_off <span class="ot">&lt;-</span> minor_offences <span class="sc">|&gt;</span> </span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(),<span class="at">.by =</span> <span class="fu">c</span>(day_type,hour,sector)) <span class="sc">|&gt;</span> </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(day_type,hour)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(summary_sector_off,</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> hour, <span class="at">y =</span> n,<span class="at">col =</span> <span class="fu">factor</span>(sector)))<span class="sc">+</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(day_type<span class="sc">~</span>.)<span class="sc">+</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-42-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>model_data_p_sec <span class="ot">&lt;-</span> model_data_p <span class="sc">|&gt;</span> </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pair_2_sector, <span class="at">by =</span> <span class="fu">join_by</span>(pair_id)) <span class="sc">|&gt;</span> </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(sector)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="creating-pseudo-absences" class="level3">
+<h3 class="anchored" data-anchor-id="creating-pseudo-absences">Creating pseudo-absences</h3>
+<p>Under the assumption that the transport police have the same number of officers allocated along the day. We can assume that the sample size (the number of monitored roads) is the same.</p>
+<p>In this case we will assume that 10% of the roads are constantly monitored. Also, it is assumed that the allocation of officers is proportional to the size of the network.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>sample_size <span class="ot">&lt;-</span>  <span class="fl">0.1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Calculating the actual sample size for each sector.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>sample_size_sector <span class="ot">&lt;-</span> model_data_p_sec <span class="sc">|&gt;</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(day_type,hour,sector,</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">name =</span> <span class="st">"n_links"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(sector,n_links) <span class="sc">|&gt;</span> </span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sample_size =</span> <span class="fu">round</span>(sample_size<span class="sc">*</span>n_links,<span class="sc">-</span><span class="dv">1</span>),<span class="at">.keep =</span> <span class="st">"none"</span>,<span class="at">.by =</span> sector)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>sample_size_sector <span class="sc">|&gt;</span> <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">sector</th>
+<th style="text-align: right;">sample_size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1380</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1130</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1710</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1420</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">770</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Based on these sample sizes, we will randomly sample different roads within the sector as pseudo-absences. Pseudo-absences are used in ecology when working with presence-only data and no actual absences are recorded, for example, recording presence of exotic species.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>model_data_sampled <span class="ot">&lt;-</span> model_data_p_sec <span class="sc">|&gt;</span>  </span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">.by =</span> <span class="fu">c</span>(day_type,hour,sector)) <span class="sc">|&gt;</span> </span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(sample_size_sector,<span class="at">by=</span><span class="st">"sector"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_true =</span> <span class="fu">map_dbl</span>(data,\(.x) {</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>      .x <span class="sc">|&gt;</span> <span class="fu">filter</span>(offence_bool) <span class="sc">|&gt;</span> <span class="fu">nrow</span>()</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>      }),</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">obs =</span> <span class="fu">map</span>(data,\(.x) {</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>      .x <span class="sc">|&gt;</span> <span class="fu">filter</span>(offence_bool) </span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>      }),</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">pseudoabs =</span> <span class="fu">map2</span>(<span class="at">.x =</span> data,</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>                       <span class="at">.y =</span> sample_size<span class="sc">-</span>n_true,</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>                       <span class="at">.f =</span> \(.x,.y) {</span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>                         .x <span class="sc">|&gt;</span></span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>                           <span class="fu">filter</span>(p<span class="sc">==</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>                           <span class="fu">slice_sample</span>(<span class="at">n =</span> .y)</span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>                         }</span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>                       ),</span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_data =</span> <span class="fu">map2</span>(<span class="at">.x =</span> obs,</span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.y =</span> pseudoabs,</span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">.f =</span> \(.x,.y){</span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">bind_rows</span>(.x,.y)</span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>                    })</span>
+<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">|&gt;</span> </span>
+<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(day_type<span class="sc">:</span>sector,n_true,model_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will fit logistic models with this data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>glm_sec_sampled <span class="ot">&lt;-</span> model_data_sampled <span class="sc">|&gt;</span> </span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rel =</span> <span class="fu">map</span>(model_data, \(.x) {</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">glm</span>(offence_bool <span class="sc">~</span> logdiff_max,</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> .x,</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  }))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Using the models to predict probabilities</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>pred_sec_sampled <span class="ot">&lt;-</span> glm_sec_sampled <span class="sc">|&gt;</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">predicted =</span> <span class="fu">map2</span>(model_rel, model_data , \(.x, .y) {</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">logdiff_max =</span> .y<span class="sc">$</span>logdiff_max,</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">offence_bool =</span> <span class="fu">predict</span>(.x, <span class="at">newdata =</span> .y, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  })) <span class="sc">|&gt;</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>model_data, <span class="sc">-</span>model_rel) <span class="sc">|&gt;</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> predicted) <span class="sc">|&gt;</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"id"</span>, day_type<span class="sc">:</span>hour, <span class="at">remove =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Extracting the coefficients from the models</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>coefs_sec_sampled <span class="ot">&lt;-</span> glm_sec_sampled <span class="sc">|&gt;</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">coefs =</span> <span class="fu">map</span>(model_rel, \(.x) {</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    broom<span class="sc">::</span><span class="fu">tidy</span>(.x)</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  })) <span class="sc">|&gt;</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(day_type, hour, sector, coefs) <span class="sc">|&gt;</span></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(coefs) <span class="sc">|&gt;</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># pivot_wider(names_from = term,values_from = estimate) |&gt;</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> term <span class="sc">|&gt;</span> <span class="fu">str_replace</span>(<span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">(Intercept</span><span class="sc">\\</span><span class="st">)"</span>, <span class="at">replacement =</span> <span class="st">"intercept"</span>),</span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">term =</span> term <span class="sc">|&gt;</span> <span class="fu">str_replace</span>(<span class="at">pattern =</span> <span class="st">".*_max"</span>, <span class="at">replacement =</span> <span class="st">"slope"</span>)</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Plotting the predicted probabilities</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>pred_sec_sampled <span class="sc">|&gt;</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> logdiff_max,</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> offence_bool,</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">group =</span> id,</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">col =</span> hour,</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>             <span class="co"># linetype = day_type</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>             ))<span class="sc">+</span></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)<span class="sc">+</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"turbo"</span>)<span class="sc">+</span></span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(sector<span class="sc">~</span>.)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-50-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Plotting the coefficients</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>coefs_sec_sampled <span class="sc">|&gt;</span> </span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stars =</span> <span class="fu">cut</span>( p.value,</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.01</span>,<span class="fl">0.05</span>,<span class="fl">0.1</span>,<span class="dv">1</span>))) <span class="sc">|&gt;</span> </span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"slope"</span>,<span class="fu">between</span>(hour,<span class="dv">5</span>,<span class="dv">20</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> hour,</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> estimate</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>             ))<span class="sc">+</span></span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">col =</span> <span class="fu">factor</span>(sector)))<span class="sc">+</span></span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">size =</span> stars,<span class="at">col =</span> <span class="fu">factor</span>(sector)),<span class="at">alpha =</span> <span class="fl">0.6</span>)<span class="sc">+</span></span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># facet_grid(.~sector)+</span></span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)<span class="sc">+</span></span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>                     <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.8</span>,<span class="fl">0.5</span>,<span class="fl">0.1</span>)<span class="sc">*</span><span class="dv">2</span>,<span class="at">na.value =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-52-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="daily-potential" class="level2">
+<h2 class="anchored" data-anchor-id="daily-potential">Daily potential</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>n_d10_logdiff_max <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(summary_pairs,<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span>  </span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d10_bool =</span> logdiff_max <span class="sc">&gt;=</span> <span class="fu">quantile</span>(logdiff_max, <span class="fl">0.90</span>,<span class="at">na.rm =</span> T),</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.by=</span><span class="fu">c</span>(hour,day_type,roadclass)) <span class="sc">|&gt;</span> </span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_d10 =</span> <span class="fu">sum</span>(d10_bool,<span class="at">na.rm =</span> T),<span class="at">.by =</span> <span class="fu">c</span>(pair_id,day_type)) <span class="sc">|&gt;</span> </span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> day_type,<span class="at">values_from =</span> n_d10)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>      }))) <span class="sc">|&gt;</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span>  weekday,</span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">linewidth =</span> weekday_ld)) <span class="sc">+</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_viridis_b</span>(<span class="at">na.value =</span> <span class="st">"gray30"</span>,</span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>                         <span class="at">option =</span> <span class="st">"plasma"</span>,</span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>                         <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_linewidth_continuous</span>(</span>
+<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">24</span>),</span>
+<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>),</span>
+<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="st">"exp"</span></span>
+<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb59-22"><a href="#cb59-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">linewidth =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb59-23"><a href="#cb59-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">col =</span> <span class="st">"Rat-run potential"</span>) <span class="sc">+</span></span>
+<span id="cb59-24"><a href="#cb59-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>,</span>
+<span id="cb59-25"><a href="#cb59-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.7</span>))</span>
+<span id="cb59-26"><a href="#cb59-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-27"><a href="#cb59-27" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>      })))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 91970 features and 15 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 979293.3 ymin: 985597.3 xmax: 1007251 ymax: 1025644
+Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
+First 10 features:
+   lanes     way_id    roadclass oneway lanes.1 surface maxspeed       time
+1     NA   89742442  residential  FALSE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  36.379850
+2      1   86192048   trunk_link   TRUE       1 asphalt     &lt;NA&gt;   6.131124
+3      2   90894261     tertiary   TRUE       2 asphalt     &lt;NA&gt;  28.521182
+4      1   24798427 primary_link   TRUE       1 asphalt     &lt;NA&gt;   6.488302
+5     NA  117826480     tertiary  FALSE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  12.262932
+6      2   24075320   trunk_link   TRUE       2 asphalt     &lt;NA&gt;  19.056994
+7     NA  689403428  residential  FALSE    &lt;NA&gt; unpaved     &lt;NA&gt; 122.464815
+8      2   31509948  residential  FALSE       2 asphalt     &lt;NA&gt;   6.420331
+9     NA  523839186  residential  FALSE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  11.820349
+10    NA 550938368r  residential   TRUE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  29.528495
+   time_weighted component pair_id weekday weekend
+1      36.379850         1       1       1       0
+2       6.131124         1       2      NA      NA
+3      28.521182         1       3      NA      NA
+4       6.488302         1       4      NA      NA
+5      12.262932         1       5      NA      NA
+6      19.056994         1       6      NA      NA
+7     122.464815         1       7       1       0
+8       6.420331         1       8       4       4
+9      11.820349         1       9       9      11
+10     29.528495         1      10       1       0
+                             geom weekday_ld weekend_ld
+1  LINESTRING (995528.4 995623...          1          0
+2  LINESTRING (996495.7 101233...          1          1
+3  LINESTRING (998739.2 101067...          1          1
+4  LINESTRING (997806.9 100455...          1          1
+5  LINESTRING (998659.5 996788...          1          1
+6  LINESTRING (1002287 1009965...          1          1
+7  LINESTRING (988912.4 100125...          1          0
+8  LINESTRING (990692.7 100298...          4          4
+9  LINESTRING (996803.1 997474...          9         11
+10 LINESTRING (986133.3 100201...          1          0</code></pre>
+</div>
+</div>
 
 
 </section>
