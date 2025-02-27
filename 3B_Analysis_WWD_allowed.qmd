@@ -811,9 +811,39 @@ coefs_sec_sampled |>
   theme(legend.position = "top")+
   scale_color_brewer(type = "qual",
                      palette = "Set3")+
-  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)
-  
-  
+  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)+
+  labs(y = "Slope",
+       x = "",
+       col = "Sector",size = "p-value")+
+  theme(legend.byrow = T,
+        axis.text.x = element_text(angle = 90))+
+  scale_x_continuous(breaks = 0:24,
+                     labels = sprintf("%02d:00",0:24))
+```
+
+```{r}
+coefs_sec_sampled |> 
+  filter(day_type == "weekday") |> 
+  mutate(stars = cut( p.value,
+                      breaks = c(0,0.01,0.05,0.1,1))) |> 
+  filter(term == "intercept",between(hour,5,20)) |> 
+  ggplot(aes(x = hour,
+             y = exp(estimate)
+             ))+
+  geom_line(aes(col = factor(sector)))+
+    geom_point(aes(size = stars,col = factor(sector)),alpha = 0.6)+
+  # facet_grid(.~sector)+
+  theme(legend.position = "top")+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)+
+  labs(y = "Intercept",
+       x = "",
+       col = "Sector",size = "p-value")+
+  theme(legend.byrow = T,
+        axis.text.x = element_text(angle = 90))+
+  scale_x_continuous(breaks = 0:24,
+                     labels = sprintf("%02d:00",0:24))
 ```
 
 ## Daily potential
