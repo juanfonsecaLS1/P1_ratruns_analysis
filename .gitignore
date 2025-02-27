@@ -61,6 +61,10 @@ raw_data/*
 /_site/
 /_site/*
 
+# freeze 
+/_freeze/
+/_freeze/*
+
 
 # rds files
 *.rds
