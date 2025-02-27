@@ -294,7 +294,7 @@ Geodetic CRS:  MAGNA-SIRGAS</code></pre>
 <pre><code>Reading layer `manualtickets_clean_sf' from data source 
   `/home/juan/P1_ratruns_analysis/sf_network/manualtickets_clean_sf.gpkg' 
   using driver `GPKG'
-Simple feature collection with 396988 features and 9 fields
+Simple feature collection with 395211 features and 9 fields
 Geometry type: POINT
 Dimension:     XY
 Bounding box:  xmin: -74.21482 ymin: 4.469726 xmax: -74.01338 ymax: 4.822895
@@ -867,11 +867,11 @@ Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
 # A tibble: 5 × 3
   Sector                                                          geom n_reports
 * &lt;chr&gt;                                                  &lt;POLYGON [m]&gt;     &lt;dbl&gt;
-1 Extended Centre ((999176.2 999239, 999181.3 999235.8, 999309.9 9991…      9345
-2 North           ((1000188 1026603, 1000167 1026603, 1000145 1026601…      1810
-3 South           ((999531.2 992666, 999531.2 992666.6, 999531.5 9926…      1655
-4 Southwest       ((987874.4 1006112, 987821.7 1006129, 987792.1 1006…      2326
-5 West            ((997587.8 1013425, 997573.7 1013436, 997551.7 1013…      2541</code></pre>
+1 Extended Centre ((999176.2 999239, 999181.3 999235.8, 999309.9 9991…      9248
+2 North           ((1000188 1026603, 1000167 1026603, 1000145 1026601…      1771
+3 South           ((999531.2 992666, 999531.2 992666.6, 999531.5 9926…      1635
+4 Southwest       ((987874.4 1006112, 987821.7 1006129, 987792.1 1006…      2303
+5 West            ((997587.8 1013425, 997573.7 1013436, 997551.7 1013…      2508</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1076,11 +1076,49 @@ Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)<span class="sc">+</span></span>
 <span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
 <span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>                     <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
-<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.8</span>,<span class="fl">0.5</span>,<span class="fl">0.1</span>)<span class="sc">*</span><span class="dv">2</span>,<span class="at">na.value =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.8</span>,<span class="fl">0.5</span>,<span class="fl">0.1</span>)<span class="sc">*</span><span class="dv">2</span>,<span class="at">na.value =</span> <span class="dv">0</span>)<span class="sc">+</span></span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Slope"</span>,</span>
+<span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">""</span>,</span>
+<span id="cb57-18"><a href="#cb57-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"Sector"</span>,<span class="at">size =</span> <span class="st">"p-value"</span>)<span class="sc">+</span></span>
+<span id="cb57-19"><a href="#cb57-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.byrow =</span> T,</span>
+<span id="cb57-20"><a href="#cb57-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>))<span class="sc">+</span></span>
+<span id="cb57-21"><a href="#cb57-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">24</span>,</span>
+<span id="cb57-22"><a href="#cb57-22" aria-hidden="true" tabindex="-1"></a>                     <span class="at">labels =</span> <span class="fu">sprintf</span>(<span class="st">"%02d:00"</span>,<span class="dv">0</span><span class="sc">:</span><span class="dv">24</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-52-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>coefs_sec_sampled <span class="sc">|&gt;</span> </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">stars =</span> <span class="fu">cut</span>( p.value,</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.01</span>,<span class="fl">0.05</span>,<span class="fl">0.1</span>,<span class="dv">1</span>))) <span class="sc">|&gt;</span> </span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"intercept"</span>,<span class="fu">between</span>(hour,<span class="dv">5</span>,<span class="dv">20</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> hour,</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> (estimate)</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>             ))<span class="sc">+</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">col =</span> <span class="fu">factor</span>(sector)))<span class="sc">+</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">size =</span> stars,<span class="at">col =</span> <span class="fu">factor</span>(sector)),<span class="at">alpha =</span> <span class="fl">0.6</span>)<span class="sc">+</span></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># facet_grid(.~sector)+</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)<span class="sc">+</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>                     <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.8</span>,<span class="fl">0.5</span>,<span class="fl">0.1</span>)<span class="sc">*</span><span class="dv">2</span>,<span class="at">na.value =</span> <span class="dv">0</span>)<span class="sc">+</span></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Intercept"</span>,</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">""</span>,</span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"Sector"</span>,<span class="at">size =</span> <span class="st">"p-value"</span>)<span class="sc">+</span></span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.byrow =</span> T,</span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>))<span class="sc">+</span></span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">24</span>,</span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>                     <span class="at">labels =</span> <span class="fu">sprintf</span>(<span class="st">"%02d:00"</span>,<span class="dv">0</span><span class="sc">:</span><span class="dv">24</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-53-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1090,52 +1128,16 @@ Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
 <section id="daily-potential" class="level2">
 <h2 class="anchored" data-anchor-id="daily-potential">Daily potential</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>n_d10_logdiff_max <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(summary_pairs,<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span>  </span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d10_bool =</span> logdiff_max <span class="sc">&gt;=</span> <span class="fu">quantile</span>(logdiff_max, <span class="fl">0.90</span>,<span class="at">na.rm =</span> T),</span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.by=</span><span class="fu">c</span>(hour,day_type,roadclass)) <span class="sc">|&gt;</span> </span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_d10 =</span> <span class="fu">sum</span>(d10_bool,<span class="at">na.rm =</span> T),<span class="at">.by =</span> <span class="fu">c</span>(pair_id,day_type)) <span class="sc">|&gt;</span> </span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> day_type,<span class="at">values_from =</span> n_d10)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>n_d10_logdiff_max <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(summary_pairs,<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span>  </span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d10_bool =</span> logdiff_max <span class="sc">&gt;=</span> <span class="fu">quantile</span>(logdiff_max, <span class="fl">0.90</span>,<span class="at">na.rm =</span> T),</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.by=</span><span class="fu">c</span>(hour,day_type,roadclass)) <span class="sc">|&gt;</span> </span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_d10 =</span> <span class="fu">sum</span>(d10_bool,<span class="at">na.rm =</span> T),<span class="at">.by =</span> <span class="fu">c</span>(pair_id,day_type)) <span class="sc">|&gt;</span> </span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> day_type,<span class="at">values_from =</span> n_d10)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
-<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span></span>
-<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
-<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
-<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
-<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>      }))) <span class="sc">|&gt;</span></span>
-<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span>  weekday,</span>
-<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">linewidth =</span> weekday_ld)) <span class="sc">+</span></span>
-<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span></span>
-<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_viridis_b</span>(<span class="at">na.value =</span> <span class="st">"gray30"</span>,</span>
-<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>                         <span class="at">option =</span> <span class="st">"plasma"</span>,</span>
-<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>                         <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_linewidth_continuous</span>(</span>
-<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">24</span>),</span>
-<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>),</span>
-<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="st">"exp"</span></span>
-<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
-<span id="cb59-22"><a href="#cb59-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">linewidth =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb59-23"><a href="#cb59-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">col =</span> <span class="st">"Rat-run potential"</span>) <span class="sc">+</span></span>
-<span id="cb59-24"><a href="#cb59-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>,</span>
-<span id="cb59-25"><a href="#cb59-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.7</span>))</span>
-<span id="cb59-26"><a href="#cb59-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb59-27"><a href="#cb59-27" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-54-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span></span>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
 <span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
@@ -1143,7 +1145,43 @@ Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
 <span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
 <span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
 <span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
-<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>      })))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>      }))) <span class="sc">|&gt;</span></span>
+<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span>  weekday,</span>
+<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">linewidth =</span> weekday_ld)) <span class="sc">+</span></span>
+<span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span></span>
+<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_viridis_b</span>(<span class="at">na.value =</span> <span class="st">"gray30"</span>,</span>
+<span id="cb60-14"><a href="#cb60-14" aria-hidden="true" tabindex="-1"></a>                         <span class="at">option =</span> <span class="st">"plasma"</span>,</span>
+<span id="cb60-15"><a href="#cb60-15" aria-hidden="true" tabindex="-1"></a>                         <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb60-16"><a href="#cb60-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_linewidth_continuous</span>(</span>
+<span id="cb60-17"><a href="#cb60-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">24</span>),</span>
+<span id="cb60-18"><a href="#cb60-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>),</span>
+<span id="cb60-19"><a href="#cb60-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="st">"exp"</span></span>
+<span id="cb60-20"><a href="#cb60-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb60-21"><a href="#cb60-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb60-22"><a href="#cb60-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">linewidth =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb60-23"><a href="#cb60-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">col =</span> <span class="st">"Rat-run potential"</span>) <span class="sc">+</span></span>
+<span id="cb60-24"><a href="#cb60-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>,</span>
+<span id="cb60-25"><a href="#cb60-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.7</span>))</span>
+<span id="cb60-26"><a href="#cb60-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-27"><a href="#cb60-27" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-55-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span></span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
+<span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a>      })))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Simple feature collection with 91970 features and 15 fields
 Geometry type: LINESTRING
