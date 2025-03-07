@@ -769,10 +769,6 @@ pred_sec_sampled |>
 Plotting the coefficients 
 
 
-
-
-
-
 ```{r}
 #| label: anim-scurve
 #| eval: false
@@ -795,6 +791,9 @@ p <- mod_pred_0_rand |>
   enter_appear()
 
 ```
+
+**Add confidence intervals to coefficients!!!!**
+
 
 ```{r}
 coefs_sec_sampled |> 
