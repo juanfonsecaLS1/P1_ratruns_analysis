@@ -18,7 +18,10 @@ pkgs = c(
     "tmap",
     "apng",
     "gganimate",
-    "kableExtra"
+    "kableExtra",
+    "lme4",
+    "equatiomatic",
+    "marginaleffects"
 )
 
 remotes::install_cran(pkgs)
@@ -561,8 +564,9 @@ if(!file.exists(file.path("raw_data", "UPL_Bogota.zip"))) {
 lpu_boundaries <- st_read("raw_data/MR_VR0924_UPL.gpkg")
 ```
 
-LPU have been classified according to official sources (see this). North and Northwest sectors have been merged.
-Only urban sectors are considered.
+LPU have been classified according to official sources (see this). North
+and Northwest sectors have been merged. Only urban sectors are
+considered.
 
 ```{r}
 lpu_sector <- read_csv("raw_data/UPL_sectors.csv",
@@ -581,7 +585,7 @@ sector_boundaries <- lpu_boundaries |>
   st_transform(st_crs(simpl_network_sf))
 ```
 
-This shows 
+This shows
 
 ```{r}
 tm_shape(sector_boundaries) +
@@ -679,6 +683,7 @@ ecology when working with presence-only data and no actual absences are
 recorded, for example, recording presence of exotic species.
 
 ```{r}
+set.seed(1234)
 model_data_sampled <- model_data_p_sec |>  
   nest(.by = c(day_type,hour,sector)) |> 
   left_join(sample_size_sector,by="sector") |>
@@ -703,173 +708,138 @@ model_data_sampled <- model_data_p_sec |>
                       bind_rows(.x,.y)
                     })
          ) |> 
-  select(day_type:sector,n_true,model_data)
+  select(day_type:sector,n_true,sample_size,model_data) |> 
+  unnest(model_data)
 ```
 
-We will fit logistic models with this data.
-
 ```{r}
-glm_sec_sampled <- model_data_sampled |> 
-  mutate(model_rel = map(model_data, \(.x) {
-    glm(offence_bool ~ logdiff_max,
-        data = .x,
-        family = binomial(link = "logit"))
-  }))
+model_data_sampled_mlm <- model_data_sampled |>
+  filter(day_type == "weekday",between(hour,5,20)) |> 
+  mutate(logdiff_max_gmc = logdiff_max - mean(logdiff_max,na.rm = T),.by = c(hour)) |> 
+  mutate(logdiff_max_smc = logdiff_max - mean(logdiff_max,na.rm = T),.by = c(hour,sector))
 ```
 
-Using the models to predict probabilities
-
 ```{r}
-pred_sec_sampled <- glm_sec_sampled |>
-  mutate(predicted = map2(model_rel, model_data , \(.x, .y) {
-    tibble(
-      logdiff_max = .y$logdiff_max,
-      offence_bool = predict(.x, newdata = .y, type = "response")
-    )
-  })) |>
-  select(-model_data, -model_rel) |>
-  unnest(cols = predicted) |>
-  unite("id", day_type:hour, remove = F)
+# saveRDS(model_data_sampled_mlm,"model_data.RDS")
+# model_data_sampled_mlm <- readRDS("model_data.RDS") |> data.frame() |> filter()
 ```
 
-Extracting the coefficients from the models
+### Fitting a multilevel model
 
 ```{r}
-coefs_sec_sampled <- glm_sec_sampled |>
-  mutate(coefs = map(model_rel, \(.x) {
-    broom::tidy(.x)
-  })) |>
-  select(day_type, hour, sector, coefs) |>
-  unnest(coefs) |>
-  # pivot_wider(names_from = term,values_from = estimate) |>
-  mutate(
-    term = term |> str_replace(pattern = "\\(Intercept\\)", replacement = "intercept"),
-    term = term |> str_replace(pattern = ".*_max", replacement = "slope")
-  )
+m0a <- glmer(offence_bool ~ (1|sector),
+            data = model_data_sampled_mlm,family = "binomial")
+summary(m0a)
+
+m0b <- glmer(offence_bool ~ (1|hour),
+            data = model_data_sampled_mlm,family = "binomial")
+summary(m0b)
 ```
 
-Plotting the predicted probabilities 
+#### Intraclass Correlation Coefficient (ICC)
+
+The chances of having a offence report is explained by between-sector
+differences
 
 ```{r}
-pred_sec_sampled |>
-  filter(day_type == "weekday") |> 
-  ggplot(aes(x = logdiff_max,
-             y = offence_bool,
-             group = id,
-             col = hour,
-             # linetype = day_type
-             ))+
-  geom_line(alpha = 0.5)+
-  scale_y_continuous(limits = c(0,1))+
+icca <- m0a@theta[1]^2/ (m0a@theta[1]^2 + (pi^2/3))
+icca
+```
+
+The chances of having a offence report is explained by between-hour
+differences
+
+```{r}
+iccb <- m0b@theta[1]^2/ (m0b@theta[1]^2 + (pi^2/3))
+iccb
+```
+
+#### Constrained intermediate models
+
+```{r}
+CIM <- glmer(offence_bool ~ logdiff_max_gmc + (1|sector)+(1|hour),
+            data = model_data_sampled_mlm,family = "binomial")
+
+summary(CIM)
+```
+
+```{r}
+AIMa <- glmer(offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc|sector)+(1|hour),
+            data = model_data_sampled_mlm,family = "binomial")
+
+summary(AIMa)
+```
+
+```{r}
+AIMb <- glmer(offence_bool ~ logdiff_max_gmc + (1|sector)+(1 + logdiff_max_gmc||hour),
+            data = model_data_sampled_mlm,family = "binomial")
+
+summary(AIMb)
+```
+
+```{r}
+AIMc <- glmer(offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc||sector)+(1 + logdiff_max_gmc||hour),
+            data = model_data_sampled_mlm,family = "binomial")
+
+summary(AIMc)
+```
+
+```{r}
+anova(CIM,AIMa,AIMb,AIMc)
+```
+
+```{r}
+extract_eq(AIMa)
+```
+
+
+
+$$
+\begin{aligned}
+  \operatorname{offence\_bool}_{i}  &\sim \operatorname{Binomial}(n = 1, \operatorname{prob}_{\operatorname{offence\_bool} = 1} = \widehat{P}) \\
+    \log\left[\frac{\hat{P}}{1 - \hat{P}} \right] &=\alpha_{j[i],k[i]} + \beta_{1}(\operatorname{diff\_max\_gmc}) \\
+    \alpha_{j}  &\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
+    \text{, for hour j = 1,} \dots \text{,J} \\
+    \alpha_{k}  &\sim N \left(\mu_{\alpha_{k}}, \sigma^2_{\alpha_{k}} \right)
+    \text{, for sector k = 1,} \dots \text{,K}
+\end{aligned}
+
+$$
+CIM
+
+
+```{r}
+plot_slopes(CIM,
+            variables = "logdiff_max_gmc",
+            by = c("hour","sector"))+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  scale_fill_brewer(type = "qual",
+                      palette = "Set3")+
   theme_minimal()+
-  scale_color_viridis_c(option = "turbo")+
-  facet_wrap(sector~.)
+  scale_y_continuous(limits = c(0,0.01))+
+  labs(col = "Sector",
+       fill = "Sector")
 ```
 
-Plotting the coefficients 
-
+AIMa
 
 ```{r}
-#| label: anim-scurve
-#| eval: false
-#| include: false
-
-
-p <- mod_pred_0_rand |> 
-  ggplot(aes(x = logdiff_max,
-             y = offence_bool,
-             group = id,
-             col = hour,linetype = day_type))+
-  geom_line(alpha = 0.9)+
-  scale_y_continuous(limits = c(0,1))+
+plot_slopes(AIMa,
+            variables = "logdiff_max_gmc",
+            by = c("hour","sector"))+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  scale_fill_brewer(type = "qual",
+                      palette = "Set3")+
   theme_minimal()+
-  guides(col = "none")+
-  theme(legend.position = "inside",legend.position.inside = c(0.7,0.8))+
-  scale_color_viridis_c(option = "plasma")+
-  labs(title = 'Hour: {closest_state}',linetype = "Day type") +
-  transition_states(hour, transition_length = 2, state_length = 1) +
-  enter_appear()
-
-```
-
-**Add confidence intervals to coefficients!!!!**
-
-
-```{r}
-coefs_sec_sampled |> 
-  filter(day_type == "weekday") |> 
-  mutate(stars = cut( p.value,
-                      breaks = c(0,0.01,0.05,0.1,1))) |> 
-  filter(term == "slope",between(hour,5,20)) |> 
-  ggplot(aes(x = hour,
-             y = estimate
-             ))+
-  geom_line(aes(col = factor(sector)))+
-    geom_point(aes(size = stars,col = factor(sector)),alpha = 0.6)+
-  # facet_grid(.~sector)+
-  theme(legend.position = "top")+
-  scale_color_brewer(type = "qual",
-                     palette = "Set3")+
-  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)+
-  labs(y = "Slope",
-       x = "",
-       col = "Sector",size = "p-value")+
-  theme(legend.byrow = T,
-        axis.text.x = element_text(angle = 90))+
-  scale_x_continuous(breaks = 0:24,
-                     labels = sprintf("%02d:00",0:24))
-```
-
-```{r}
-coefs_sec_sampled |> 
-  filter(day_type == "weekday") |> 
-  mutate(stars = cut( p.value,
-                      breaks = c(0,0.01,0.05,0.1,1))) |> 
-  filter(term == "slope",between(hour,5,20)) |> 
-  ggplot(aes(x = factor(sector),
-             y = estimate
-             ))+
-  geom_point(aes(col = factor(sector),size = stars))+
-  # facet_grid(.~sector)+
-  theme(legend.position = "top")+
-  scale_color_brewer(type = "qual",
-                     palette = "Set3")+
-  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)+
-  labs(y = "Slope",
-       x = "Sector",
-       size = "p-value")+
-  guides(color = "none")+
-  coord_flip()
+  scale_y_continuous(limits = c(0,0.01))+
+  labs(col = "Sector",
+       fill = "Sector")
 ```
 
 
 
-
-
-```{r}
-coefs_sec_sampled |> 
-  filter(day_type == "weekday") |> 
-  mutate(stars = cut( p.value,
-                      breaks = c(0,0.01,0.05,0.1,1))) |> 
-  filter(term == "intercept",between(hour,5,20)) |> 
-  ggplot(aes(x = hour,
-             y = (estimate)
-             ))+
-  geom_line(aes(col = factor(sector)))+
-    geom_point(aes(size = stars,col = factor(sector)),alpha = 0.6)+
-  # facet_grid(.~sector)+
-  theme(legend.position = "top")+
-  scale_color_brewer(type = "qual",
-                     palette = "Set3")+
-  scale_size_manual(values = c(1,0.8,0.5,0.1)*2,na.value = 0)+
-  labs(y = "Intercept",
-       x = "",
-       col = "Sector",size = "p-value")+
-  theme(legend.byrow = T,
-        axis.text.x = element_text(angle = 90))+
-  scale_x_continuous(breaks = 0:24,
-                     labels = sprintf("%02d:00",0:24))
-```
 
 ## Daily potential
 
@@ -924,4 +894,3 @@ simpl_network_sf |>
       if_else(roadclass != "residential", 1, x)
       })))
 ```
-
