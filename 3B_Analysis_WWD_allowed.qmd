@@ -7,7 +7,7 @@ editor:
 # Results
 
 ```{r,message=FALSE}
-#| label: libraries
+#| label: packages
 #| message: false
 
 options(repos = c(CRAN = "https://cloud.r-project.org"))
@@ -714,9 +714,7 @@ model_data_sampled <- model_data_p_sec |>
 
 ```{r}
 model_data_sampled_mlm <- model_data_sampled |>
-  filter(day_type == "weekday",between(hour,5,20)) |> 
-  mutate(logdiff_max_gmc = logdiff_max - mean(logdiff_max,na.rm = T),.by = c(hour)) |> 
-  mutate(logdiff_max_smc = logdiff_max - mean(logdiff_max,na.rm = T),.by = c(hour,sector))
+  filter(day_type == "weekday",between(hour,5,20)) 
 ```
 
 ```{r}
@@ -757,28 +755,28 @@ iccb
 #### Constrained intermediate models
 
 ```{r}
-CIM <- glmer(offence_bool ~ logdiff_max_gmc + (1|sector)+(1|hour),
+CIM <- glmer(offence_bool ~ logdiff_max + (1|sector)+(1|hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(CIM)
 ```
 
 ```{r}
-AIMa <- glmer(offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc|sector)+(1|hour),
+AIMa <- glmer(offence_bool ~ logdiff_max + (1 + logdiff_max||sector)+(1|hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(AIMa)
 ```
 
 ```{r}
-AIMb <- glmer(offence_bool ~ logdiff_max_gmc + (1|sector)+(1 + logdiff_max_gmc||hour),
+AIMb <- glmer(offence_bool ~ logdiff_max + (1|sector)+(1 + logdiff_max||hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(AIMb)
 ```
 
 ```{r}
-AIMc <- glmer(offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc||sector)+(1 + logdiff_max_gmc||hour),
+AIMc <- glmer(offence_bool ~ logdiff_max + (1 + logdiff_max||sector)+(1 + logdiff_max||hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(AIMc)
@@ -810,7 +808,7 @@ CIM
 
 ```{r}
 plot_slopes(CIM,
-            variables = "logdiff_max_gmc",
+            variables = "logdiff_max",
             by = c("hour","sector"))+
   scale_color_brewer(type = "qual",
                      palette = "Set3")+
@@ -826,19 +824,49 @@ AIMa
 
 ```{r}
 plot_slopes(AIMa,
-            variables = "logdiff_max_gmc",
+            variables = "logdiff_max",
             by = c("hour","sector"))+
   scale_color_brewer(type = "qual",
                      palette = "Set3")+
   scale_fill_brewer(type = "qual",
                       palette = "Set3")+
   theme_minimal()+
-  scale_y_continuous(limits = c(0,0.01))+
+  # scale_y_continuous(limits = c(0,0.01))+
   labs(col = "Sector",
        fill = "Sector")
 ```
 
+AIMb
 
+```{r}
+plot_slopes(AIMb,
+            variables = "logdiff_max",
+            by = c("hour","sector"))+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  scale_fill_brewer(type = "qual",
+                      palette = "Set3")+
+  theme_minimal()+
+  # scale_y_continuous(limits = c(0,0.01))+
+  labs(col = "Sector",
+       fill = "Sector")
+```
+
+AIMc
+
+```{r}
+plot_slopes(AIMc,
+            variables = "logdiff_max",
+            by = c("hour","sector"))+
+  scale_color_brewer(type = "qual",
+                     palette = "Set3")+
+  scale_fill_brewer(type = "qual",
+                      palette = "Set3")+
+  theme_minimal()+
+  # scale_y_continuous(limits = c(0,0.01))+
+  labs(col = "Sector",
+       fill = "Sector")
+```
 
 
 ## Daily potential
