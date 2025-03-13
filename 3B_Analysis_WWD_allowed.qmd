@@ -787,22 +787,11 @@ anova(CIM,AIMa,AIMb,AIMc)
 ```
 
 ```{r}
-extract_eq(AIMa)
+extract_eq(CIM)
 ```
 
 
 
-$$
-\begin{aligned}
-  \operatorname{offence\_bool}_{i}  &\sim \operatorname{Binomial}(n = 1, \operatorname{prob}_{\operatorname{offence\_bool} = 1} = \widehat{P}) \\
-    \log\left[\frac{\hat{P}}{1 - \hat{P}} \right] &=\alpha_{j[i],k[i]} + \beta_{1}(\operatorname{diff\_max\_gmc}) \\
-    \alpha_{j}  &\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
-    \text{, for hour j = 1,} \dots \text{,J} \\
-    \alpha_{k}  &\sim N \left(\mu_{\alpha_{k}}, \sigma^2_{\alpha_{k}} \right)
-    \text{, for sector k = 1,} \dots \text{,K}
-\end{aligned}
-
-$$
 CIM
 
 
