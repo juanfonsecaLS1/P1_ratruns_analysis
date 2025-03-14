@@ -267,7 +267,6 @@ window.Quarto = {
   <li><a href="#creating-pseudo-absences" id="toc-creating-pseudo-absences" class="nav-link" data-scroll-target="#creating-pseudo-absences">Creating pseudo-absences</a></li>
   <li><a href="#fitting-a-multilevel-model" id="toc-fitting-a-multilevel-model" class="nav-link" data-scroll-target="#fitting-a-multilevel-model">Fitting a multilevel model</a></li>
   </ul></li>
-  <li><a href="#daily-potential" id="toc-daily-potential" class="nav-link" data-scroll-target="#daily-potential">Daily potential</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -1040,9 +1039,7 @@ Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>model_data_sampled_mlm <span class="ot">&lt;-</span> model_data_sampled <span class="sc">|&gt;</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>,<span class="fu">between</span>(hour,<span class="dv">5</span>,<span class="dv">20</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">logdiff_max_gmc =</span> logdiff_max <span class="sc">-</span> <span class="fu">mean</span>(logdiff_max,<span class="at">na.rm =</span> T),<span class="at">.by =</span> <span class="fu">c</span>(hour)) <span class="sc">|&gt;</span> </span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">logdiff_max_smc =</span> logdiff_max <span class="sc">-</span> <span class="fu">mean</span>(logdiff_max,<span class="at">na.rm =</span> T),<span class="at">.by =</span> <span class="fu">c</span>(hour,sector))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(day_type <span class="sc">==</span> <span class="st">"weekday"</span>,<span class="fu">between</span>(hour,<span class="dv">5</span>,<span class="dv">20</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(model_data_sampled_mlm,"model_data.RDS")</span></span>
@@ -1131,7 +1128,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <section id="constrained-intermediate-models" class="level4">
 <h4 class="anchored" data-anchor-id="constrained-intermediate-models">Constrained intermediate models</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>CIM <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max_gmc <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>hour),</span>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>CIM <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>hour),</span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> model_data_sampled_mlm,<span class="at">family =</span> <span class="st">"binomial"</span>)</span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(CIM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1139,36 +1136,36 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
   Approximation) [glmerMod]
  Family: binomial  ( logit )
-Formula: offence_bool ~ logdiff_max_gmc + (1 | sector) + (1 | hour)
+Formula: offence_bool ~ logdiff_max + (1 | sector) + (1 | hour)
    Data: model_data_sampled_mlm
 
      AIC      BIC   logLik deviance df.resid 
- 89058.4  89096.5 -44525.2  89050.4   102556 
+ 89058.3  89096.4 -44525.1  89050.3   102556 
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--1.2475 -0.4725 -0.3549 -0.2470  5.6198 
+-1.2476 -0.4725 -0.3549 -0.2470  5.6198 
 
 Random effects:
  Groups Name        Variance Std.Dev.
- hour   (Intercept) 0.1873   0.4328  
- sector (Intercept) 0.4401   0.6634  
+ hour   (Intercept) 0.1866   0.4319  
+ sector (Intercept) 0.4400   0.6633  
 Number of obs: 102560, groups:  hour, 16; sector, 5
 
 Fixed effects:
-                 Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)     -1.613180   0.323466  -4.987 6.13e-07 ***
-logdiff_max_gmc  0.033151   0.002056  16.127  &lt; 2e-16 ***
+             Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.588916   0.320788  -4.953  7.3e-07 ***
+logdiff_max  0.033155   0.002056  16.129  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
             (Intr)
-lgdff_mx_gm -0.002</code></pre>
+logdiff_max 0.003 </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>AIMa <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max_gmc <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> logdiff_max_gmc<span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>hour),</span>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>AIMa <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> logdiff_max<span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>hour),</span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> model_data_sampled_mlm,<span class="at">family =</span> <span class="st">"binomial"</span>)</span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(AIMa)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1176,38 +1173,38 @@ lgdff_mx_gm -0.002</code></pre>
 <pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
   Approximation) [glmerMod]
  Family: binomial  ( logit )
-Formula: offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc | sector) +  
-    (1 | hour)
+Formula: offence_bool ~ logdiff_max + (1 + logdiff_max | sector) + (1 |  
+    hour)
    Data: model_data_sampled_mlm
 
      AIC      BIC   logLik deviance df.resid 
- 88918.5  88975.8 -44453.3  88906.5   102554 
+ 88919.6  88976.8 -44453.8  88907.6   102554 
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--1.1964 -0.4698 -0.3560 -0.2434  6.0832 
+-1.1959 -0.4698 -0.3559 -0.2434  6.0884 
 
 Random effects:
- Groups Name            Variance  Std.Dev. Corr 
- hour   (Intercept)     0.1870607 0.43251       
- sector (Intercept)     0.4448695 0.66699       
-        logdiff_max_gmc 0.0007079 0.02661  -0.42
+ Groups Name        Variance  Std.Dev. Corr 
+ hour   (Intercept) 0.1862829 0.43161       
+ sector (Intercept) 0.4343049 0.65902       
+        logdiff_max 0.0007029 0.02651  -0.40
 Number of obs: 102560, groups:  hour, 16; sector, 5
 
 Fixed effects:
-                Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)     -1.60968    0.31378   -5.13  2.9e-07 ***
-logdiff_max_gmc  0.04181    0.01208    3.46 0.000539 ***
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.57915    0.30874  -5.115 3.14e-07 ***
+logdiff_max  0.04179    0.01203   3.472 0.000516 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
             (Intr)
-lgdff_mx_gm -0.387</code></pre>
+logdiff_max -0.363</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>AIMb <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max_gmc <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span> <span class="sc">+</span> logdiff_max_gmc<span class="sc">||</span>hour),</span>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>AIMb <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span> <span class="sc">+</span> logdiff_max<span class="sc">|</span>hour),</span>
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> model_data_sampled_mlm,<span class="at">family =</span> <span class="st">"binomial"</span>)</span>
 <span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(AIMb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1215,39 +1212,38 @@ lgdff_mx_gm -0.387</code></pre>
 <pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
   Approximation) [glmerMod]
  Family: binomial  ( logit )
-Formula: 
-offence_bool ~ logdiff_max_gmc + (1 | sector) + (1 + logdiff_max_gmc ||  
+Formula: offence_bool ~ logdiff_max + (1 | sector) + (1 + logdiff_max |  
     hour)
    Data: model_data_sampled_mlm
 
      AIC      BIC   logLik deviance df.resid 
- 89059.6  89107.3 -44524.8  89049.6   102555 
+ 89060.8  89118.0 -44524.4  89048.8   102554 
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--1.2447 -0.4725 -0.3548 -0.2471  5.5924 
+-1.2354 -0.4725 -0.3548 -0.2458  5.6763 
 
 Random effects:
- Groups Name            Variance  Std.Dev.
- hour   logdiff_max_gmc 2.221e-05 0.004713
- hour.1 (Intercept)     1.875e-01 0.433067
- sector (Intercept)     4.400e-01 0.663352
+ Groups Name        Variance  Std.Dev. Corr 
+ hour   (Intercept) 1.858e-01 0.431029      
+        logdiff_max 2.194e-05 0.004684 -0.47
+ sector (Intercept) 4.395e-01 0.662910      
 Number of obs: 102560, groups:  hour, 16; sector, 5
 
 Fixed effects:
-                 Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)     -1.613429   0.308150  -5.236 1.64e-07 ***
-logdiff_max_gmc  0.033243   0.002382  13.956  &lt; 2e-16 ***
+             Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.589128   0.305837  -5.196 2.04e-07 ***
+logdiff_max  0.033619   0.002413  13.932  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
             (Intr)
-lgdff_mx_gm -0.002</code></pre>
+logdiff_max -0.074</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>AIMc <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max_gmc <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> logdiff_max_gmc<span class="sc">||</span>sector)<span class="sc">+</span>(<span class="dv">1</span> <span class="sc">+</span> logdiff_max_gmc<span class="sc">||</span>hour),</span>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>AIMc <span class="ot">&lt;-</span> <span class="fu">glmer</span>(offence_bool <span class="sc">~</span> logdiff_max <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> logdiff_max<span class="sc">|</span>sector)<span class="sc">+</span>(<span class="dv">1</span> <span class="sc">+</span> logdiff_max<span class="sc">|</span>hour),</span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> model_data_sampled_mlm,<span class="at">family =</span> <span class="st">"binomial"</span>)</span>
 <span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(AIMc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1255,35 +1251,35 @@ lgdff_mx_gm -0.002</code></pre>
 <pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
   Approximation) [glmerMod]
  Family: binomial  ( logit )
-Formula: offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc || sector) +  
-    (1 + logdiff_max_gmc || hour)
+Formula: offence_bool ~ logdiff_max + (1 + logdiff_max | sector) + (1 +  
+    logdiff_max | hour)
    Data: model_data_sampled_mlm
 
      AIC      BIC   logLik deviance df.resid 
- 88918.0  88975.3 -44453.0  88906.0   102554 
+ 88920.4  88996.7 -44452.2  88904.4   102552 
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--1.1908 -0.4691 -0.3565 -0.2423  6.0439 
+-1.1756 -0.4698 -0.3581 -0.2413  6.2041 
 
 Random effects:
- Groups   Name            Variance  Std.Dev.
- hour     logdiff_max_gmc 3.398e-05 0.005829
- hour.1   (Intercept)     1.879e-01 0.433422
- sector   logdiff_max_gmc 7.124e-04 0.026690
- sector.1 (Intercept)     4.450e-01 0.667115
+ Groups Name        Variance  Std.Dev. Corr 
+ hour   (Intercept) 1.862e-01 0.431466      
+        logdiff_max 3.459e-05 0.005882 -0.60
+ sector (Intercept) 4.345e-01 0.659134      
+        logdiff_max 7.114e-04 0.026673 -0.41
 Number of obs: 102560, groups:  hour, 16; sector, 5
 
 Fixed effects:
-                Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)     -1.61010    0.31074  -5.182  2.2e-07 ***
-logdiff_max_gmc  0.04197    0.01223   3.431 0.000601 ***
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.57931    0.31017  -5.092 3.55e-07 ***
+logdiff_max  0.04263    0.01221   3.491 0.000481 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
             (Intr)
-lgdff_mx_gm 0.000 </code></pre>
+logdiff_max -0.398</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1291,26 +1287,27 @@ lgdff_mx_gm 0.000 </code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Data: model_data_sampled_mlm
 Models:
-CIM: offence_bool ~ logdiff_max_gmc + (1 | sector) + (1 | hour)
-AIMb: offence_bool ~ logdiff_max_gmc + (1 | sector) + (1 + logdiff_max_gmc || hour)
-AIMa: offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc | sector) + (1 | hour)
-AIMc: offence_bool ~ logdiff_max_gmc + (1 + logdiff_max_gmc || sector) + (1 + logdiff_max_gmc || hour)
-     npar   AIC   BIC logLik deviance    Chisq Df Pr(&gt;Chisq)    
-CIM     4 89058 89097 -44525    89050                           
-AIMb    5 89060 89107 -44525    89050   0.7269  1     0.3939    
-AIMa    6 88919 88976 -44453    88907 143.0934  1     &lt;2e-16 ***
-AIMc    6 88918 88975 -44453    88906   0.4945  0               
+CIM: offence_bool ~ logdiff_max + (1 | sector) + (1 | hour)
+AIMa: offence_bool ~ logdiff_max + (1 + logdiff_max | sector) + (1 | hour)
+AIMb: offence_bool ~ logdiff_max + (1 | sector) + (1 + logdiff_max | hour)
+AIMc: offence_bool ~ logdiff_max + (1 + logdiff_max | sector) + (1 + logdiff_max | hour)
+     npar   AIC   BIC logLik deviance  Chisq Df Pr(&gt;Chisq)    
+CIM     4 89058 89096 -44525    89050                         
+AIMa    6 88920 88977 -44454    88908 142.72  2  &lt; 2.2e-16 ***
+AIMb    6 89061 89118 -44524    89049   0.00  0               
+AIMc    8 88920 88997 -44452    88904 144.39  2  &lt; 2.2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
+<p>The AIMa model is chosen considering that AIMc does not have a lower AIC and the deviance do not improve significantly.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">extract_eq</span>(AIMa)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><span class="math display">\[
 \begin{aligned}
   \operatorname{offence\_bool}_{i}  &amp;\sim \operatorname{Binomial}(n = 1, \operatorname{prob}_{\operatorname{offence\_bool} = 1} = \widehat{P}) \\
-    \log\left[\frac{\hat{P}}{1 - \hat{P}} \right] &amp;=\alpha_{j[i],k[i]} + \beta_{1k[i]}(\operatorname{\logdiff\_max\_gmc}) \\    \alpha_{j}  &amp;\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
+    \log\left[\frac{\hat{P}}{1 - \hat{P}} \right] &amp;=\alpha_{j[i],k[i]} + \beta_{1k[i]}(\operatorname{\logdiff\_max}) \\    \alpha_{j}  &amp;\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
     \text{, for hour j = 1,} \dots \text{,J} \\    
 \left(
   \begin{array}{c}
@@ -1342,26 +1339,17 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 \]</span></p>
 </div>
 </div>
-$$
-<span class="math display">\[\begin{aligned}
-  \operatorname{offence\_bool}_{i}  &amp;\sim \operatorname{Binomial}(n = 1, \operatorname{prob}_{\operatorname{offence\_bool} = 1} = \widehat{P}) \\
-    \log\left[\frac{\hat{P}}{1 - \hat{P}} \right] &amp;=\alpha_{j[i],k[i]} + \beta_{1}(\operatorname{diff\_max\_gmc}) \\
-    \alpha_{j}  &amp;\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
-    \text{, for hour j = 1,} \dots \text{,J} \\
-    \alpha_{k}  &amp;\sim N \left(\mu_{\alpha_{k}}, \sigma^2_{\alpha_{k}} \right)
-    \text{, for sector k = 1,} \dots \text{,K}
-\end{aligned}\]</span>
-<p>$$ CIM</p>
+<p>Slope across the day</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_slopes</span>(CIM,</span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">variables =</span> <span class="st">"logdiff_max_gmc"</span>,</span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"hour"</span>,<span class="st">"sector"</span>))<span class="sc">+</span></span>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_slopes</span>(AIMa,</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">variables =</span> <span class="st">"logdiff_max"</span>,</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"hour"</span>))<span class="sc">+</span></span>
 <span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
 <span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
 <span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
 <span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
 <span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
-<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.01</span>))<span class="sc">+</span></span>
+<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.012</span>))<span class="sc">+</span></span>
 <span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">col =</span> <span class="st">"Sector"</span>,</span>
 <span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Sector"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1372,19 +1360,20 @@ $$
 </div>
 </div>
 </div>
-<p>AIMa</p>
+<p>Slopes for each sector across the day 90% confidence intervals</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_slopes</span>(AIMa,</span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">variables =</span> <span class="st">"logdiff_max_gmc"</span>,</span>
-<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"hour"</span>,<span class="st">"sector"</span>))<span class="sc">+</span></span>
-<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
-<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
-<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">type =</span> <span class="st">"qual"</span>,</span>
-<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">palette =</span> <span class="st">"Set3"</span>)<span class="sc">+</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">variables =</span> <span class="st">"logdiff_max"</span>,</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"hour"</span>,<span class="st">"sector"</span>),<span class="at">conf_level =</span> <span class="fl">0.9</span>)<span class="sc">+</span></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_color_brewer(type = "qual",</span></span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                    palette = "Set3")+</span></span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_fill_brewer(type = "qual",</span></span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                     palette = "Set3")+</span></span>
 <span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
-<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.01</span>))<span class="sc">+</span></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># scale_y_continuous(limits = c(0,0.01))+</span></span>
 <span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">col =</span> <span class="st">"Sector"</span>,</span>
-<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Sector"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Sector"</span>)<span class="sc">+</span></span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(sector<span class="sc">~</span>.)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1393,110 +1382,10 @@ $$
 </div>
 </div>
 </div>
-</section>
-</section>
-</section>
-<section id="daily-potential" class="level2">
-<h2 class="anchored" data-anchor-id="daily-potential">Daily potential</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>n_d10_logdiff_max <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(summary_pairs,<span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span>  </span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d10_bool =</span> logdiff_max <span class="sc">&gt;=</span> <span class="fu">quantile</span>(logdiff_max, <span class="fl">0.90</span>,<span class="at">na.rm =</span> T),</span>
-<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.by=</span><span class="fu">c</span>(hour,day_type,roadclass)) <span class="sc">|&gt;</span> </span>
-<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_d10 =</span> <span class="fu">sum</span>(d10_bool,<span class="at">na.rm =</span> T),<span class="at">.by =</span> <span class="fu">c</span>(pair_id,day_type)) <span class="sc">|&gt;</span> </span>
-<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> day_type,<span class="at">values_from =</span> n_d10)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk <span class="ot">&lt;-</span> simpl_network_sf <span class="sc">|&gt;</span></span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
-<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span></span>
-<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
-<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
-<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
-<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>      }))) <span class="sc">|&gt;</span></span>
-<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">col =</span>  weekday,</span>
-<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">linewidth =</span> weekday_ld)) <span class="sc">+</span></span>
-<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span></span>
-<span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_viridis_b</span>(<span class="at">na.value =</span> <span class="st">"gray30"</span>,</span>
-<span id="cb77-14"><a href="#cb77-14" aria-hidden="true" tabindex="-1"></a>                         <span class="at">option =</span> <span class="st">"plasma"</span>,</span>
-<span id="cb77-15"><a href="#cb77-15" aria-hidden="true" tabindex="-1"></a>                         <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb77-16"><a href="#cb77-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_linewidth_continuous</span>(</span>
-<span id="cb77-17"><a href="#cb77-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">24</span>),</span>
-<span id="cb77-18"><a href="#cb77-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">range =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>),</span>
-<span id="cb77-19"><a href="#cb77-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">transform =</span> <span class="st">"exp"</span></span>
-<span id="cb77-20"><a href="#cb77-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb77-21"><a href="#cb77-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
-<span id="cb77-22"><a href="#cb77-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">linewidth =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb77-23"><a href="#cb77-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">col =</span> <span class="st">"Rat-run potential"</span>) <span class="sc">+</span></span>
-<span id="cb77-24"><a href="#cb77-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>,</span>
-<span id="cb77-25"><a href="#cb77-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.7</span>))</span>
-<span id="cb77-26"><a href="#cb77-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-27"><a href="#cb77-27" aria-hidden="true" tabindex="-1"></a>map_ratruns_wk</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="3B_Analysis_WWD_allowed_files/figure-html/unnamed-chunk-61-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>simpl_network_sf <span class="sc">|&gt;</span></span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(n_d10_logdiff_max, <span class="at">by =</span> <span class="st">"pair_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, \(x) {</span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">if_else</span>(roadclass <span class="sc">==</span> <span class="st">"residential"</span>, x, <span class="cn">NA</span>)</span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>    })) <span class="sc">|&gt;</span></span>
-<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(weekday<span class="sc">:</span>weekend, <span class="fu">list</span>(</span>
-<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ld =</span> \(x) {</span>
-<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(roadclass <span class="sc">!=</span> <span class="st">"residential"</span>, <span class="dv">1</span>, x)</span>
-<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a>      })))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Simple feature collection with 91970 features and 15 fields
-Geometry type: LINESTRING
-Dimension:     XY
-Bounding box:  xmin: 979293.3 ymin: 985597.3 xmax: 1007251 ymax: 1025644
-Projected CRS: MAGNA-SIRGAS / Colombia Bogota zone
-First 10 features:
-   lanes     way_id    roadclass oneway lanes.1 surface maxspeed       time
-1     NA   89742442  residential  FALSE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  36.379850
-2      1   86192048   trunk_link   TRUE       1 asphalt     &lt;NA&gt;   6.131124
-3      2   90894261     tertiary   TRUE       2 asphalt     &lt;NA&gt;  28.521182
-4      1   24798427 primary_link   TRUE       1 asphalt     &lt;NA&gt;   6.488302
-5     NA  117826480     tertiary  FALSE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  12.262932
-6      2   24075320   trunk_link   TRUE       2 asphalt     &lt;NA&gt;  19.056994
-7     NA  689403428  residential  FALSE    &lt;NA&gt; unpaved     &lt;NA&gt; 122.464815
-8      2   31509948  residential  FALSE       2 asphalt     &lt;NA&gt;   6.420331
-9     NA  523839186  residential  FALSE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  11.820349
-10    NA 550938368r  residential   TRUE    &lt;NA&gt;    &lt;NA&gt;     &lt;NA&gt;  29.528495
-   time_weighted component pair_id weekday weekend
-1      36.379850         1       1       1       0
-2       6.131124         1       2      NA      NA
-3      28.521182         1       3      NA      NA
-4       6.488302         1       4      NA      NA
-5      12.262932         1       5      NA      NA
-6      19.056994         1       6      NA      NA
-7     122.464815         1       7       1       0
-8       6.420331         1       8       4       4
-9      11.820349         1       9       9      11
-10     29.528495         1      10       1       0
-                             geom weekday_ld weekend_ld
-1  LINESTRING (995528.4 995623...          1          0
-2  LINESTRING (996495.7 101233...          1          1
-3  LINESTRING (998739.2 101067...          1          1
-4  LINESTRING (997806.9 100455...          1          1
-5  LINESTRING (998659.5 996788...          1          1
-6  LINESTRING (1002287 1009965...          1          1
-7  LINESTRING (988912.4 100125...          1          0
-8  LINESTRING (990692.7 100298...          4          4
-9  LINESTRING (996803.1 997474...          9         11
-10 LINESTRING (986133.3 100201...          1          0</code></pre>
-</div>
-</div>
 
 
+</section>
+</section>
 </section>
 </section>
 
