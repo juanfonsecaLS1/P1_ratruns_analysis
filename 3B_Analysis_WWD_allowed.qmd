@@ -762,21 +762,21 @@ summary(CIM)
 ```
 
 ```{r}
-AIMa <- glmer(offence_bool ~ logdiff_max + (1 + logdiff_max||sector)+(1|hour),
+AIMa <- glmer(offence_bool ~ logdiff_max + (1 + logdiff_max|sector)+(1|hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(AIMa)
 ```
 
 ```{r}
-AIMb <- glmer(offence_bool ~ logdiff_max + (1|sector)+(1 + logdiff_max||hour),
+AIMb <- glmer(offence_bool ~ logdiff_max + (1|sector)+(1 + logdiff_max|hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(AIMb)
 ```
 
 ```{r}
-AIMc <- glmer(offence_bool ~ logdiff_max + (1 + logdiff_max||sector)+(1 + logdiff_max||hour),
+AIMc <- glmer(offence_bool ~ logdiff_max + (1 + logdiff_max|sector)+(1 + logdiff_max|hour),
             data = model_data_sampled_mlm,family = "binomial")
 
 summary(AIMc)
@@ -786,128 +786,49 @@ summary(AIMc)
 anova(CIM,AIMa,AIMb,AIMc)
 ```
 
-```{r}
-extract_eq(CIM)
-```
 
-
-
-CIM
-
+The AIMa model is chosen considering that AIMc does not have a lower AIC and 
+the deviance do not improve significantly.
 
 ```{r}
-plot_slopes(CIM,
-            variables = "logdiff_max",
-            by = c("hour","sector"))+
-  scale_color_brewer(type = "qual",
-                     palette = "Set3")+
-  scale_fill_brewer(type = "qual",
-                      palette = "Set3")+
-  theme_minimal()+
-  scale_y_continuous(limits = c(0,0.01))+
-  labs(col = "Sector",
-       fill = "Sector")
+extract_eq(AIMa)
 ```
 
-AIMa
+Slope across the day
 
 ```{r}
 plot_slopes(AIMa,
             variables = "logdiff_max",
-            by = c("hour","sector"))+
+            by = c("hour"))+
   scale_color_brewer(type = "qual",
                      palette = "Set3")+
   scale_fill_brewer(type = "qual",
                       palette = "Set3")+
   theme_minimal()+
-  # scale_y_continuous(limits = c(0,0.01))+
+  scale_y_continuous(limits = c(0,0.012))+
   labs(col = "Sector",
        fill = "Sector")
 ```
 
-AIMb
+
+
+Slopes for each sector across the day
 
 ```{r}
-plot_slopes(AIMb,
+plot_slopes(AIMa,
             variables = "logdiff_max",
-            by = c("hour","sector"))+
-  scale_color_brewer(type = "qual",
-                     palette = "Set3")+
-  scale_fill_brewer(type = "qual",
-                      palette = "Set3")+
+            by = c("hour","sector"),conf_level = 0.9)+
+  # scale_color_brewer(type = "qual",
+  #                    palette = "Set3")+
+  # scale_fill_brewer(type = "qual",
+  #                     palette = "Set3")+
   theme_minimal()+
   # scale_y_continuous(limits = c(0,0.01))+
   labs(col = "Sector",
-       fill = "Sector")
-```
-
-AIMc
-
-```{r}
-plot_slopes(AIMc,
-            variables = "logdiff_max",
-            by = c("hour","sector"))+
-  scale_color_brewer(type = "qual",
-                     palette = "Set3")+
-  scale_fill_brewer(type = "qual",
-                      palette = "Set3")+
-  theme_minimal()+
-  # scale_y_continuous(limits = c(0,0.01))+
-  labs(col = "Sector",
-       fill = "Sector")
+       fill = "Sector")+
+  facet_wrap(sector~.)
 ```
 
 
-## Daily potential
 
-```{r}
-n_d10_logdiff_max <- simpl_network_sf |>
-  left_join(summary_pairs,by = "pair_id") |>  
-  mutate(d10_bool = logdiff_max >= quantile(logdiff_max, 0.90,na.rm = T),
-         .by=c(hour,day_type,roadclass)) |> 
-  st_drop_geometry() |> 
-  summarise(n_d10 = sum(d10_bool,na.rm = T),.by = c(pair_id,day_type)) |> 
-  pivot_wider(names_from = day_type,values_from = n_d10)
-```
 
-```{r}
-map_ratruns_wk <- simpl_network_sf |>
-  left_join(n_d10_logdiff_max, by = "pair_id") |>
-  mutate(across(weekday:weekend, \(x) {
-    if_else(roadclass == "residential", x, NA)
-    })) |>
-  mutate(across(weekday:weekend, list(
-    ld = \(x) {
-      if_else(roadclass != "residential", 1, x)
-      }))) |>
-  ggplot(aes(col =  weekday,
-             linewidth = weekday_ld)) +
-  geom_sf() +
-  scale_colour_viridis_b(na.value = "gray30",
-                         option = "plasma",
-                         direction = -1) +
-  scale_linewidth_continuous(
-    limits = c(0, 24),
-    range = c(0.05, 0.5),
-    transform = "exp"
-  ) +
-  theme_void() +
-  guides(linewidth = "none") +
-  labs(col = "Rat-run potential") +
-  theme(legend.position = "inside",
-        legend.position.inside = c(0.2, 0.7))
-
-map_ratruns_wk
-```
-
-```{r}
-simpl_network_sf |>
-  left_join(n_d10_logdiff_max, by = "pair_id") |>
-  mutate(across(weekday:weekend, \(x) {
-    if_else(roadclass == "residential", x, NA)
-    })) |>
-  mutate(across(weekday:weekend, list(
-    ld = \(x) {
-      if_else(roadclass != "residential", 1, x)
-      })))
-```
