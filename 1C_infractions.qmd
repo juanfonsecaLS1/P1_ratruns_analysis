@@ -376,6 +376,47 @@ ggplot(all_wwd_reports,aes(col = factor(year)))+
   theme_void()   
 ```
 
+#### Distributed
+
+
+```{r}
+#| eval: false
+a <- all_manual_reports |>
+  filter(year == 2019, day_type == "weekday") |>
+  mutate(quarter = floor(time@minute/15)) |> 
+  nest(.by = c(hour,quarter)) |> 
+  arrange(hour,quarter) |> 
+  mutate(hour. = paste0(sprintf("%2d",hour),":",sprintf("%02d",quarter*15)),
+         plot = map2(.x = data,.y = hour.,
+                     \(.x,.y){
+                       .x |> 
+                         ggplot() +
+                         geom_sf(data = urban_perimeter, fill = "white")+
+                         geom_sf(col = "red",shape = "+",size = 2.5)+
+                         theme_void()+
+                         labs(title = paste("Reports:",.y))
+                     }))
+
+
+for (i in seq_len(nrow(a))){
+  ggsave(a$plot[[i]],filename = paste0("sf_network/off_",sprintf("%02d",a$hour[i]),"_",a$quarter[i],".png"))
+}
+
+
+png_files= list.files(path = "sf_network/",pattern = "off_.*.png",full.names = T)
+
+
+apng::apng(png_files, output_file = "sf_network/anim_off.png",num_plays = 0,delay_num = 1,delay_den = 2)
+
+```
+
+```{r}
+#| echo: false
+knitr::include_graphics("sf_network/anim_off.png")
+```
+
+
+#### Aggregated
 Generating a grid covering the urban perimeter
 
 ```{r}
@@ -460,6 +501,8 @@ anim_save(animation = p,filename = "sf_network/map_animated.gif")
 
 knitr::include_graphics("sf_network/map_animated.gif")
 ```
+
+
 
 ### Exploring biases
 

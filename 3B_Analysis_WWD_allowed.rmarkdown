@@ -4,7 +4,13 @@ editor:
     wrap: 72
 ---
 
+
+
+
 # Results
+
+
+
 
 ```{r,message=FALSE}
 #| label: packages
@@ -29,9 +35,15 @@ remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
 ```
 
+
+
+
 ## Loading data
 
 ### Offence reports (tickets)
+
+
+
 
 ```{r}
 urban_perimeter <- st_read("raw_data/perimetrourbano.gpkg") |>
@@ -45,7 +57,13 @@ off_sf_all <- (st_read("sf_network/manualtickets_clean_sf.gpkg") |>
 #                  st_transform(3116))[urban_perimeter,] |> filter(year == 2019,day_type != "friday")
 ```
 
+
+
+
 ### Network
+
+
+
 
 ```{r}
 sf_net_exp <- st_read("sf_network/full_sf_network.gpkg") |>
@@ -53,12 +71,21 @@ sf_net_exp <- st_read("sf_network/full_sf_network.gpkg") |>
 sf_net <- sf_net_exp[urban_perimeter,]
 ```
 
+
+
+
 ### Centrality results
+
+
+
 
 ```{r}
 cent_results <- read_csv("sf_network/hourly_cent_results.csv",
                        lazy = F)
 ```
+
+
+
 
 ## Assigning reports to the network
 
@@ -72,6 +99,9 @@ values for each bi-directional element.
 
 First, we find the pairs of links with the `st_contains` function.
 
+
+
+
 ```{r}
 simplifed_net_indexes <- lapply(st_contains(sf_net,sf_net),
             \(x){
@@ -79,7 +109,13 @@ simplifed_net_indexes <- lapply(st_contains(sf_net,sf_net),
 }) |> unique()
 ```
 
+
+
+
 Each pair is then assigned a unique id.
+
+
+
 
 ```{r}
 simp_groups <- do.call(bind_rows,
@@ -94,8 +130,14 @@ simp_groups <- do.call(bind_rows,
 sf_net$pair_id <- simp_groups$pair_id
 ```
 
+
+
+
 We will create a subset of the `residential` and `unclassified` roads,
 and another with all other roads
+
+
+
 
 ```{r}
 subset_net <- sf_net |> 
@@ -113,8 +155,14 @@ major_net <- sf_net |>
     )) 
 ```
 
+
+
+
 Using the `pair_id` we extract the minimum, maximum and average change
 in centrality for each pair.
+
+
+
 
 ```{r}
 summary_pairs <- cent_results |> 
@@ -137,9 +185,15 @@ summary_pairs_dist.jct <-
             .by = c(pair_id))
 ```
 
+
+
+
 A simplified version of the `sf` object is produced extracting the first
 element of each pair, we will discard columns with the centrality
 metrics from this object to avoid confusion
+
+
+
 
 ```{r}
 # simpl_network_sf <- subset_net[vapply(simplifed_net_indexes,\(x) x[1],numeric(1)),] |> select(lanes:component,pair_id)
@@ -159,11 +213,17 @@ simpl_subset_sf <- simpl_network_sf |>
 
 ```
 
+
+
+
 We are interested in the reports on residential and unclassified
 streets. For this, we will create two buffers from the subsets created
 before. It is uncertain how the coordinates of each report are recorded,
 there might be some error associated with the use of GPS devices, and
 also, some uncertainty in the way the officers do it.
+
+
+
 
 ```{r}
 anti_buffer <- major_net |>
@@ -177,16 +237,28 @@ subset_buffer <- subset_net |>
   st_buffer(20,endCapStyle = "FLAT")
 ```
 
+
+
+
 As some reports might be associated to the major network, we will first
 filter reports within 10 meters from a major road, so these do not get
 wrongly assigned to a minor road.
+
+
+
 
 ```{r}
 off_sf <- off_sf_all[anti_buffer,,op = st_disjoint]
 ```
 
+
+
+
 The offences that are assumed to happen in the minor offences are
 assumed to be within 20 meters.
+
+
+
 
 ```{r}
 minor_offences <- off_sf[subset_buffer,,op = st_intersects]
@@ -208,9 +280,15 @@ tm_shape(major_net)+
   tm_layout(bg.color = "grey10")
 ```
 
+
+
+
 #### Summary
 
 Total length of road network
+
+
+
 
 ```{r}
 simpl_network_sf |> mutate(distance = st_length(geom,)) |> pull(distance) |> sum()
@@ -230,14 +308,26 @@ sf_net |> st_drop_geometry() |>
   kableExtra::kable()
 ```
 
+
+
+
 ### Finding the closest element of the network
+
+
+
 
 ```{r}
 minor_offences$near_index <- st_nearest_feature(minor_offences,simpl_subset_sf)
 minor_offences$pair_id <- simpl_subset_sf$pair_id[minor_offences$near_index]
 ```
 
+
+
+
 ## Exploring BC changes in the network with WWD allowed
+
+
+
 
 ```{r}
 #| eval: false
@@ -292,9 +382,15 @@ apng(png_files, output_file = "sf_network/anim_map_logdiff.png",num_plays = 0,de
 
 ```
 
+
+
+
 ![](sf_network/anim_map_logdiff.png)
 
 ## Modelling
+
+
+
 
 ```{r}
 time_slots <- summary_pairs |> select(day_type,hour) |> unique()
@@ -345,7 +441,13 @@ model_data <- (summary_pairs |>
   left_join(offences_bool,by = join_by(pair_id,hour,day_type))
 ```
 
+
+
+
 #### Fitting global logisting regressions
+
+
+
 
 ```{r}
 glm_models_0 <- model_data |> 
@@ -380,7 +482,13 @@ mod_pred_0 <- glm_models_0 |>
   unite("id",day_type:hour,remove = F) |> unique()
 ```
 
+
+
+
 A visual of the fitted lines
+
+
+
 
 ```{r}
 mod_pred_0 |> 
@@ -394,7 +502,13 @@ mod_pred_0 |>
   scale_color_viridis_c(option = "plasma")
 ```
 
+
+
+
 ### Expanding the reports to adjacent links
+
+
+
 
 ```{r}
 #| eval: false
@@ -530,7 +644,13 @@ clean_probs_ids <- subset_net |>
             .by = c(day_type,hour,pair_id))
 ```
 
+
+
+
 A visual check
+
+
+
 
 ```{r}
 simpl_network_sf |> 
@@ -549,12 +669,18 @@ model_data_p <- model_data |>
   mutate(p = if_else(is.na(p),0,p))
 ```
 
+
+
+
 ### Analysis by sectors
 
 We will use classification of Local Planning Units as analysis units.
 For that purpose, we load the `gkpg` file which has been extracted from
 the Reference map (available
 [here](https://www.ideca.gov.co/recursos/mapas/mapa-de-referencia-para-bogota-dc)).
+
+
+
 
 ```{r}
 #| label: get-LPU-boundaries
@@ -571,9 +697,15 @@ if(!file.exists(file.path("raw_data", "UPL_Bogota.zip"))) {
 lpu_boundaries <- st_read("raw_data/MR_VR0924_UPL.gpkg")
 ```
 
+
+
+
 LPU have been classified according to official sources (see this). North
 and Northwest sectors have been merged. Only urban sectors are
 considered.
+
+
+
 
 ```{r}
 lpu_sector <- read_csv("raw_data/UPL_sectors.csv",
@@ -581,41 +713,7 @@ lpu_sector <- read_csv("raw_data/UPL_sectors.csv",
                          CODIGO_UPL = col_character(),
                          Sector = col_character()
                          ))
-```
 
-
-```{r}
-lpu_classification <- lpu_boundaries |> 
-  left_join(lpu_sector,
-            by = "CODIGO_UPL")|> 
-  filter(Sector != "Rural") |> 
-  st_transform(st_crs(simpl_network_sf))
-```
-
-```{r}
-tm_lpu_sectors <- tm_shape(lpu_classification,relative = T,xlim = c(-.4,1))+
-  tm_polygons(fill = "Sector",
-              col = "gray95",lwd = 0.7,
-              fill.scale = tm_scale_categorical(values = RColorBrewer::brewer.pal(n = 6,
-                                                                                  name = "Set1")[c(1:2,6,3:5)]),
-          fill_alpha = 0.5)+
-tm_compass(type = "arrow", position = c("right", "bottom")) +
-tm_scalebar(position = c("left", "bottom"),breaks = c(0,2,4,6))+
-  tm_legend(position = tm_pos_auto_in(),frame = F)
-
-tm_lpu_sectors
-```
-
-
-```{r}
-#| eval: false
-#| include: false
-
-tmap_save(tm = tm_lpu_sectors,filename = "map_tm_lpu_sectors.png",units = "cm",height = 12,width = 10)
-```
-
-
-```{r}
 sector_boundaries <- lpu_boundaries |> 
   left_join(lpu_sector,
             by = "CODIGO_UPL") |> 
@@ -626,7 +724,13 @@ sector_boundaries <- lpu_boundaries |>
   st_transform(st_crs(simpl_network_sf))
 ```
 
+
+
+
 This shows
+
+
+
 
 ```{r}
 tm_shape(sector_boundaries) +
@@ -634,10 +738,16 @@ tm_shape(sector_boundaries) +
           fill.scale = tm_scale_categorical(values = "brewer.set1"),
           fill_alpha = 0.5) +
   tm_shape(major_net) +
-  tm_lines("gray70",col_alpha = .6)
+  tm_lines("gray60",col_alpha = .6)
 ```
 
+
+
+
 Spatial Join
+
+
+
 
 ```{r}
 sector_boundaries$n_reports <- st_intersects(sector_boundaries,minor_offences) |> vapply(length,numeric(1))
@@ -692,6 +802,9 @@ model_data_p_sec <- model_data_p |>
   drop_na(sector)
 ```
 
+
+
+
 ### Creating pseudo-absences
 
 Under the assumption that the transport police have the same number of
@@ -702,11 +815,20 @@ In this case we will assume that 10% of the roads are constantly
 monitored. Also, it is assumed that the allocation of officers is
 proportional to the size of the network.
 
+
+
+
 ```{r}
 sample_size <-  0.1
 ```
 
+
+
+
 Calculating the actual sample size for each sector.
+
+
+
 
 ```{r}
 sample_size_sector <- model_data_p_sec |>
@@ -718,10 +840,16 @@ sample_size_sector <- model_data_p_sec |>
 sample_size_sector |> kable()
 ```
 
+
+
+
 Based on these sample sizes, we will randomly sample different roads
 within the sector as pseudo-absences. Pseudo-absences are used in
 ecology when working with presence-only data and no actual absences are
 recorded, for example, recording presence of exotic species.
+
+
+
 
 ```{r}
 set.seed(1234)
@@ -763,7 +891,13 @@ model_data_sampled_mlm <- model_data_sampled |>
 # model_data_sampled_mlm <- readRDS("model_data.RDS") |> data.frame() |> filter()
 ```
 
+
+
+
 ### Fitting a multilevel model
+
+
+
 
 ```{r}
 m0a <- glmer(offence_bool ~ (1|sector),
@@ -775,25 +909,43 @@ m0b <- glmer(offence_bool ~ (1|hour),
 summary(m0b)
 ```
 
+
+
+
 #### Intraclass Correlation Coefficient (ICC)
 
 The chances of having a offence report is explained by between-sector
 differences
+
+
+
 
 ```{r}
 icca <- m0a@theta[1]^2/ (m0a@theta[1]^2 + (pi^2/3))
 icca
 ```
 
+
+
+
 The chances of having a offence report is explained by between-hour
 differences
+
+
+
 
 ```{r}
 iccb <- m0b@theta[1]^2/ (m0b@theta[1]^2 + (pi^2/3))
 iccb
 ```
 
+
+
+
 #### Constrained intermediate models
+
+
+
 
 ```{r}
 CIM <- glmer(offence_bool ~ logdiff_max + (1|sector)+(1|hour),
@@ -828,14 +980,26 @@ anova(CIM,AIMa,AIMb,AIMc)
 ```
 
 
+
+
+
 The AIMa model is chosen considering that AIMc does not have a lower AIC and 
 the deviance do not improve significantly.
+
+
+
 
 ```{r}
 extract_eq(AIMa)
 ```
 
+
+
+
 Slope across the day
+
+
+
 
 ```{r}
 plot_slopes(AIMa,
@@ -851,16 +1015,18 @@ plot_slopes(AIMa,
        fill = "Sector")
 ```
 
+
+
+
 Slopes for each sector across the day 90% confidence intervals
 
+
+
+
 ```{r}
-sector.lab <- sector_boundaries$Sector
-names(sector.lab) <- 1:5
-
-
-slopes_sector <- plot_slopes(AIMa,
+plot_slopes(AIMa,
             variables = "logdiff_max",
-            by = c("hour","sector"), conf_level = 0.9)+
+            by = c("hour","sector"),conf_level = 0.9)+
   scale_color_brewer(type = "qual",
                      palette = "Set1")+
   scale_fill_brewer(type = "qual",
@@ -869,17 +1035,9 @@ slopes_sector <- plot_slopes(AIMa,
   # scale_y_continuous(limits = c(0,0.01))+
   labs(col = "Sector",
        fill = "Sector",
-       x = "Hour",
-       y = "log-odds")+
-  facet_wrap(sector~.,labeller = labeller(sector = sector.lab))+
+       x = "Hour")+
+  facet_wrap(sector~.)+
   scale_x_continuous(breaks = 0:24,labels = sprintf("%g:00",0:24))+
-  theme(axis.text.x = element_text(angle = 90,hjust = 1),panel.grid.minor = element_blank(),legend.position = "none")
-
-ggsave(plot = slopes_sector,filename = "slopes_sector.png",units = "cm",dpi = 330,height = 14,width = 25)
+  theme(axis.text.x = element_text(angle = 90))
 ```
-
-
-
-
-
 

@@ -182,6 +182,34 @@ net_2019_map
 ggsave(plot = net_2019_map,units = "cm",dpi = 330,width = 10,height = 12,filename = "network_map.png")
 ```
 
+```{r}
+#| eval: false
+#| include: false
+
+lwds <- c(1.7,1.5,1.4,1.2,0.5,0.5)/5.5
+
+net_2019_tm <- osm_bogota_200101[urban_perimeter,] |> 
+  mutate(highway = str_remove(highway, "_link") |> str_to_sentence()) |>
+  mutate(highway = factor(highway,
+                          levels = c("Trunk",
+                                     "Primary",
+                                     "Secondary",
+                                     "Tertiary",
+                                     "Residential",
+                                     "Unclassified"),
+                          ordered = T)) |>
+  mutate(highway.lwd = lwds[as.integer(highway)]) |> 
+  arrange(highway) |> 
+  tm_shape(relative = T,xlim = c(-.4,1))+
+  tm_lines(lwd = "highway.lwd",
+           lwd.legend = NULL,
+           col = "highway",
+           col.scale = tm_scale_categorical(values = paletteer_d("ggsci::lanonc_lancet",n = 7)),
+           col.legend = tm_legend(title = "Road class", position = tm_pos_in(),frame = F))
+  
+tmap_save(tm = net_2019_tm,filename = "map_tm_network.png",units = "cm",height = 12,width = 10)
+```
+
 
 ## Save network in `sf` format
 
