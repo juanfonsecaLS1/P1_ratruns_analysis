@@ -28,6 +28,10 @@ website:
         menu:
           - 3A_Congested_graph_WWD_allowed.qmd
           - 3B_Analysis_WWD_allowed.qmd
+      - text: "Other data exploration"
+        menu:
+          - 4A_population.qmd
+          - 4B_network.qmd
       - text: "Small Reproducible Test"
         menu:
           - D1_graph_centrality_tests.qmd

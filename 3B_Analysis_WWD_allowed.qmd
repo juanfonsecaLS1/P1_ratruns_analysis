@@ -159,6 +159,14 @@ simpl_subset_sf <- simpl_network_sf |>
 
 ```
 
+```{r}
+#| include: false
+#| eval: false
+
+st_write(simpl_network_sf,dsn = "sf_network/simplified_network.gpkg",append = F)
+```
+
+
 We are interested in the reports on residential and unclassified
 streets. For this, we will create two buffers from the subsets created
 before. It is uncertain how the coordinates of each report are recorded,
@@ -168,7 +176,7 @@ also, some uncertainty in the way the officers do it.
 ```{r}
 anti_buffer <- major_net |>
   st_union() |> 
-  st_buffer(10,endCapStyle = "FLAT")
+  st_buffer(15,endCapStyle = "FLAT")
 ```
 
 ```{r}
@@ -207,6 +215,88 @@ tm_shape(major_net)+
   tm_dots("red")+
   tm_layout(bg.color = "grey10")
 ```
+
+```{r}
+#| eval: false
+#| include: false
+
+sf_buffer_sample <- tibble(id = "point",
+                    lat = 4.636790742899646,
+                    lon = -74.06624384801985) |> 
+  st_as_sf(coords = c("lon","lat"),crs = 4326) |> 
+  st_transform(st_crs(major_net)) |> 
+  st_buffer(dist = 200,endCapStyle = "SQUARE")
+
+major_net_sample <- major_net[sf_buffer_sample,]
+
+major_buffer_sample <- major_net_sample |> st_buffer(15)
+
+
+
+subset_sample <- simpl_subset_sf[sf_buffer_sample,]
+
+subset_buffer_sample <- subset_sample |> st_buffer(20,endCapStyle = "FLAT")
+
+sf_off_sample <- bind_rows(
+  off_sf_all[sf_buffer_sample,]|>
+    filter(year == 2019,
+           day_type == "weekday") |> 
+    mutate(type = "Not assigned"),
+  minor_offences[sf_buffer_sample,]|>
+    filter(year == 2019,
+           day_type == "weekday") |> 
+    mutate(type = "Assigned to minor"))
+
+
+
+minor_offences_sample <- minor_offences[sf_buffer_sample,] |>
+    filter(year == 2019,
+           day_type == "weekday")
+
+
+minor_offences_sample$near_index <- st_nearest_feature(minor_offences_sample,subset_sample)
+minor_offences_sample$pair_id <- subset_sample$pair_id[minor_offences_sample$near_index]
+
+sf_lines_nearest <- st_nearest_points(subset_sample[minor_offences_sample$near_index,],minor_offences_sample,pairwise = T)
+
+# tmap_mode("plot")
+
+map_assignment_sample <- tm_shape(major_net_sample,
+                                  bbox = st_bbox(sf_buffer_sample),
+                                  relative = T,
+                                  xlim = c(-.6,1.1),
+                                  ext = 1.5,
+                                  unit = "m")+
+  tm_lines("gray60",col_alpha = 0.8,lwd = 4)+
+  tm_shape(major_buffer_sample)+
+  tm_fill("gray60",fill_alpha = 0.3)+
+  tm_shape(subset_sample)+
+  tm_lines("dodgerblue3",col_alpha = 0.8,lwd = 2)+
+  tm_shape(subset_buffer_sample)+
+  tm_fill("dodgerblue2",fill_alpha = 0.3)+
+  tm_shape(sf_off_sample)+
+  tm_dots(fill = "type",
+          fill.scale = tm_scale(values =c("firebrick2","goldenrod")),
+          fill.legend = tm_legend(title = "Offence Reports",position = tm_pos_in(),frame = F,bg.alpha = 0),
+          fill_alpha = "type",
+          fill_alpha.scale = tm_scale(values = c(0.8,0.3)),
+          fill_alpha.legend = NULL)+
+  tm_shape(sf_lines_nearest)+
+  tm_lines("black",col_alpha = 0.6)+
+  tm_scalebar(position = c("left","bottom"),breaks = c(0,50,100,150,200))+
+  tm_add_legend(
+    type = "lines",  
+    labels = c("Major", "Minor"),
+    col = c("gray60", "dodgerblue3"),
+    lwd = 2,
+    title = "Road type",position = tm_pos_in()
+  )
+
+tmap_save(tm = map_assignment_sample,filename = "map_tm_off_assigment.png",units = "cm",height = 10,width = 12)
+
+```
+
+
 
 #### Summary
 
@@ -551,82 +641,12 @@ model_data_p <- model_data |>
 
 ### Analysis by sectors
 
-We will use classification of Local Planning Units as analysis units.
-For that purpose, we load the `gkpg` file which has been extracted from
-the Reference map (available
-[here](https://www.ideca.gov.co/recursos/mapas/mapa-de-referencia-para-bogota-dc)).
-
+Loading the sector data 
 ```{r}
-#| label: get-LPU-boundaries
-
-dir.create("raw_data",showWarnings = F)
-
-if(!file.exists(file.path("raw_data", "UPL_Bogota.zip"))) {
-  u <-
-    "https://github.com/juanfonsecaLS1/P1_ratruns_analysis/releases/download/v0/UPL_Bogota.zip"
-  download.file(u, file.path("raw_data", basename(u)), mode = "wb")
-  unzip(zipfile = file.path("raw_data", basename(u)), exdir = "raw_data")
-}
-
-lpu_boundaries <- st_read("raw_data/MR_VR0924_UPL.gpkg")
+sector_boundaries <- st_read("sf_network/sector_boundaries.gpkg") |> 
+  st_transform(st_crs(minor_offences))
 ```
 
-LPU have been classified according to official sources (see this). North
-and Northwest sectors have been merged. Only urban sectors are
-considered.
-
-```{r}
-lpu_sector <- read_csv("raw_data/UPL_sectors.csv",
-                       col_types = cols(
-                         CODIGO_UPL = col_character(),
-                         Sector = col_character()
-                         ))
-```
-
-
-```{r}
-lpu_classification <- lpu_boundaries |> 
-  left_join(lpu_sector,
-            by = "CODIGO_UPL")|> 
-  filter(Sector != "Rural") |> 
-  st_transform(st_crs(simpl_network_sf))
-```
-
-```{r}
-tm_lpu_sectors <- tm_shape(lpu_classification,relative = T,xlim = c(-.4,1))+
-  tm_polygons(fill = "Sector",
-              col = "gray95",lwd = 0.7,
-              fill.scale = tm_scale_categorical(values = RColorBrewer::brewer.pal(n = 6,
-                                                                                  name = "Set1")[c(1:2,6,3:5)]),
-          fill_alpha = 0.5)+
-tm_compass(type = "arrow", position = c("right", "bottom")) +
-tm_scalebar(position = c("left", "bottom"),breaks = c(0,2,4,6))+
-  tm_legend(position = tm_pos_auto_in(),frame = F)
-
-tm_lpu_sectors
-```
-
-
-```{r}
-#| eval: false
-#| include: false
-
-tmap_save(tm = tm_lpu_sectors,filename = "map_tm_lpu_sectors.png",units = "cm",height = 12,width = 10)
-```
-
-
-```{r}
-sector_boundaries <- lpu_boundaries |> 
-  left_join(lpu_sector,
-            by = "CODIGO_UPL") |> 
-  mutate(Sector = str_remove(Sector,"(?<=North)west")) |> 
-  group_by(Sector) |> 
-  summarise(geom = st_union(geom)) |> 
-  filter(Sector != "Rural") |> 
-  st_transform(st_crs(simpl_network_sf))
-```
-
-This shows
 
 ```{r}
 tm_shape(sector_boundaries) +
@@ -858,7 +878,7 @@ sector.lab <- sector_boundaries$Sector
 names(sector.lab) <- 1:5
 
 
-slopes_sector <- plot_slopes(AIMa,
+slopes_sector <- plot_slopes(AIMc,
             variables = "logdiff_max",
             by = c("hour","sector"), conf_level = 0.9)+
   scale_color_brewer(type = "qual",
@@ -874,6 +894,14 @@ slopes_sector <- plot_slopes(AIMa,
   facet_wrap(sector~.,labeller = labeller(sector = sector.lab))+
   scale_x_continuous(breaks = 0:24,labels = sprintf("%g:00",0:24))+
   theme(axis.text.x = element_text(angle = 90,hjust = 1),panel.grid.minor = element_blank(),legend.position = "none")
+
+slopes_sector
+```
+
+
+```{r}
+#| eval: false
+#| include: false
 
 ggsave(plot = slopes_sector,filename = "slopes_sector.png",units = "cm",dpi = 330,height = 14,width = 25)
 ```

@@ -1,0 +1,44 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+```{r}
+#| label: packages
+#| message: false
+#| error: false
+#| warning: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "tmap",
+    "paletteer"
+)
+
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+```
+
+# Population by LPU
+
+
+
+## Loading LPU-sector data
+
+```{r}
+lpu_classification <- st_read("sf_network/lpu_with_sector.gpkg")
+sector_boundaries  <- st_read("sf_network/sector_boundaries.gpkg")
+
+```
+
+
+
+
+
+
+
