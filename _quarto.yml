@@ -20,6 +20,7 @@ website:
           - 1A_network.qmd
           - 1B_speed_data.qmd
           - 1C_infractions.qmd
+          - 1D_planning_units.qmd
       - text: "Centrality changes in Standard Network"
         menu:
           - 2A_Congested_graph_std_network.qmd
@@ -30,8 +31,8 @@ website:
           - 3B_Analysis_WWD_allowed.qmd
       - text: "Other data exploration"
         menu:
-          - 4A_population.qmd
-          - 4B_network.qmd
+          - 4A_lpu_population.qmd
+          - 4B_lpu_network.qmd
       - text: "Small Reproducible Test"
         menu:
           - D1_graph_centrality_tests.qmd
