@@ -1,55 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/index.html</loc>
+    <lastmod>2025-01-31T17:20:06.954Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D3_WWD_joining.html</loc>
+    <lastmod>2025-01-31T17:20:06.954Z</lastmod>
+  </url>
+  <url>
     <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D2_congestion_tests.html</loc>
     <lastmod>2025-01-31T17:20:06.954Z</lastmod>
   </url>
   <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D3_Offences_joining.html</loc>
-    <lastmod>2025-01-31T17:20:06.954Z</lastmod>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/4B_lpu_network.html</loc>
+    <lastmod>2025-06-10T15:01:05.841Z</lastmod>
   </url>
   <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/1B_speed_data.html</loc>
-    <lastmod>2025-01-31T17:20:06.952Z</lastmod>
-  </url>
-  <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D1_graph_centrality_tests.html</loc>
-    <lastmod>2025-01-31T17:20:06.953Z</lastmod>
-  </url>
-  <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/2A_Congested_graph_std_network.html</loc>
-    <lastmod>2025-01-31T17:20:06.953Z</lastmod>
-  </url>
-  <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/1A_network.html</loc>
-    <lastmod>2025-02-03T13:52:24.504Z</lastmod>
-  </url>
-  <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/about.html</loc>
-    <lastmod>2025-01-31T17:20:06.954Z</lastmod>
-  </url>
-  <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/index.html</loc>
-    <lastmod>2025-01-31T17:20:06.954Z</lastmod>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/3B_Analysis_WWD_allowed.html</loc>
+    <lastmod>2025-06-10T14:55:40.726Z</lastmod>
   </url>
   <url>
     <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/2B_Analysis_std_network.html</loc>
     <lastmod>2025-02-17T16:36:41.540Z</lastmod>
   </url>
   <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/3A_Congested_graph_WWD_allowed.html</loc>
-    <lastmod>2025-02-18T17:55:35.487Z</lastmod>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/1D_planning_units.html</loc>
+    <lastmod>2025-06-10T14:53:04.152Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/1B_speed_data.html</loc>
+    <lastmod>2025-01-31T17:20:06.952Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/1A_network.html</loc>
+    <lastmod>2025-05-23T15:37:52.392Z</lastmod>
   </url>
   <url>
     <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/1C_infractions.html</loc>
+    <lastmod>2025-04-17T11:15:47.496Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/2A_Congested_graph_std_network.html</loc>
     <lastmod>2025-01-31T17:20:06.953Z</lastmod>
   </url>
   <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/3B_Analysis_WWD_allowed.html</loc>
-    <lastmod>2025-03-14T17:59:00.606Z</lastmod>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/3A_Congested_graph_WWD_allowed.html</loc>
+    <lastmod>2025-05-29T10:37:54.971Z</lastmod>
   </url>
   <url>
-    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D3_WWD_joining.html</loc>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/4A_population.html</loc>
+    <lastmod>2025-06-10T14:58:55.493Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D1_graph_centrality_tests.html</loc>
+    <lastmod>2025-01-31T17:20:06.953Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/D3_Offences_joining.html</loc>
+    <lastmod>2025-01-31T17:20:06.954Z</lastmod>
+  </url>
+  <url>
+    <loc>https://juanfonsecaLS1.github.io/P1_ratruns_analysis/about.html</loc>
     <lastmod>2025-01-31T17:20:06.954Z</lastmod>
   </url>
 </urlset>
