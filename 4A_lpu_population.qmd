@@ -1,0 +1,126 @@
+---
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+```{r}
+#| label: packages
+#| message: false
+#| error: false
+#| warning: false
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+if (!require("remotes")) install.packages("remotes")
+pkgs = c(
+    "sf",
+    "tidyverse",
+    "tmap",
+    "paletteer",
+    "geojsonsf"
+)
+
+remotes::install_cran(pkgs)
+sapply(pkgs, require, character.only = TRUE)
+```
+
+# Population by LPU
+
+
+
+## Loading LPU-sector data
+
+```{r}
+lpu_classification <- st_read("sf_network/lpu_with_sector.gpkg")
+sector_boundaries  <- st_read("sf_network/sector_boundaries.gpkg")
+
+```
+
+
+## Population data
+
+```{r}
+if(!file.exists(file.path("raw_data", "pop_data.zip"))) {
+  u <- "https://bogota-laburbano.opendatasoft.com/api/explore/v2.1/catalog/datasets/censo-poblacion-2018-bogota/exports/shp?lang=en&timezone=Europe%2FLondon"
+  download.file(u,destfile = file.path("raw_data", "pop_data.zip"),mode = "wb")
+  unzip(zipfile = file.path("raw_data", "pop_data.zip"),exdir = "raw_data")
+} else {
+  pop_data <- st_read("raw_data/censo-poblacion-2018-bogota.shp")
+}
+```
+
+We are going to use the centroid data in the dataset, so we discard the initial geometry and create points from the coordinates in each row
+
+```{r}
+pop_centroids <- pop_data |>
+  st_drop_geometry() |>
+  tibble() |>
+  st_as_sf(coords = c("longitud","latitud"),
+           crs = 4326) |> 
+  st_transform(3116) |> 
+  mutate(across(tp27_perso,as.numeric))
+
+tm_shape(pop_centroids)+
+  tm_dots("tp27_perso")
+```
+
+
+Finding the corresponding sector for each centroid
+
+```{r}
+pop_centroids$index_lpu <- st_intersects(pop_centroids,lpu_classification) |> vapply(\(x){ifelse(is.null(x),NA_integer_,x)},FUN.VALUE = integer(1))
+```
+
+Calculating total residents for each LPU
+
+```{r}
+lpu_population <- pop_centroids |>
+  st_drop_geometry() |>  
+  summarise(across(tp27_perso,\(x) sum(x,na.rm = T)),.by = index_lpu) |> 
+  arrange(index_lpu)
+```
+
+A quick check of the total population in Bogotá
+```{r}
+lpu_population$tp27_perso |> sum()
+```
+
+Joining with the LPU
+
+```{r}
+lpu_population <- lpu_population[!is.na(lpu_population$index_lpu),]
+
+lpu_classification$population[lpu_population$index_lpu] <- lpu_population$tp27_perso
+```
+
+
+```{r}
+tm_shape(lpu_classification)+
+  tm_fill(fill = "population")+
+  tm_shape(sector_boundaries)+
+  tm_borders()
+```
+
+
+```{r}
+lpu_classification |> 
+  mutate(sector_area = as.numeric(st_area(geom))/10^6,
+         density = population/sector_area) |> 
+tm_shape()+
+  tm_fill(fill = "density")+
+  tm_shape(sector_boundaries)+
+  tm_borders()
+```
+
+
+
+
+
+
+
+
+
+
+
+

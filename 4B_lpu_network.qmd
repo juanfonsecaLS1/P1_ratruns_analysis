@@ -24,18 +24,62 @@ remotes::install_cran(pkgs)
 sapply(pkgs, require, character.only = TRUE)
 ```
 
-# Network characteristics by LPU
-
-
+# Network statistics by LPU
 
 ## Loading LPU-sector data
 
 ```{r}
 lpu_classification <- st_read("sf_network/lpu_with_sector.gpkg")
 sector_boundaries  <- st_read("sf_network/sector_boundaries.gpkg")
-
 ```
 
+## Loading simplified network
+
+```{r}
+network_sf <- st_read("sf_network/simplified_network.gpkg")
+```
+
+
+## Clipping the network
+
+```{r}
+net_sf_split <- st_intersection(network_sf,lpu_classification)
+```
+
+
+```{r}
+portions_lpu <- net_sf_split |>
+  mutate(rd_length = as.numeric(st_length(geom))*10e-3) |> 
+  st_drop_geometry() |> 
+  summarise(across(rd_length,sum),
+            .by = c(CODIGO_UPL,roadclass)) |> 
+  mutate(portion = rd_length/sum(rd_length),.by = CODIGO_UPL) |> 
+  select(-rd_length) |> 
+  pivot_wider(names_from = roadclass,values_from = portion,values_fill = 0)
+
+lpu_classification |> 
+  left_join(portions_lpu,by = "CODIGO_UPL") |> 
+  tm_shape()+
+  tm_fill("residential")+
+  tm_shape(sector_boundaries)+
+  tm_borders()
+```
+
+
+```{r}
+total_lpu <- net_sf_split |>
+  mutate(rd_length = as.numeric(st_length(geom))*10e-3) |> 
+  st_drop_geometry() |> 
+  summarise(across(rd_length,sum),
+            .by = c(CODIGO_UPL))
+
+lpu_classification |> 
+  left_join(total_lpu,by = "CODIGO_UPL") |> 
+  tm_shape()+
+  tm_fill("rd_length")+
+  tm_shape(sector_boundaries)+
+  tm_borders()
+```
 
 
 

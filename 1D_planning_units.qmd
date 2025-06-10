@@ -111,7 +111,8 @@ sector_boundaries <- lpu_boundaries |>
   mutate(Sector = str_remove(Sector,"(?<=North)west")) |> 
   group_by(Sector) |> 
   summarise(geom = st_union(geom)) |> 
-  filter(Sector != "Rural") 
+  filter(Sector != "Rural") |>
+  st_transform(3116)
 ```
 
 ```{r}
